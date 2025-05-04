@@ -230,3 +230,34 @@ button {
 .chat-input button:hover {
   background-color: #535bf2;
 }
+
+.test-setting {
+  margin: 2rem auto;
+  max-width: 500px;
+  padding: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #fff;
+}
+
+.test-setting h2 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.setting-form {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.setting-form input {
+  flex: 1;
+}
+
+.current-value {
+  padding: 0.5rem;
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  font-family: monospace;
+}

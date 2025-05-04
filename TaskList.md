@@ -6,7 +6,7 @@
 - [x] Create basic type definitions in types.ts
 - [x] Set up WebRTC connection infrastructure
 - [x] Implement STUN server configuration
-- [ ] Create SQLite database for host settings and game history
+- [x] Create SQLite database for host settings and game history
 - [x] Set up build process for client web page
 
 ## 2. Host Application Development
