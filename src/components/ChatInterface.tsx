@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import Peer from 'peerjs';
+import Peer, { DataConnection } from 'peerjs';
 
 interface Message {
+  id: string;
   sender: string;
   content: string;
   timestamp: Date;
@@ -17,6 +18,7 @@ export const ChatInterface = ({ peer, isHost }: ChatInterfaceProps) => {
   const [inputMessage, setInputMessage] = useState('');
   const [connectedPeers, setConnectedPeers] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const processedMessageIds = useRef<Set<string>>(new Set());
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -29,12 +31,15 @@ export const ChatInterface = ({ peer, isHost }: ChatInterfaceProps) => {
   const handleSendMessage = () => {
     if (!inputMessage.trim()) return;
 
+    const messageId = `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
     const newMessage: Message = {
+      id: messageId,
       sender: isHost ? 'Host' : 'Client',
       content: inputMessage,
       timestamp: new Date(),
     };
 
+    processedMessageIds.current.add(messageId);
     setMessages((prev) => [...prev, newMessage]);
     setInputMessage('');
 
@@ -51,14 +56,19 @@ export const ChatInterface = ({ peer, isHost }: ChatInterfaceProps) => {
   };
 
   useEffect(() => {
-    peer.on('connection', (conn) => {
+    const handleConnection = (conn: DataConnection) => {
       conn.on('data', (data: any) => {
         if (data.type === 'message') {
           const message = {
             ...data.data,
             timestamp: new Date(data.data.timestamp)
           };
-          setMessages((prev) => [...prev, message]);
+          
+          // Only add message if we haven't processed it before
+          if (!processedMessageIds.current.has(message.id)) {
+            processedMessageIds.current.add(message.id);
+            setMessages((prev) => [...prev, message]);
+          }
         }
       });
 
@@ -69,14 +79,23 @@ export const ChatInterface = ({ peer, isHost }: ChatInterfaceProps) => {
       conn.on('close', () => {
         setConnectedPeers((prev) => prev.filter((id) => id !== conn.peer));
       });
-    });
+    };
+
+    // Clean up previous listeners
+    peer.off('connection');
+    // Add new listener
+    peer.on('connection', handleConnection);
+
+    return () => {
+      peer.off('connection', handleConnection);
+    };
   }, [peer]);
 
   return (
     <div className="chat-container">
       <div className="chat-messages">
-        {messages.map((message, index) => (
-          <div key={index} className={`message ${message.sender === (isHost ? 'Host' : 'Client') ? 'own' : 'other'}`}>
+        {messages.map((message) => (
+          <div key={message.id} className={`message ${message.sender === (isHost ? 'Host' : 'Client') ? 'own' : 'other'}`}>
             <div className="message-sender">{message.sender}</div>
             <div className="message-content">{message.content}</div>
             <div className="message-timestamp">
@@ -91,7 +110,7 @@ export const ChatInterface = ({ peer, isHost }: ChatInterfaceProps) => {
           type="text"
           value={inputMessage}
           onChange={(e) => setInputMessage(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+          onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
           placeholder="Type a message..."
         />
         <button onClick={handleSendMessage}>Send</button>
