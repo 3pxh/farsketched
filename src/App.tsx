@@ -5,6 +5,21 @@ import { TestSetting } from './components/TestSetting';
 import { initializeDatabase } from './database';
 import { PeerProvider } from './contexts/PeerContext';
 import { usePeer } from './contexts/PeerContext';
+import { LobbyScreen } from './components/LobbyScreen';
+import { GameConfig } from './types';
+
+const defaultGameConfig: GameConfig = {
+  maxPlayers: 10,
+  minPlayers: 3,
+  roundCount: 3,
+  promptTimerSeconds: 45,
+  foolingTimerSeconds: 45,
+  guessingTimerSeconds: 20,
+  scoringDisplaySeconds: 10,
+  apiProvider: 'openai',
+  apiKey: '',
+  roomCode: ''
+};
 
 function HostInfo() {
   const { peerId } = usePeer();
@@ -17,6 +32,7 @@ function HostInfo() {
 
 function App() {
   const [dbInitialized, setDbInitialized] = useState(false);
+  const [gameStarted, setGameStarted] = useState(false);
 
   useEffect(() => {
     // Initialize database
@@ -35,16 +51,29 @@ function App() {
     return <div className="container">Initializing database...</div>;
   }
 
+  const handleStartGame = () => {
+    setGameStarted(true);
+  };
+
   return (
     <PeerProvider isHost={true}>
       <div className="container">
-        <h1>Farsketched</h1>
-        <TestSetting />
-        <main className="container">
-          <h1>Host Chat Room</h1>
-          <HostInfo />
-          <ChatInterface />
-        </main>
+        {!gameStarted ? (
+          <LobbyScreen 
+            gameConfig={defaultGameConfig}
+            onStartGame={handleStartGame}
+          />
+        ) : (
+          <>
+            <h1>Farsketched</h1>
+            <TestSetting />
+            <main className="container">
+              <h1>Host Chat Room</h1>
+              <HostInfo />
+              <ChatInterface />
+            </main>
+          </>
+        )}
       </div>
     </PeerProvider>
   );

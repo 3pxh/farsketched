@@ -1,0 +1,152 @@
+.lobby-screen {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 2rem;
+  background-color: #f5f5f5;
+  font-family: 'SignPainter', sans-serif;
+  text-transform: uppercase;
+}
+
+.lobby-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.lobby-header h1 {
+  font-size: 3rem;
+  margin: 0;
+  color: #333;
+}
+
+.room-code {
+  font-size: 1.5rem;
+  color: #666;
+  margin-top: 0.5rem;
+}
+
+.lobby-content {
+  display: flex;
+  flex: 1;
+  gap: 2rem;
+  justify-content: center;
+  align-items: center;
+}
+
+.qr-section {
+  text-align: center;
+}
+
+.qr-section h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.qr-container {
+  background-color: white;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1rem;
+}
+
+.join-url {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.join-url input {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.join-url button {
+  padding: 0.5rem 1rem;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.join-url button:hover {
+  background-color: #45a049;
+}
+
+.players-section {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  min-width: 300px;
+}
+
+.players-section h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.player-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.player-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+}
+
+.player-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.player-name {
+  font-size: 1.1rem;
+  color: #333;
+}
+
+.lobby-footer {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.start-game-button {
+  padding: 1rem 2rem;
+  font-size: 1.2rem;
+  background-color: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.start-game-button:hover:not(:disabled) {
+  background-color: #1976D2;
+}
+
+.start-game-button:disabled {
+  background-color: #BDBDBD;
+  cursor: not-allowed;
+}
+
+.player-count-warning {
+  margin-top: 1rem;
+  color: #F44336;
+  font-size: 1rem;
+} 

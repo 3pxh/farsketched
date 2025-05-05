@@ -1,45 +1,58 @@
+import { useState, useEffect } from 'react';
 import { ChatInterface } from "./components/ChatInterface";
 import "./App.css";
 import { PeerProvider } from './contexts/PeerContext';
 import { usePeer } from './contexts/PeerContext';
+import { PlayerSetup } from './components/PlayerSetup';
 
-function ClientConnectionForm() {
-  const { peerId, hostPeerId, setHostPeerId, isConnected, connectToHost } = usePeer();
+
+function ClientContent() {
+  const { isConnected, setHostPeerId, connectToHost, peerId } = usePeer();
+  const [hasAttemptedConnection, setHasAttemptedConnection] = useState(false);
+
+  useEffect(() => {
+    // Get roomCode from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomCode = urlParams.get('roomCode');
+    
+    if (roomCode && peerId && !isConnected && !hasAttemptedConnection) {
+      console.log('Setting host peer ID to:', roomCode);
+      setHostPeerId(roomCode);
+      setHasAttemptedConnection(true);
+    }
+  }, [setHostPeerId, isConnected, hasAttemptedConnection, peerId]);
+
+  // Separate effect for connecting after hostPeerId is set
+  useEffect(() => {
+    if (hasAttemptedConnection && !isConnected) {
+      console.log('Attempting to connect to host...');
+      connectToHost();
+    }
+  }, [hasAttemptedConnection, isConnected, connectToHost]);
 
   return (
-    <div>
-      <div className="peer-id">
-        Your Peer ID: {peerId}
+    <main className="container">
+      <h1>Farsketched</h1>
+      <div className="connection-status">
+        {isConnected ? (
+          <div>Connected to host</div>
+        ) : (
+          <div>Connecting to host...</div>
+        )}
       </div>
-      {!isConnected ? (
-        <div className="connection-form">
-          <input
-            type="text"
-            value={hostPeerId}
-            onChange={(e) => setHostPeerId(e.target.value)}
-            placeholder="Enter host's Peer ID"
-          />
-          <button onClick={connectToHost}>Connect to Host</button>
-        </div>
-      ) : (
-        <div className="connection-status">
-          Connected to host: {hostPeerId}
-        </div>
-      )}
-    </div>
+      <PlayerSetup />
+      {isConnected && <ChatInterface />}
+    </main>
   );
 }
 
 function ClientApp() {
   return (
     <PeerProvider isHost={false}>
-      <main className="container">
-        <h1>Client Chat Room</h1>
-        <ClientConnectionForm />
-        <ChatInterface />
-      </main>
+      <ClientContent />
     </PeerProvider>
   );
 }
 
 export default ClientApp;
+

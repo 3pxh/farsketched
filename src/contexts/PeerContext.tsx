@@ -1,6 +1,7 @@
 // PeerContext.ts
 import { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import Peer, { DataConnection } from 'peerjs';
+import { GameMessage, MessageType } from '../types';
 
 interface Message {
   id: string;
@@ -40,130 +41,173 @@ export const PeerProvider = ({ children, isHost }: PeerProviderProps) => {
   const connections = useRef<Record<string, DataConnection>>({});
 
   const handleMessage = (data: any) => {
-    if (data.type === 'message') {
-      const message = {
-        ...data.data,
-        timestamp: new Date(data.data.timestamp)
-      };
+    try {
+      const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
       
-      if (!processedMessageIds.current.has(message.id)) {
-        processedMessageIds.current.add(message.id);
-        setMessages((prev) => [...prev, message]);
+      if (parsedData.type === 'message') {
+        const message = {
+          ...parsedData.data,
+          timestamp: new Date(parsedData.data.timestamp)
+        };
+        
+        if (!processedMessageIds.current.has(message.id)) {
+          processedMessageIds.current.add(message.id);
+          setMessages((prev) => [...prev, message]);
+        }
+      } else if (Object.values(MessageType).includes(parsedData.type)) {
+        // Handle game-specific messages
+        const gameMessage = parsedData as GameMessage;
+        if (!processedMessageIds.current.has(gameMessage.messageId)) {
+          processedMessageIds.current.add(gameMessage.messageId);
+          setMessages((prev) => [...prev, {
+            id: gameMessage.messageId,
+            sender: isHost ? 'Host' : 'Client',
+            content: JSON.stringify(gameMessage),
+            timestamp: new Date(gameMessage.timestamp)
+          }]);
+        }
       }
+    } catch (error) {
+      console.error('Error handling message:', error);
     }
   };
 
   useEffect(() => {
+    console.log(`[${isHost ? 'Host' : 'Client'}] Initializing peer...`);
     const newPeer = new Peer();
     
     newPeer.on('open', (id) => {
+      console.log(`[${isHost ? 'Host' : 'Client'}] Peer initialized with ID:`, id);
       setPeerId(id);
-      console.log(`${isHost ? 'Host' : 'Client'} peer ID:`, id);
     });
 
     newPeer.on('error', (err) => {
-      console.error('Peer error:', err);
+      console.error(`[${isHost ? 'Host' : 'Client'}] Peer error:`, err);
     });
 
     setPeer(newPeer);
 
     return () => {
+      console.log(`[${isHost ? 'Host' : 'Client'}] Cleaning up peer...`);
       newPeer.destroy();
     };
   }, [isHost]);
 
   useEffect(() => {
-    if (!peer) return;
+    if (!peer) {
+      console.log(`[${isHost ? 'Host' : 'Client'}] No peer instance available`);
+      return;
+    }
 
+    console.log(`[${isHost ? 'Host' : 'Client'}] Setting up connection handler...`);
     const handleConnection = (conn: DataConnection) => {
-      console.log('New connection from:', conn.peer);
+      console.log(`[${isHost ? 'Host' : 'Client'}] New connection request from:`, conn.peer);
       
       // Store the connection
       connections.current[conn.peer] = conn;
       
       // Set up data handler for this connection
-      conn.on('data', handleMessage);
+      conn.on('data', (data) => {
+        console.log(`[${isHost ? 'Host' : 'Client'}] Received data from ${conn.peer}:`, data);
+        handleMessage(data);
+      });
 
       conn.on('open', () => {
-        console.log('Connection opened to peer:', conn.peer);
+        console.log(`[${isHost ? 'Host' : 'Client'}] Connection opened to peer:`, conn.peer);
         setConnectedPeers((prev) => [...prev, conn.peer]);
         
         // If we're the host, establish a connection back to the client
         if (isHost) {
+          console.log(`[Host] Establishing connection back to client:`, conn.peer);
           const hostConn = peer.connect(conn.peer);
           hostConn.on('open', () => {
-            console.log('Host connection back to client established:', conn.peer);
+            console.log(`[Host] Connection back to client established:`, conn.peer);
             connections.current[conn.peer] = hostConn;
             // Set up data handler for the host's connection
-            hostConn.on('data', handleMessage);
+            hostConn.on('data', (data) => {
+              console.log(`[Host] Received data from client ${conn.peer}:`, data);
+              handleMessage(data);
+            });
           });
         }
       });
 
       conn.on('close', () => {
-        console.log('Connection closed with peer:', conn.peer);
+        console.log(`[${isHost ? 'Host' : 'Client'}] Connection closed with peer:`, conn.peer);
         delete connections.current[conn.peer];
         setConnectedPeers((prev) => prev.filter((id) => id !== conn.peer));
       });
+
+      conn.on('error', (err) => {
+        console.error(`[${isHost ? 'Host' : 'Client'}] Connection error with ${conn.peer}:`, err);
+      });
     };
 
+    // Remove any existing connection handlers
     peer.off('connection');
+    // Add the new connection handler
     peer.on('connection', handleConnection);
+    console.log(`[${isHost ? 'Host' : 'Client'}] Connection handler setup complete`);
 
     return () => {
+      console.log(`[${isHost ? 'Host' : 'Client'}] Removing connection handler...`);
       peer.off('connection', handleConnection);
     };
   }, [peer, isHost]);
 
   const connectToHost = () => {
-    if (!peer || !hostPeerId) return;
+    if (!peer || !hostPeerId) {
+      console.log(`[Client] Cannot connect - peer: ${!!peer}, hostPeerId: ${hostPeerId}`);
+      return;
+    }
 
+    console.log(`[Client] Attempting to connect to host:`, hostPeerId);
     const conn = peer.connect(hostPeerId);
     
     conn.on('open', () => {
-      console.log('Connected to host');
+      console.log(`[Client] Connected to host:`, hostPeerId);
       setIsConnected(true);
       connections.current[hostPeerId] = conn;
       // Set up data handler for client's connection
-      conn.on('data', handleMessage);
+      conn.on('data', (data) => {
+        console.log(`[Client] Received data from host:`, data);
+        handleMessage(data);
+      });
     });
 
     conn.on('error', (err) => {
-      console.error('Connection error:', err);
+      console.error(`[Client] Connection error:`, err);
       setIsConnected(false);
       delete connections.current[hostPeerId];
     });
 
     conn.on('close', () => {
-      console.log('Connection closed');
+      console.log(`[Client] Connection closed with host`);
       setIsConnected(false);
       delete connections.current[hostPeerId];
     });
   };
 
   const sendMessage = (content: string) => {
-    if (!content.trim() || !peer) return;
+    if (!content.trim() || !peer) {
+      console.log(`[${isHost ? 'Host' : 'Client'}] Cannot send message - content: ${!!content}, peer: ${!!peer}`);
+      return;
+    }
 
-    const messageId = `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
-    const newMessage: Message = {
-      id: messageId,
-      sender: isHost ? 'Host' : 'Client',
-      content,
-      timestamp: new Date(),
-    };
-
-    processedMessageIds.current.add(messageId);
-    setMessages((prev) => [...prev, newMessage]);
-
-    // Send message through all established connections
-    Object.values(connections.current).forEach((conn) => {
-      if (conn.open) {
-        conn.send({
-          type: 'message',
-          data: newMessage,
-        });
-      }
-    });
+    try {
+      const parsedContent = typeof content === 'string' ? JSON.parse(content) : content;
+      console.log(`[${isHost ? 'Host' : 'Client'}] Sending message:`, parsedContent);
+      
+      // Send message through all established connections
+      Object.values(connections.current).forEach((conn) => {
+        if (conn.open) {
+          console.log(`[${isHost ? 'Host' : 'Client'}] Sending to peer ${conn.peer}:`, parsedContent);
+          conn.send(parsedContent);
+        }
+      });
+    } catch (error) {
+      console.error(`[${isHost ? 'Host' : 'Client'}] Error sending message:`, error);
+    }
   };
 
   return (
