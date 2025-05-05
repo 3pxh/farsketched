@@ -1,5 +1,5 @@
 // PeerContext.ts
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import Peer, { DataConnection } from 'peerjs';
 
 interface Message {
@@ -36,7 +36,22 @@ export const PeerProvider = ({ children, isHost }: PeerProviderProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [hostPeerId, setHostPeerId] = useState<string>("");
-  const processedMessageIds = new Set<string>();
+  const processedMessageIds = useRef<Set<string>>(new Set());
+  const connections = useRef<Record<string, DataConnection>>({});
+
+  const handleMessage = (data: any) => {
+    if (data.type === 'message') {
+      const message = {
+        ...data.data,
+        timestamp: new Date(data.data.timestamp)
+      };
+      
+      if (!processedMessageIds.current.has(message.id)) {
+        processedMessageIds.current.add(message.id);
+        setMessages((prev) => [...prev, message]);
+      }
+    }
+  };
 
   useEffect(() => {
     const newPeer = new Peer();
@@ -61,26 +76,33 @@ export const PeerProvider = ({ children, isHost }: PeerProviderProps) => {
     if (!peer) return;
 
     const handleConnection = (conn: DataConnection) => {
-      conn.on('data', (data: any) => {
-        if (data.type === 'message') {
-          const message = {
-            ...data.data,
-            timestamp: new Date(data.data.timestamp)
-          };
-          
-          if (!processedMessageIds.has(message.id)) {
-            processedMessageIds.add(message.id);
-            setMessages((prev) => [...prev, message]);
-          }
-        }
-      });
+      console.log('New connection from:', conn.peer);
+      
+      // Store the connection
+      connections.current[conn.peer] = conn;
+      
+      // Set up data handler for this connection
+      conn.on('data', handleMessage);
 
       conn.on('open', () => {
         console.log('Connection opened to peer:', conn.peer);
         setConnectedPeers((prev) => [...prev, conn.peer]);
+        
+        // If we're the host, establish a connection back to the client
+        if (isHost) {
+          const hostConn = peer.connect(conn.peer);
+          hostConn.on('open', () => {
+            console.log('Host connection back to client established:', conn.peer);
+            connections.current[conn.peer] = hostConn;
+            // Set up data handler for the host's connection
+            hostConn.on('data', handleMessage);
+          });
+        }
       });
 
       conn.on('close', () => {
+        console.log('Connection closed with peer:', conn.peer);
+        delete connections.current[conn.peer];
         setConnectedPeers((prev) => prev.filter((id) => id !== conn.peer));
       });
     };
@@ -91,7 +113,7 @@ export const PeerProvider = ({ children, isHost }: PeerProviderProps) => {
     return () => {
       peer.off('connection', handleConnection);
     };
-  }, [peer]);
+  }, [peer, isHost]);
 
   const connectToHost = () => {
     if (!peer || !hostPeerId) return;
@@ -101,16 +123,21 @@ export const PeerProvider = ({ children, isHost }: PeerProviderProps) => {
     conn.on('open', () => {
       console.log('Connected to host');
       setIsConnected(true);
+      connections.current[hostPeerId] = conn;
+      // Set up data handler for client's connection
+      conn.on('data', handleMessage);
     });
 
     conn.on('error', (err) => {
       console.error('Connection error:', err);
       setIsConnected(false);
+      delete connections.current[hostPeerId];
     });
 
     conn.on('close', () => {
       console.log('Connection closed');
       setIsConnected(false);
+      delete connections.current[hostPeerId];
     });
   };
 
@@ -125,17 +152,17 @@ export const PeerProvider = ({ children, isHost }: PeerProviderProps) => {
       timestamp: new Date(),
     };
 
-    processedMessageIds.add(messageId);
+    processedMessageIds.current.add(messageId);
     setMessages((prev) => [...prev, newMessage]);
 
-    connectedPeers.forEach((peerId) => {
-      const conn = peer.connect(peerId);
-      conn.on('open', () => {
+    // Send message through all established connections
+    Object.values(connections.current).forEach((conn) => {
+      if (conn.open) {
         conn.send({
           type: 'message',
           data: newMessage,
         });
-      });
+      }
     });
   };
 
