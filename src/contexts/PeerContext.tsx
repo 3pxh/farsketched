@@ -8,6 +8,7 @@ interface Message {
   sender: string;
   content: string;
   timestamp: Date;
+  isRead: boolean;
 }
 
 interface PeerContextType {
@@ -21,6 +22,7 @@ interface PeerContextType {
   setHostPeerId: (id: string) => void;
   connectToHost: () => void;
   sendMessage: (content: string) => void;
+  markRead: (messageId: string) => void;
 }
 
 const PeerContext = createContext<PeerContextType | null>(null);
@@ -40,6 +42,12 @@ export const PeerProvider = ({ children, isHost }: PeerProviderProps) => {
   const processedMessageIds = useRef<Set<string>>(new Set());
   const connections = useRef<Record<string, DataConnection>>({});
 
+  const markRead = (messageId: string) => {
+    setMessages(prev => prev.map(msg => 
+      msg.id === messageId ? { ...msg, isRead: true } : msg
+    ));
+  };
+
   const handleMessage = (data: any) => {
     try {
       const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
@@ -47,7 +55,8 @@ export const PeerProvider = ({ children, isHost }: PeerProviderProps) => {
       if (parsedData.type === 'message') {
         const message = {
           ...parsedData.data,
-          timestamp: new Date(parsedData.data.timestamp)
+          timestamp: new Date(parsedData.data.timestamp),
+          isRead: false
         };
         
         if (!processedMessageIds.current.has(message.id)) {
@@ -56,6 +65,7 @@ export const PeerProvider = ({ children, isHost }: PeerProviderProps) => {
         }
       } else if (Object.values(MessageType).includes(parsedData.type)) {
         // Handle game-specific messages
+        console.log('Received parseable game message:', parsedData);
         const gameMessage = parsedData as GameMessage;
         if (!processedMessageIds.current.has(gameMessage.messageId)) {
           processedMessageIds.current.add(gameMessage.messageId);
@@ -63,7 +73,8 @@ export const PeerProvider = ({ children, isHost }: PeerProviderProps) => {
             id: gameMessage.messageId,
             sender: isHost ? 'Host' : 'Client',
             content: JSON.stringify(gameMessage),
-            timestamp: new Date(gameMessage.timestamp)
+            timestamp: new Date(gameMessage.timestamp),
+            isRead: false
           }]);
         }
       }
@@ -223,6 +234,7 @@ export const PeerProvider = ({ children, isHost }: PeerProviderProps) => {
         setHostPeerId,
         connectToHost,
         sendMessage,
+        markRead,
       }}
     >
       {children}

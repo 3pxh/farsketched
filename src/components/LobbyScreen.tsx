@@ -6,11 +6,11 @@ import { usePeer } from '../contexts/PeerContext';
 interface LobbyScreenProps {
   gameConfig: GameConfig;
   onStartGame: () => void;
+  players: Player[];
 }
 
-export const LobbyScreen = ({ gameConfig, onStartGame }: LobbyScreenProps) => {
-  const { peerId, connectedPeers, sendMessage } = usePeer();
-  const [players, setPlayers] = useState<Player[]>([]);
+export const LobbyScreen = ({ gameConfig, onStartGame, players }: LobbyScreenProps) => {
+  const { peerId, sendMessage } = usePeer();
   const [joinUrl, setJoinUrl] = useState<string>('');
   const [speechSynthesis, setSpeechSynthesis] = useState<SpeechSynthesis | null>(null);
 
@@ -30,20 +30,17 @@ export const LobbyScreen = ({ gameConfig, onStartGame }: LobbyScreenProps) => {
     // Handle incoming messages from clients
     const handleMessage = (data: GameMessage) => {
       if (data.type === MessageType.SET_PLAYER_INFO) {
-        const newPlayer: Player = {
-          id: data.playerId,
-          name: data.name,
-          avatarUrl: data.avatarUrl,
-          connected: true,
-          points: 0,
-          lastSeen: Date.now()
-        };
-        setPlayers(prev => [...prev, newPlayer]);
-        
         // Notify all clients about the new player
         const playerJoinedMessage: GameMessage = {
           type: MessageType.PLAYER_JOINED,
-          player: newPlayer,
+          player: {
+            id: data.playerId,
+            name: data.name,
+            avatarUrl: data.avatarUrl,
+            connected: true,
+            points: 0,
+            lastSeen: Date.now()
+          },
           timestamp: Date.now(),
           messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
         };
@@ -52,7 +49,7 @@ export const LobbyScreen = ({ gameConfig, onStartGame }: LobbyScreenProps) => {
         // Speak welcome message
         if (speechSynthesis) {
           const utterance = new SpeechSynthesisUtterance(
-            `Welcome ${newPlayer.name}! ${players.length + 1} players in the room.`
+            `Welcome ${data.name}! ${players.length + 1} players in the room.`
           );
           speechSynthesis.speak(utterance);
         }
@@ -77,18 +74,11 @@ export const LobbyScreen = ({ gameConfig, onStartGame }: LobbyScreenProps) => {
     };
   }, [sendMessage, speechSynthesis, players.length]);
 
-  // Update players when connectedPeers changes
-  useEffect(() => {
-    // Remove players who are no longer connected
-    setPlayers(prev => prev.filter(player => connectedPeers.includes(player.id)));
-  }, [connectedPeers]);
-
   const canStartGame = players.length >= gameConfig.minPlayers && players.length <= gameConfig.maxPlayers;
 
   return (
     <div className="lobby-screen">
       <div className="lobby-header">
-        <h1>Farsketched</h1>
         <div className="room-code">Room Code: {peerId}</div>
       </div>
 

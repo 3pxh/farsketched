@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react";
-import { ChatInterface } from "./components/ChatInterface";
 import "./App.css";
-import { TestSetting } from './components/TestSetting';
 import { initializeDatabase } from './database';
 import { PeerProvider } from './contexts/PeerContext';
 import { usePeer } from './contexts/PeerContext';
-import { LobbyScreen } from './components/LobbyScreen';
 import { GameConfig } from './types';
+import { Game } from './components/Game';
 
 const defaultGameConfig: GameConfig = {
   maxPlayers: 10,
@@ -32,7 +30,6 @@ function HostInfo() {
 
 function App() {
   const [dbInitialized, setDbInitialized] = useState(false);
-  const [gameStarted, setGameStarted] = useState(false);
 
   useEffect(() => {
     // Initialize database
@@ -51,29 +48,11 @@ function App() {
     return <div className="container">Initializing database...</div>;
   }
 
-  const handleStartGame = () => {
-    setGameStarted(true);
-  };
-
   return (
     <PeerProvider isHost={true}>
       <div className="container">
-        {!gameStarted ? (
-          <LobbyScreen 
-            gameConfig={defaultGameConfig}
-            onStartGame={handleStartGame}
-          />
-        ) : (
-          <>
-            <h1>Farsketched</h1>
-            <TestSetting />
-            <main className="container">
-              <h1>Host Chat Room</h1>
-              <HostInfo />
-              <ChatInterface />
-            </main>
-          </>
-        )}
+        <HostInfo />
+        <Game gameConfig={defaultGameConfig} />
       </div>
     </PeerProvider>
   );
