@@ -1,58 +1,13 @@
-import { useState, useEffect } from "react";
-import Peer from "peerjs";
 import { ChatInterface } from "./components/ChatInterface";
 import "./App.css";
+import { PeerProvider } from './contexts/PeerContext';
+import { usePeer } from './contexts/PeerContext';
 
-function ClientApp() {
-  const [peer, setPeer] = useState<Peer | null>(null);
-  const [peerId, setPeerId] = useState<string>("");
-  const [hostPeerId, setHostPeerId] = useState<string>("");
-  const [isConnected, setIsConnected] = useState(false);
-
-  useEffect(() => {
-    // Initialize PeerJS
-    const newPeer = new Peer();
-    
-    newPeer.on('open', (id) => {
-      setPeerId(id);
-      console.log('Client peer ID:', id);
-    });
-
-    newPeer.on('error', (err) => {
-      console.error('Peer error:', err);
-    });
-
-    setPeer(newPeer);
-
-    return () => {
-      newPeer.destroy();
-    };
-  }, []);
-
-  const connectToHost = () => {
-    if (!peer || !hostPeerId) return;
-
-    const conn = peer.connect(hostPeerId);
-    
-    conn.on('open', () => {
-      console.log('Connected to host');
-      setIsConnected(true);
-    });
-
-    conn.on('error', (err) => {
-      console.error('Connection error:', err);
-      setIsConnected(false);
-    });
-
-    conn.on('close', () => {
-      console.log('Connection closed');
-      setIsConnected(false);
-    });
-  };
+function ClientConnectionForm() {
+  const { peerId, hostPeerId, setHostPeerId, isConnected, connectToHost } = usePeer();
 
   return (
-    <main className="container">
-      <h1>Client Chat Room</h1>
+    <div>
       <div className="peer-id">
         Your Peer ID: {peerId}
       </div>
@@ -71,10 +26,19 @@ function ClientApp() {
           Connected to host: {hostPeerId}
         </div>
       )}
-      {peer && isConnected && (
-        <ChatInterface peer={peer} isHost={false} />
-      )}
-    </main>
+    </div>
+  );
+}
+
+function ClientApp() {
+  return (
+    <PeerProvider isHost={false}>
+      <main className="container">
+        <h1>Client Chat Room</h1>
+        <ClientConnectionForm />
+        <ChatInterface />
+      </main>
+    </PeerProvider>
   );
 }
 

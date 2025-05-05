@@ -1,13 +1,21 @@
 import { useState, useEffect } from "react";
-import Peer from "peerjs";
 import { ChatInterface } from "./components/ChatInterface";
 import "./App.css";
 import { TestSetting } from './components/TestSetting';
 import { initializeDatabase } from './database';
+import { PeerProvider } from './contexts/PeerContext';
+import { usePeer } from './contexts/PeerContext';
+
+function HostInfo() {
+  const { peerId } = usePeer();
+  return (
+    <div className="peer-id">
+      Your Peer ID: {peerId}
+    </div>
+  );
+}
 
 function App() {
-  const [peer, setPeer] = useState<Peer | null>(null);
-  const [peerId, setPeerId] = useState<string>("");
   const [dbInitialized, setDbInitialized] = useState(false);
 
   useEffect(() => {
@@ -21,24 +29,6 @@ function App() {
       }
     };
     initDb();
-
-    // Initialize PeerJS
-    const newPeer = new Peer();
-    
-    newPeer.on('open', (id) => {
-      setPeerId(id);
-      console.log('Host peer ID:', id);
-    });
-
-    newPeer.on('error', (err) => {
-      console.error('Peer error:', err);
-    });
-
-    setPeer(newPeer);
-
-    return () => {
-      newPeer.destroy();
-    };
   }, []);
 
   if (!dbInitialized) {
@@ -46,19 +36,17 @@ function App() {
   }
 
   return (
-    <div className="container">
-      <h1>Farsketched</h1>
-      <TestSetting />
-      <main className="container">
-        <h1>Host Chat Room</h1>
-        <div className="peer-id">
-          Your Peer ID: {peerId}
-        </div>
-        {peer && (
-          <ChatInterface peer={peer} isHost={true} />
-        )}
-      </main>
-    </div>
+    <PeerProvider isHost={true}>
+      <div className="container">
+        <h1>Farsketched</h1>
+        <TestSetting />
+        <main className="container">
+          <h1>Host Chat Room</h1>
+          <HostInfo />
+          <ChatInterface />
+        </main>
+      </div>
+    </PeerProvider>
   );
 }
 

@@ -1,24 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
-import Peer, { DataConnection } from 'peerjs';
+import { useState, useRef, useEffect } from 'react';
+import { usePeer } from '../contexts/PeerContext';
 
-interface Message {
-  id: string;
-  sender: string;
-  content: string;
-  timestamp: Date;
-}
 
-interface ChatInterfaceProps {
-  peer: Peer;
-  isHost: boolean;
-}
-
-export const ChatInterface = ({ peer, isHost }: ChatInterfaceProps) => {
-  const [messages, setMessages] = useState<Message[]>([]);
+export const ChatInterface = () => {
+  const { isHost, messages, sendMessage } = usePeer();
   const [inputMessage, setInputMessage] = useState('');
-  const [connectedPeers, setConnectedPeers] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const processedMessageIds = useRef<Set<string>>(new Set());
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -30,66 +17,9 @@ export const ChatInterface = ({ peer, isHost }: ChatInterfaceProps) => {
 
   const handleSendMessage = () => {
     if (!inputMessage.trim()) return;
-
-    const messageId = `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
-    const newMessage: Message = {
-      id: messageId,
-      sender: isHost ? 'Host' : 'Client',
-      content: inputMessage,
-      timestamp: new Date(),
-    };
-
-    processedMessageIds.current.add(messageId);
-    setMessages((prev) => [...prev, newMessage]);
+    sendMessage(inputMessage);
     setInputMessage('');
-
-    // Broadcast message to all connected peers
-    connectedPeers.forEach((peerId) => {
-      const conn = peer.connect(peerId);
-      conn.on('open', () => {
-        conn.send({
-          type: 'message',
-          data: newMessage,
-        });
-      });
-    });
   };
-
-  useEffect(() => {
-    const handleConnection = (conn: DataConnection) => {
-      conn.on('data', (data: any) => {
-        if (data.type === 'message') {
-          const message = {
-            ...data.data,
-            timestamp: new Date(data.data.timestamp)
-          };
-          
-          // Only add message if we haven't processed it before
-          if (!processedMessageIds.current.has(message.id)) {
-            processedMessageIds.current.add(message.id);
-            setMessages((prev) => [...prev, message]);
-          }
-        }
-      });
-
-      conn.on('open', () => {
-        setConnectedPeers((prev) => [...prev, conn.peer]);
-      });
-
-      conn.on('close', () => {
-        setConnectedPeers((prev) => prev.filter((id) => id !== conn.peer));
-      });
-    };
-
-    // Clean up previous listeners
-    peer.off('connection');
-    // Add new listener
-    peer.on('connection', handleConnection);
-
-    return () => {
-      peer.off('connection', handleConnection);
-    };
-  }, [peer]);
 
   return (
     <div className="chat-container">
