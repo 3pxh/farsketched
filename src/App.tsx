@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import "./App.css";
 import { initializeDatabase } from './database';
 import { PeerProvider } from './contexts/PeerContext';
-import { usePeer } from './contexts/PeerContext';
 import { GameConfig } from './types';
 import { Game } from './components/Game';
 
