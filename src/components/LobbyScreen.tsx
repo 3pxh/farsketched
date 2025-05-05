@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Player, GameConfig, MessageType, GameMessage } from '../types';
 import { usePeer } from '../contexts/PeerContext';
+import './LobbyScreen.css';
 
 interface LobbyScreenProps {
   gameConfig: GameConfig;
@@ -78,34 +79,7 @@ export const LobbyScreen = ({ gameConfig, onStartGame, players }: LobbyScreenPro
 
   return (
     <div className="lobby-screen">
-      <div className="lobby-header">
-        <div className="room-code">Room Code: {peerId}</div>
-      </div>
-
       <div className="lobby-content">
-        <div className="qr-section">
-          <h2>Scan to Join</h2>
-          <div className="qr-container">
-            <QRCodeSVG
-              value={joinUrl}
-              size={256}
-              level="H"
-              includeMargin={true}
-            />
-          </div>
-          <div className="join-url">
-            <input
-              type="text"
-              value={joinUrl}
-              readOnly
-              onClick={(e) => (e.target as HTMLInputElement).select()}
-            />
-            <button onClick={() => navigator.clipboard.writeText(joinUrl)}>
-              Copy Link
-            </button>
-          </div>
-        </div>
-
         <div className="players-section">
           <h2>Players ({players.length}/{gameConfig.maxPlayers})</h2>
           <div className="player-list">
@@ -117,23 +91,39 @@ export const LobbyScreen = ({ gameConfig, onStartGame, players }: LobbyScreenPro
             ))}
           </div>
         </div>
-      </div>
 
-      <div className="lobby-footer">
-        <button
-          className="start-game-button"
-          onClick={onStartGame}
-          disabled={!canStartGame}
-        >
-          Start Game
-        </button>
-        {!canStartGame && (
-          <div className="player-count-warning">
-            {players.length < gameConfig.minPlayers
-              ? `Need ${gameConfig.minPlayers - players.length} more players to start`
-              : `Too many players (max ${gameConfig.maxPlayers})`}
+        <div className="qr-section">
+          <h2>Scan to Join</h2>
+          <div className="qr-container">
+            <QRCodeSVG
+              value={joinUrl}
+              size={256}
+              level="H"
+              marginSize={4}
+            />
           </div>
-        )}
+          <div className="join-url">
+            <button onClick={() => navigator.clipboard.writeText(joinUrl)}>
+              Copy Link
+            </button>
+          </div>
+          <div className="start-game-container">
+            <button
+              className="start-game-button"
+              onClick={onStartGame}
+              disabled={!canStartGame}
+            >
+              Start Game
+            </button>
+            {!canStartGame && (
+              <div className="player-count-warning">
+                {players.length < gameConfig.minPlayers
+                  ? `Need ${gameConfig.minPlayers - players.length} more players to start`
+                  : `Too many players (max ${gameConfig.maxPlayers})`}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

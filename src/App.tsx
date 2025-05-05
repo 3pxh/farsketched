@@ -19,15 +19,6 @@ const defaultGameConfig: GameConfig = {
   roomCode: ''
 };
 
-function HostInfo() {
-  const { peerId } = usePeer();
-  return (
-    <div className="peer-id">
-      Your Peer ID: {peerId}
-    </div>
-  );
-}
-
 function App() {
   const [dbInitialized, setDbInitialized] = useState(false);
 
@@ -51,7 +42,6 @@ function App() {
   return (
     <PeerProvider isHost={true}>
       <div className="container">
-        <HostInfo />
         <Game gameConfig={defaultGameConfig} />
       </div>
     </PeerProvider>
