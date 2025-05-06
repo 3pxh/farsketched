@@ -24,7 +24,7 @@ import {
   GameOverMessage,
   ErrorMessage,
   PromptErrorMessage
-} from '@/types';
+} from '@/games/farsketched/types';
 
 // Helper function to create a base message with required fields
 const createBaseMessage = (type: MessageType) => ({

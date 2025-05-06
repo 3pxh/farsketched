@@ -1,7 +1,7 @@
 // PeerContext.ts
 import { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import Peer, { DataConnection } from 'peerjs';
-import { GameMessage, MessageType } from '../types';
+import { GameMessage, MessageType } from '../games/farsketched/types';
 
 interface Message {
   id: string;

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import "./App.css";
 import { initializeDatabase } from './database';
 import { PeerProvider } from '@/contexts/PeerContext';
-import { GameConfig } from '@/types';
+import { GameConfig } from '@/games/farsketched/types';
 import Host from '@/games/farsketched/Host';
 import { Settings } from './components/Settings';
 

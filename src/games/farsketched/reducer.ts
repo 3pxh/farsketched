@@ -5,7 +5,7 @@ import {
   GameStage,
   GameConfig,
   Player
-} from '@/types';
+} from '@/games/farsketched/types';
 
 // Default game configuration
 const DEFAULT_CONFIG: GameConfig = {

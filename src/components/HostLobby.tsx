@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { Player, GameConfig, MessageType, GameMessage } from '../types';
+import { Player, GameConfig, MessageType, GameMessage } from '../games/farsketched/types';
 import { usePeer } from '../contexts/PeerContext';
 import './HostLobby.css';
 

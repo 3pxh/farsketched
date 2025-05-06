@@ -1,4 +1,4 @@
-import { GameStage, GameMessage, GameState } from '@/types';
+import { GameStage, GameMessage, GameState } from '@/games/farsketched/types';
 import { usePeer } from '@/contexts/PeerContext';
 import { PlayerSetup } from './PlayerSetup';
 import { useClientGameState } from '@/contexts/GameState';
@@ -36,7 +36,7 @@ function ClientContent() {
       {renderStage()}
     </div>
   );
-} 
+}
 
 export function Client() {
   return (

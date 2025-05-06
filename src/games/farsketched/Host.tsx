@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { GameStage, GameConfig, GameMessage, GameState } from '@/types';
+import { GameStage, GameConfig, GameMessage, GameState } from '@/games/farsketched/types';
 import { farsketchedReducer, initialState } from './reducer';
 import { HostLobby } from '@/components/HostLobby';
 import { usePeer } from '@/contexts/PeerContext';

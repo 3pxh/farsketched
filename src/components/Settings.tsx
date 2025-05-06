@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { GameConfig } from '../types';
+import { GameConfig } from '../games/farsketched/types';
 import { generateImages } from '../apis/imageGeneration';
 import { settingsManager } from '../settings';
 

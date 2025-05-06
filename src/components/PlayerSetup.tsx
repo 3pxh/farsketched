@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { usePeer } from '../contexts/PeerContext';
-import { MessageType, GameMessage } from '../types';
+// TODO: Extract player setup and start message types to a shared types file
+import { MessageType, GameMessage } from '../games/farsketched/types';
 import './PlayerSetup.css';
 
 export const PlayerSetup = () => {
