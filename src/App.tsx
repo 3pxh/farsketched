@@ -3,7 +3,7 @@ import "./App.css";
 import { initializeDatabase } from './database';
 import { PeerProvider } from './contexts/PeerContext';
 import { GameConfig } from './types';
-import { Farsketched } from './games/Farsketched';
+import { Farsketched } from '@/games/farsketched';
 import { Settings } from './components/Settings';
 
 const defaultGameConfig: GameConfig = {

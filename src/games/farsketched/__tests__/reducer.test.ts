@@ -1,4 +1,4 @@
-import { gameStateReducer, initialState } from '../gameStateReducer';
+import { farsketchedReducer, initialState } from '../reducer';
 import { 
   MessageType, 
   GameStage, 
@@ -24,7 +24,7 @@ import {
   GameOverMessage,
   ErrorMessage,
   PromptErrorMessage
-} from '../../types';
+} from '@/types';
 
 // Helper function to create a base message with required fields
 const createBaseMessage = (type: MessageType) => ({
@@ -39,9 +39,9 @@ const createMessage = <T extends GameMessage>(type: MessageType, additionalProps
   ...additionalProps
 } as T);
 
-describe('gameStateReducer', () => {
+describe('farsketchedReducer', () => {
   it('should return initial state when no state is provided', () => {
-    const result = gameStateReducer(undefined, createMessage<PingMessage>(MessageType.PING, {}));
+    const result = farsketchedReducer(undefined, createMessage<PingMessage>(MessageType.PING, {}));
     expect(result).toEqual(initialState);
   });
 
@@ -52,7 +52,7 @@ describe('gameStateReducer', () => {
       avatarUrl: 'https://example.com/avatar.png'
     });
 
-    const result = gameStateReducer(initialState, message);
+    const result = farsketchedReducer(initialState, message);
 
     expect(result.players).toHaveProperty('player1');
     expect(result.players['player1']).toEqual({
@@ -76,7 +76,7 @@ describe('gameStateReducer', () => {
     ];
 
     connectionMessages.forEach(message => {
-      const result = gameStateReducer(initialState, message);
+      const result = farsketchedReducer(initialState, message);
       expect(result).toEqual(initialState);
     });
   });
@@ -90,7 +90,7 @@ describe('gameStateReducer', () => {
     ];
 
     lobbyMessages.forEach(message => {
-      const result = gameStateReducer(initialState, message);
+      const result = farsketchedReducer(initialState, message);
       expect(result).toEqual(initialState);
     });
   });
@@ -108,7 +108,7 @@ describe('gameStateReducer', () => {
     ];
 
     gameFlowMessages.forEach(message => {
-      const result = gameStateReducer(initialState, message);
+      const result = farsketchedReducer(initialState, message);
       expect(result).toEqual(initialState);
     });
   });
@@ -120,13 +120,13 @@ describe('gameStateReducer', () => {
     ];
 
     errorMessages.forEach(message => {
-      const result = gameStateReducer(initialState, message);
+      const result = farsketchedReducer(initialState, message);
       expect(result).toEqual(initialState);
     });
   });
 
   it('should handle unknown message types by returning current state', () => {
-    const result = gameStateReducer(initialState, createMessage<PingMessage>('UNKNOWN_TYPE' as MessageType, {}));
+    const result = farsketchedReducer(initialState, createMessage<PingMessage>('UNKNOWN_TYPE' as MessageType, {}));
     expect(result).toEqual(initialState);
   });
 }); 

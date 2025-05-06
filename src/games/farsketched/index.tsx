@@ -1,15 +1,15 @@
 import { useReducer, useEffect } from 'react';
-import { GameStage, GameConfig, GameMessage } from '../types';
-import { gameStateReducer, initialState } from '../reducers/gameStateReducer';
-import { LobbyScreen } from '../components/LobbyScreen';
-import { usePeer } from '../contexts/PeerContext';
+import { GameStage, GameConfig, GameMessage } from '@/types';
+import { farsketchedReducer, initialState } from './reducer';
+import { LobbyScreen } from '@/components/LobbyScreen';
+import { usePeer } from '@/contexts/PeerContext';
 
 interface FarsketchedProps {
   gameConfig: GameConfig;
 }
 
 export const Farsketched = ({ gameConfig }: FarsketchedProps) => {
-  const [gameState, dispatch] = useReducer(gameStateReducer, {
+  const [gameState, dispatch] = useReducer(farsketchedReducer, {
     ...initialState,
     config: gameConfig
   });

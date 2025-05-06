@@ -5,7 +5,7 @@ import {
   GameStage,
   GameConfig,
   Player
-} from '../types';
+} from '@/types';
 
 // Default game configuration
 const DEFAULT_CONFIG: GameConfig = {
@@ -39,7 +39,7 @@ export const initialState: GameState = {
   achievements: []
 };
 
-export function gameStateReducer(
+export function farsketchedReducer(
   state: GameState = initialState,
   message: GameMessage
 ): GameState {
