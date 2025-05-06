@@ -85,7 +85,7 @@ export interface Player {
     MOST_ACCURATE = 'most_accurate',   // Most correct guesses
     BEST_BULLSHITTER = 'best_bullshitter', // Most people fooled by fake prompts
     THE_CHAOTICIAN = 'the_chaotician', // Biggest spread of votes across prompts
-    THE_PAINTER = 'the_painter'        // Most real prompts guessed
+    THE_PAINTER = 'the_painter'        // Most real prompts guessed of their images
   }
   
   /**
