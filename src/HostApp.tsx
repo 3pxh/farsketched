@@ -19,7 +19,7 @@ const defaultGameConfig: GameConfig = {
   roomCode: ''
 };
 
-function App() {
+function HostApp() {
   const [dbInitialized, setDbInitialized] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [gameConfig, setGameConfig] = useState<GameConfig>(defaultGameConfig);
@@ -72,4 +72,4 @@ function App() {
   );
 }
 
-export default App;
+export default HostApp; 
