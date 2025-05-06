@@ -1,3 +1,11 @@
+## Setup
+
+- Get Tauri installed. Repo built with node 21 (nvm it). Then `npm install`
+- Run `npm run tauri dev` to get the Tauri app up.
+- For the client, `npm build:watch` will rebuild the client when changes are saved.
+- To serve the client, just `cd dist && python3 -m http.server 8000` like it's 300 BC and your CDN is the agora.
+
+# Design Doc
 
 ## Pitch
 A multiplayer game where players give prompts to an image generator and then try to guess the prompt which made an image while tricking the others by making up alternate prompts.
