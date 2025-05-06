@@ -1,14 +1,14 @@
 import { useReducer, useEffect } from 'react';
 import { GameStage, GameConfig, GameMessage } from '@/types';
 import { farsketchedReducer, initialState } from './reducer';
-import { HostLobby } from '@/components/HostLobby';
 import { usePeer } from '@/contexts/PeerContext';
+import { PlayerSetup } from './PlayerSetup';
 
-interface FarsketchedProps {
+interface ClientProps {
   gameConfig: GameConfig;
 }
 
-export const Farsketched = ({ gameConfig }: FarsketchedProps) => {
+export function Client({ gameConfig }: ClientProps) {
   const [gameState, dispatch] = useReducer(farsketchedReducer, {
     ...initialState,
     config: gameConfig
@@ -30,20 +30,10 @@ export const Farsketched = ({ gameConfig }: FarsketchedProps) => {
     });
   }, [messages, markRead]);
 
-  const handleStartGame = () => {
-    // TODO: Dispatch game start action
-    console.log('Game started');
-  };
-
   const renderStage = () => {
     switch (gameState.stage) {
       case GameStage.LOBBY:
-        return (
-          <HostLobby 
-            gameConfig={gameConfig}
-            players={Object.values(gameState.players)}
-          />
-        );
+        return <PlayerSetup />;
       case GameStage.PROMPTING:
         return <p>Prompting Stage</p>;
       case GameStage.FOOLING:
@@ -65,4 +55,4 @@ export const Farsketched = ({ gameConfig }: FarsketchedProps) => {
       {renderStage()}
     </div>
   );
-}; 
+} 
