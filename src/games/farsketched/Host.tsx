@@ -14,17 +14,14 @@ function HostContent({ gameConfig }: HostProps) {
   const { state: gameState, updateState } = useHostGameState<GameState>();
   const { messages, markRead } = usePeer();
 
-  // Process unread messages and dispatch game state updates
+  // TODO: move this out; it will be used by all games
   useEffect(() => {
     const unreadMessages = messages.filter(msg => !msg.isRead);
     
     unreadMessages.forEach(msg => {
       try {
         const gameMessage = JSON.parse(msg.content) as GameMessage;
-        
-        // Update state using the reducer pattern but through the host state context
         updateState(currentState => farsketchedReducer(currentState, gameMessage));
-        
         markRead(msg.id);
       } catch (error) {
         console.error('Error processing game message:', error);
@@ -60,34 +57,16 @@ function HostContent({ gameConfig }: HostProps) {
     <div className="game-container">
       <h1>Farsketched</h1>
       {renderStage()}
-      
-      {/* Debug information if needed */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="mt-4 p-2 bg-gray-100 rounded">
-          <details>
-            <summary className="cursor-pointer font-bold">Debug: Game State</summary>
-            <pre className="text-xs mt-2 overflow-auto max-h-64">
-              {JSON.stringify(gameState, null, 2)}
-            </pre>
-          </details>
-        </div>
-      )}
     </div>
   );
 }
 
 export default function Host({ gameConfig }: HostProps) {
-  // Create an initial state that includes the game config
-  const mergedInitialState = {
-    ...initialState,
-    // config: gameConfig
-  };
-  
   return (
     <HostGameStateProvider<GameState> 
-      initialState={mergedInitialState} 
+      initialState={initialState} 
       debug={true}
-      syncInterval={100} // Adjust based on your needs
+      syncInterval={100}
     >
       <HostContent gameConfig={gameConfig} />
     </HostGameStateProvider>
