@@ -1,34 +1,15 @@
-import { useReducer, useEffect } from 'react';
-import { GameStage, GameConfig, GameMessage } from '@/types';
-import { farsketchedReducer, initialState } from './reducer';
+import { GameStage, GameMessage, GameState } from '@/types';
 import { usePeer } from '@/contexts/PeerContext';
 import { PlayerSetup } from './PlayerSetup';
+import { useClientGameState } from '@/contexts/GameState';
+import { ClientGameStateProvider } from '@/contexts/GameState';
+import { initialState } from '@/games/farsketched/reducer';
 
-interface ClientProps {
-  gameConfig: GameConfig;
-}
+function ClientContent() {
+  const { sendMessage } = usePeer();
+  const gameStateContext = useClientGameState<GameState>();
+  const gameState = gameStateContext.state;
 
-export function Client({ gameConfig }: ClientProps) {
-  const [gameState, dispatch] = useReducer(farsketchedReducer, {
-    ...initialState,
-    config: gameConfig
-  });
-  const { messages, markRead } = usePeer();
-
-  // Process unread messages and dispatch game state updates
-  useEffect(() => {
-    const unreadMessages = messages.filter(msg => !msg.isRead);
-    
-    unreadMessages.forEach(msg => {
-      try {
-        const gameMessage = JSON.parse(msg.content) as GameMessage;
-        dispatch(gameMessage);
-        markRead(msg.id);
-      } catch (error) {
-        console.error('Error processing game message:', error);
-      }
-    });
-  }, [messages, markRead]);
 
   const renderStage = () => {
     switch (gameState.stage) {
@@ -56,3 +37,11 @@ export function Client({ gameConfig }: ClientProps) {
     </div>
   );
 } 
+
+export function Client() {
+  return (
+    <ClientGameStateProvider<GameState> initialState={initialState} debug={true}>
+      <ClientContent />
+    </ClientGameStateProvider>
+  );
+}
