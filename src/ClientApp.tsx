@@ -1,10 +1,8 @@
 import { useState, useEffect } from 'react';
-import { ChatInterface } from "./components/ChatInterface";
 import "./App.css";
 import { PeerProvider } from './contexts/PeerContext';
 import { usePeer } from './contexts/PeerContext';
 import { PlayerSetup } from './components/PlayerSetup';
-
 
 function ClientContent() {
   const { isConnected, setHostPeerId, connectToHost, peerId } = usePeer();
@@ -41,7 +39,6 @@ function ClientContent() {
         )}
       </div>
       <PlayerSetup />
-      {isConnected && <ChatInterface />}
     </main>
   );
 }

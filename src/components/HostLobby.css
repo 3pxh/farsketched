@@ -1,0 +1,94 @@
+.host-lobby {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.lobby-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+}
+
+.players-section {
+  padding: 1rem;
+}
+
+.players-section h2 {
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.player-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.player-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+}
+
+.player-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.player-name {
+  font-weight: 500;
+  color: #333;
+}
+
+.qr-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+}
+
+.qr-section h2 {
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.qr-container {
+  background-color: white;
+  padding: 1rem;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1rem;
+}
+
+.join-url {
+  margin-bottom: 1rem;
+}
+
+.join-url button {
+  padding: 0.5rem 1rem;
+  background-color: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.join-url button:hover {
+  background-color: #1976D2;
+}
+
+.player-count-warning {
+  color: #F44336;
+  font-size: 1rem;
+  text-align: center;
+} 

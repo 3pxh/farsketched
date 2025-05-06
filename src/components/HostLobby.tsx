@@ -2,15 +2,14 @@ import { useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Player, GameConfig, MessageType, GameMessage } from '../types';
 import { usePeer } from '../contexts/PeerContext';
-import './LobbyScreen.css';
+import './HostLobby.css';
 
-interface LobbyScreenProps {
+interface HostLobbyProps {
   gameConfig: GameConfig;
-  onStartGame: () => void;
   players: Player[];
 }
 
-export const LobbyScreen = ({ gameConfig, onStartGame, players }: LobbyScreenProps) => {
+export const HostLobby = ({ gameConfig, players }: HostLobbyProps) => {
   const { peerId, sendMessage } = usePeer();
   const [joinUrl, setJoinUrl] = useState<string>('');
   const [speechSynthesis, setSpeechSynthesis] = useState<SpeechSynthesis | null>(null);
@@ -75,10 +74,8 @@ export const LobbyScreen = ({ gameConfig, onStartGame, players }: LobbyScreenPro
     };
   }, [sendMessage, speechSynthesis, players.length]);
 
-  const canStartGame = players.length >= gameConfig.minPlayers && players.length <= gameConfig.maxPlayers;
-
   return (
-    <div className="lobby-screen">
+    <div className="host-lobby">
       <div className="lobby-content">
         <div className="players-section">
           <h2>Players ({players.length}/{gameConfig.maxPlayers})</h2>
@@ -106,22 +103,6 @@ export const LobbyScreen = ({ gameConfig, onStartGame, players }: LobbyScreenPro
             <button onClick={() => navigator.clipboard.writeText(joinUrl)}>
               Copy Link
             </button>
-          </div>
-          <div className="start-game-container">
-            <button
-              className="start-game-button"
-              onClick={onStartGame}
-              disabled={!canStartGame}
-            >
-              Start Game
-            </button>
-            {!canStartGame && (
-              <div className="player-count-warning">
-                {players.length < gameConfig.minPlayers
-                  ? `Need ${gameConfig.minPlayers - players.length} more players to start`
-                  : `Too many players (max ${gameConfig.maxPlayers})`}
-              </div>
-            )}
           </div>
         </div>
       </div>

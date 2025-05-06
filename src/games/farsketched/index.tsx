@@ -1,7 +1,7 @@
 import { useReducer, useEffect } from 'react';
 import { GameStage, GameConfig, GameMessage } from '@/types';
 import { farsketchedReducer, initialState } from './reducer';
-import { LobbyScreen } from '@/components/LobbyScreen';
+import { HostLobby } from '@/components/HostLobby';
 import { usePeer } from '@/contexts/PeerContext';
 
 interface FarsketchedProps {
@@ -39,9 +39,8 @@ export const Farsketched = ({ gameConfig }: FarsketchedProps) => {
     switch (gameState.stage) {
       case GameStage.LOBBY:
         return (
-          <LobbyScreen 
+          <HostLobby 
             gameConfig={gameConfig}
-            onStartGame={handleStartGame}
             players={Object.values(gameState.players)}
           />
         );
