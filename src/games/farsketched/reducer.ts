@@ -1,7 +1,7 @@
-import { 
-  GameState, 
-  GameMessage, 
-  MessageType, 
+import {
+  GameState,
+  GameMessage,
+  MessageType,
   GameStage,
   GameConfig,
   Player
@@ -73,9 +73,16 @@ export function farsketchedReducer(
         }
       };
     }
+    case MessageType.PLAYER_LEFT:
+      return {
+        ...state,
+        players: {
+          ...state.players,
+          [message.playerId]: { ...state.players[message.playerId], connected: false }
+        }
+      };
 
     case MessageType.PLAYER_JOINED:
-    case MessageType.PLAYER_LEFT:
     case MessageType.REQUEST_START_GAME:
     case MessageType.CANCEL_START_GAME:
       return state;

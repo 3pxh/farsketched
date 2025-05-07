@@ -83,7 +83,7 @@ export const HostLobby = ({ gameConfig, players }: HostLobbyProps) => {
             {players.map((player) => (
               <div key={player.id} className="player-item">
                 <img src={player.avatarUrl} alt={player.name} className="player-avatar" />
-                <span className="player-name">{player.name}</span>
+                <span className="player-name">{player.connected ? player.name : (<s>{player.name}</s>)}</span>
               </div>
             ))}
           </div>

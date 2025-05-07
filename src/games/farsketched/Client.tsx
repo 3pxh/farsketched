@@ -1,4 +1,4 @@
-import { GameStage, GameMessage, GameState } from '@/games/farsketched/types';
+import { GameStage, GameState } from '@/games/farsketched/types';
 import { usePeer } from '@/contexts/PeerContext';
 import { PlayerSetup } from './PlayerSetup';
 import { useClientGameState } from '@/contexts/GameState';
@@ -6,7 +6,7 @@ import { ClientGameStateProvider } from '@/contexts/GameState';
 import { initialState } from '@/games/farsketched/reducer';
 
 function ClientContent() {
-  const { sendMessage } = usePeer();
+  const { } = usePeer();
   const gameStateContext = useClientGameState<GameState>();
   const gameState = gameStateContext.state;
 
