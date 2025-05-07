@@ -30,15 +30,11 @@ function ClientContent() {
 
   return (
     <main className="container">
-      <h1>Farsketched</h1>
-      <div className="connection-status">
-        {isConnected ? (
-          <div>Connected to host</div>
-        ) : (
-          <div>Connecting to host...</div>
-        )}
-      </div>
-      <Client />
+      {isConnected ? (
+        <Client />
+      ) : (
+        <div className="connection-status">Connecting to host...</div>
+      )}
     </main>
   );
 }

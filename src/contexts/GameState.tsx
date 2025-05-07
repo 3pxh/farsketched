@@ -11,14 +11,29 @@ export enum GameStateMessageType {
   REQUEST_FULL_STATE = 'GAME_REQUEST_FULL_STATE'
 }
 
-// Interface for game state messages
-interface GameStateMessage<T> {
+interface BaseGameStateMessage {
   type: GameStateMessageType;
-  payload: T | Partial<T>;
   version: number;
   timestamp: number;
   messageId: string;
 }
+
+interface FullStateMessage<T> extends BaseGameStateMessage {
+  type: GameStateMessageType.FULL_STATE;
+  payload: T;
+}
+
+interface PatchStateMessage<T> extends BaseGameStateMessage {
+  type: GameStateMessageType.PATCH;
+  payload: Partial<T>;
+}
+
+interface RequestFullStateMessage extends BaseGameStateMessage {
+  type: GameStateMessageType.REQUEST_FULL_STATE;
+  payload: {};
+}
+
+type GameStateMessage<T> = FullStateMessage<T> | PatchStateMessage<T> | RequestFullStateMessage;
 
 // Host Context
 interface HostGameStateContextType<T> {
@@ -38,13 +53,13 @@ interface HostGameStateProviderProps<T> {
   debug?: boolean;
 }
 
-export function HostGameStateProvider<T>({
+export function HostGameStateProvider<T extends object>({
   children,
   initialState,
   syncInterval = 50,
   debug = false
 }: HostGameStateProviderProps<T>) {
-  const { sendMessage, connectedPeers, messages } = usePeer();
+  const { sendMessage, connectedPeers, messages } = usePeer<GameStateMessage<T>>();
   const [state, setState] = useState<T>(initialState);
   const [version, setVersion] = useState(0);
   const previousStateRef = useRef<T>(_.cloneDeep(initialState));
@@ -80,20 +95,14 @@ export function HostGameStateProvider<T>({
       messageId: uuidv4()
     };
     
-    sendMessage(JSON.stringify(fullStateMessage));
+    sendMessage(fullStateMessage);
   };
 
   // Handle incoming messages
   useEffect(() => {
-    // Process only the most recent unread messages
-    const unreadMessages = messages.filter(msg => !msg.isRead);
-    
-    unreadMessages.forEach(message => {
+    messages.forEach(message => {
       try {
-        const parsedContent = JSON.parse(message.content);
-        
-        // Handle game state specific messages
-        if (parsedContent.type === GameStateMessageType.REQUEST_FULL_STATE) {
+        if (message.type === GameStateMessageType.REQUEST_FULL_STATE) {
           logDebug('Received request for full state from client');
           broadcastFullState();
         }
@@ -124,7 +133,7 @@ export function HostGameStateProvider<T>({
           messageId: uuidv4()
         };
         
-        sendMessage(JSON.stringify(patchMessage));
+        sendMessage(patchMessage);
         
         // Update previous state reference
         previousStateRef.current = _.cloneDeep(state);
@@ -184,7 +193,7 @@ export function ClientGameStateProvider<T>({
   initialState,
   debug = false
 }: ClientGameStateProviderProps<T>) {
-  const { sendMessage, isConnected, messages } = usePeer();
+  const { sendMessage, isConnected, messages } = usePeer<GameStateMessage<T>>();
   const [state, setState] = useState<T>(initialState);
   const [isReady, setIsReady] = useState(false);
   const [version, setVersion] = useState(0);
@@ -207,53 +216,50 @@ export function ClientGameStateProvider<T>({
     
     logDebug('Requesting full state from host');
     
-    const requestMessage: GameStateMessage<T> = {
+    const requestMessage: RequestFullStateMessage = {
       type: GameStateMessageType.REQUEST_FULL_STATE,
-      payload: {} as T,
+      payload: {},
       version: version,
       timestamp: Date.now(),
       messageId: uuidv4()
     };
     
-    sendMessage(JSON.stringify(requestMessage));
+    sendMessage(requestMessage);
   };
 
   // Process incoming game state messages
   useEffect(() => {
     // Process only unread messages
-    const unreadMessages = messages.filter(msg => !msg.isRead);
     
-    unreadMessages.forEach(message => {
+    messages.forEach(message => {
       try {
-        const parsedContent = JSON.parse(message.content);
-        
         // Skip messages we've already processed
-        if (processedMessages.current.has(parsedContent.messageId)) {
+        if (processedMessages.current.has(message.messageId)) {
           return;
         }
         
         // Handle game state messages
-        if (parsedContent.type === GameStateMessageType.FULL_STATE) {
+        if (message.type === GameStateMessageType.FULL_STATE) {
           logDebug('Received full state from host');
           
-          setState(parsedContent.payload);
-          setVersion(parsedContent.version);
-          setLastSyncTimestamp(parsedContent.timestamp);
+          setState(message.payload);
+          setVersion(message.version);
+          setLastSyncTimestamp(message.timestamp);
           setIsReady(true);
-          processedMessages.current.add(parsedContent.messageId);
+          processedMessages.current.add(message.messageId);
         } 
-        else if (parsedContent.type === GameStateMessageType.PATCH) {
-          logDebug('Received state patch from host', parsedContent.payload);
+        else if (message.type === GameStateMessageType.PATCH) {
+          logDebug('Received state patch from host', message.payload);
           
           setState(currentState => {
             // Apply patch using deep merge with custom handling
-            return applyPatch(currentState, parsedContent.payload);
+            return applyPatch(currentState, message.payload);
           });
           
-          setVersion(parsedContent.version);
-          setLastSyncTimestamp(parsedContent.timestamp);
+          setVersion(message.version);
+          setLastSyncTimestamp(message.timestamp);
           setIsReady(true);
-          processedMessages.current.add(parsedContent.messageId);
+          processedMessages.current.add(message.messageId);
         }
       } catch (error) {
         // Not a JSON message or not relevant to game state

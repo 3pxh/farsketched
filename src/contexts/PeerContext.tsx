@@ -1,130 +1,91 @@
 // PeerContext.ts
 import { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import Peer, { DataConnection } from 'peerjs';
-import { GameMessage, MessageType } from '../games/farsketched/types';
 
-interface Message {
-  id: string;
-  sender: string;
-  content: string;
-  timestamp: Date;
-  isRead: boolean;
-}
-
-interface PeerContextType {
+interface PeerContextType<T> {
   peer: Peer | null;
   peerId: string;
   connectedPeers: string[];
-  messages: Message[];
+  messages: T[];
   isHost: boolean;
   isConnected: boolean;
   hostPeerId: string;
   setHostPeerId: (id: string) => void;
   connectToHost: () => void;
-  sendMessage: (content: string) => void;
-  markRead: (messageId: string) => void;
+  sendMessage: (msg: T) => void;
+  sendSelfMessage: (msg: T) => void;
+  markRead: (msg: T) => void;
 }
 
-const PeerContext = createContext<PeerContextType | null>(null);
+const PeerContext = createContext<PeerContextType<any>>({} as PeerContextType<any>);
 
 interface PeerProviderProps {
   children: ReactNode;
   isHost: boolean;
 }
 
-export const PeerProvider = ({ children, isHost }: PeerProviderProps) => {
+// TODO: Make this generic to a message type
+export const PeerProvider = <T,>({ children, isHost }: PeerProviderProps) => {
   const [peer, setPeer] = useState<Peer | null>(null);
   const [peerId, setPeerId] = useState<string>("");
   const [connectedPeers, setConnectedPeers] = useState<string[]>([]);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<T[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [hostPeerId, setHostPeerId] = useState<string>("");
-  const processedMessageIds = useRef<Set<string>>(new Set());
   const connections = useRef<Record<string, DataConnection>>({});
 
-  const markRead = (messageId: string) => {
-    setMessages(prev => prev.map(msg => 
-      msg.id === messageId ? { ...msg, isRead: true } : msg
-    ));
+  const markRead = (msg: T) => {
+    console.log('markRead:', msg);
+    setMessages(prev => prev.filter(m => m !== msg));
   };
 
-  const handleMessage = (data: any) => {
-    try {
-      const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
-      
-      if (parsedData.type === 'message') {
-        const message = {
-          ...parsedData.data,
-          timestamp: new Date(parsedData.data.timestamp),
-          isRead: false
-        };
-        
-        if (!processedMessageIds.current.has(message.id)) {
-          processedMessageIds.current.add(message.id);
-          setMessages((prev) => [...prev, message]);
-        }
-      } else if (Object.values(MessageType).includes(parsedData.type)) {
-        // Handle game-specific messages
-        console.log('Received parseable game message:', parsedData);
-        const gameMessage = parsedData as GameMessage;
-        if (!processedMessageIds.current.has(gameMessage.messageId)) {
-          processedMessageIds.current.add(gameMessage.messageId);
-          setMessages((prev) => [...prev, {
-            id: gameMessage.messageId,
-            sender: isHost ? 'Host' : 'Client',
-            content: JSON.stringify(gameMessage),
-            timestamp: new Date(gameMessage.timestamp),
-            isRead: false
-          }]);
-        }
-      }
-    } catch (error) {
-      console.error('Error handling message:', error);
-    }
+  const handleMessage = (msg: T) => {
+    console.log('handleMessage:', msg);
+    setMessages(prev => [...prev, msg]);
   };
 
   useEffect(() => {
-    console.log(`[${isHost ? 'Host' : 'Client'}] Initializing peer...`);
+    console.log(`Initializing peer...`);
     const newPeer = new Peer();
     
     newPeer.on('open', (id) => {
-      console.log(`[${isHost ? 'Host' : 'Client'}] Peer initialized with ID:`, id);
+      console.log(`Peer initialized with ID:`, id);
       setPeerId(id);
     });
 
     newPeer.on('error', (err) => {
-      console.error(`[${isHost ? 'Host' : 'Client'}] Peer error:`, err);
+      console.error(`Peer error:`, err);
     });
 
     setPeer(newPeer);
 
     return () => {
-      console.log(`[${isHost ? 'Host' : 'Client'}] Cleaning up peer...`);
+      console.log(`Cleaning up peer...`);
       newPeer.destroy();
     };
   }, [isHost]);
 
   useEffect(() => {
     if (!peer) {
-      console.log(`[${isHost ? 'Host' : 'Client'}] No peer instance available`);
+      console.log(`No peer instance available`);
       return;
     }
 
-    console.log(`[${isHost ? 'Host' : 'Client'}] Setting up connection handler...`);
+    console.log(`Setting up connection handler...`);
     const handleConnection = (conn: DataConnection) => {
-      console.log(`[${isHost ? 'Host' : 'Client'}] New connection request from:`, conn.peer);
+      console.log(`New connection request from:`, conn.peer);
       
       // Store the connection
       connections.current[conn.peer] = conn;
       
       // Set up data handler for this connection
       conn.on('data', (data) => {
-        console.log(`[${isHost ? 'Host' : 'Client'}] Received data from ${conn.peer}:`, data);
-        handleMessage(data);
+        console.log(`Received data from ${conn.peer}:`, data);
+        handleMessage(data as T);
       });
 
       conn.on('open', () => {
-        console.log(`[${isHost ? 'Host' : 'Client'}] Connection opened to peer:`, conn.peer);
+        console.log(`Connection opened to peer:`, conn.peer);
         setConnectedPeers((prev) => [...prev, conn.peer]);
         
         // If we're the host, establish a connection back to the client
@@ -137,20 +98,20 @@ export const PeerProvider = ({ children, isHost }: PeerProviderProps) => {
             // Set up data handler for the host's connection
             hostConn.on('data', (data) => {
               console.log(`[Host] Received data from client ${conn.peer}:`, data);
-              handleMessage(data);
+              handleMessage(data as T);
             });
           });
         }
       });
 
       conn.on('close', () => {
-        console.log(`[${isHost ? 'Host' : 'Client'}] Connection closed with peer:`, conn.peer);
+        console.log(`Connection closed with peer:`, conn.peer);
         delete connections.current[conn.peer];
         setConnectedPeers((prev) => prev.filter((id) => id !== conn.peer));
       });
 
       conn.on('error', (err) => {
-        console.error(`[${isHost ? 'Host' : 'Client'}] Connection error with ${conn.peer}:`, err);
+        console.error(`Connection error with ${conn.peer}:`, err);
       });
     };
 
@@ -158,10 +119,10 @@ export const PeerProvider = ({ children, isHost }: PeerProviderProps) => {
     peer.off('connection');
     // Add the new connection handler
     peer.on('connection', handleConnection);
-    console.log(`[${isHost ? 'Host' : 'Client'}] Connection handler setup complete`);
+    console.log(`Connection handler setup complete`);
 
     return () => {
-      console.log(`[${isHost ? 'Host' : 'Client'}] Removing connection handler...`);
+      console.log(`Removing connection handler...`);
       peer.off('connection', handleConnection);
     };
   }, [peer, isHost]);
@@ -182,7 +143,7 @@ export const PeerProvider = ({ children, isHost }: PeerProviderProps) => {
       // Set up data handler for client's connection
       conn.on('data', (data) => {
         console.log(`[Client] Received data from host:`, data);
-        handleMessage(data);
+        handleMessage(data as T);
       });
     });
 
@@ -199,26 +160,22 @@ export const PeerProvider = ({ children, isHost }: PeerProviderProps) => {
     });
   };
 
-  const sendMessage = (content: string) => {
-    if (!content.trim() || !peer) {
-      console.log(`[${isHost ? 'Host' : 'Client'}] Cannot send message - content: ${!!content}, peer: ${!!peer}`);
-      return;
-    }
-
+  const sendMessage = (msg: T) => {
     try {
-      const parsedContent = typeof content === 'string' ? JSON.parse(content) : content;
-      console.log(`[${isHost ? 'Host' : 'Client'}] Sending message:`, parsedContent);
-      
-      // Send message through all established connections
       Object.values(connections.current).forEach((conn) => {
         if (conn.open) {
-          console.log(`[${isHost ? 'Host' : 'Client'}] Sending to peer ${conn.peer}:`, parsedContent);
-          conn.send(parsedContent);
+          console.log(`Sending to peer ${conn.peer}:`, msg);
+          conn.send(msg);
         }
       });
     } catch (error) {
-      console.error(`[${isHost ? 'Host' : 'Client'}] Error sending message:`, error);
+      console.error(`Error sending message:`, error);
     }
+  };
+
+  const sendSelfMessage = (msg: T) => {
+    console.log(`Sending self message:`, msg);
+    setMessages(prev => [...prev, msg]);
   };
 
   return (
@@ -234,6 +191,7 @@ export const PeerProvider = ({ children, isHost }: PeerProviderProps) => {
         setHostPeerId,
         connectToHost,
         sendMessage,
+        sendSelfMessage,
         markRead,
       }}
     >
@@ -242,8 +200,8 @@ export const PeerProvider = ({ children, isHost }: PeerProviderProps) => {
   );
 };
 
-export const usePeer = () => {
-  const context = useContext(PeerContext);
+export const usePeer = <T,>() => {
+  const context = useContext<PeerContextType<T>>(PeerContext);
   if (!context) {
     throw new Error('usePeer must be used within a PeerProvider');
   }

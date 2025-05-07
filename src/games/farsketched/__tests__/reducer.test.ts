@@ -11,9 +11,7 @@ import {
   PongMessage,
   DisconnectMessage,
   PlayerJoinedMessage,
-  PlayerLeftMessage,
   RequestStartGameMessage,
-  CancelStartGameMessage,
   GameStartingMessage,
   GameStateUpdateMessage,
   SubmitPromptMessage,
@@ -39,9 +37,13 @@ const createMessage = <T extends GameMessage>(type: MessageType, additionalProps
   ...additionalProps
 } as T);
 
+const sendSelfMessage = (msg: GameMessage) => {
+  console.log('sendSelfMessage:', msg);
+};
+
 describe('farsketchedReducer', () => {
   it('should return initial state when no state is provided', () => {
-    const result = farsketchedReducer(undefined, createMessage<PingMessage>(MessageType.PING, {}));
+    const result = farsketchedReducer(undefined, createMessage<PingMessage>(MessageType.PING, {}), sendSelfMessage);
     expect(result).toEqual(initialState);
   });
 
@@ -52,7 +54,7 @@ describe('farsketchedReducer', () => {
       avatarUrl: 'https://example.com/avatar.png'
     });
 
-    const result = farsketchedReducer(initialState, message);
+    const result = farsketchedReducer(initialState, message, sendSelfMessage);
 
     expect(result.players).toHaveProperty('player1');
     expect(result.players['player1']).toEqual({
@@ -76,23 +78,23 @@ describe('farsketchedReducer', () => {
     ];
 
     connectionMessages.forEach(message => {
-      const result = farsketchedReducer(initialState, message);
+      const result = farsketchedReducer(initialState, message, sendSelfMessage);
       expect(result).toEqual(initialState);
     });
   });
 
-  it('should handle lobby messages without state changes', () => {
+
+  it('should handle start game', () => {
     const lobbyMessages = [
       createMessage<PlayerJoinedMessage>(MessageType.PLAYER_JOINED, { player: { id: 'test', name: 'test', avatarUrl: 'test', connected: true, points: 0, lastSeen: Date.now() } }),
-      createMessage<PlayerLeftMessage>(MessageType.PLAYER_LEFT, { playerId: 'test' }),
       createMessage<RequestStartGameMessage>(MessageType.REQUEST_START_GAME, { playerId: 'test' }),
-      createMessage<CancelStartGameMessage>(MessageType.CANCEL_START_GAME, { playerId: 'test' })
     ];
-
+    let result = {}
     lobbyMessages.forEach(message => {
-      const result = farsketchedReducer(initialState, message);
-      expect(result).toEqual(initialState);
+      result = farsketchedReducer(initialState, message, sendSelfMessage);
     });
+    expect(result).toEqual({...initialState, players: {}, stage: GameStage.PROMPTING});
+
   });
 
   it('should handle game flow messages without state changes', () => {
@@ -108,7 +110,7 @@ describe('farsketchedReducer', () => {
     ];
 
     gameFlowMessages.forEach(message => {
-      const result = farsketchedReducer(initialState, message);
+      const result = farsketchedReducer(initialState, message, sendSelfMessage);
       expect(result).toEqual(initialState);
     });
   });
@@ -120,13 +122,13 @@ describe('farsketchedReducer', () => {
     ];
 
     errorMessages.forEach(message => {
-      const result = farsketchedReducer(initialState, message);
+      const result = farsketchedReducer(initialState, message, sendSelfMessage);
       expect(result).toEqual(initialState);
     });
   });
 
   it('should handle unknown message types by returning current state', () => {
-    const result = farsketchedReducer(initialState, createMessage<PingMessage>('UNKNOWN_TYPE' as MessageType, {}));
+    const result = farsketchedReducer(initialState, createMessage<PingMessage>('UNKNOWN_TYPE' as MessageType, {}), sendSelfMessage);
     expect(result).toEqual(initialState);
   });
 }); 
