@@ -1,0 +1,86 @@
+.game-stage-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  transition: all 0.3s ease;
+}
+
+.game-stage-icon svg {
+  fill: currentColor;
+}
+
+.game-stage-icon:hover {
+  transform: scale(1.05);
+  color: #333;
+}
+
+.game-stage-icon.active {
+  color: #000;
+  filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.3));
+}
+
+/* Stage-specific opacities */
+.game-stage-icon[data-stage="lobby"] {
+  color: #666;
+}
+
+.game-stage-icon[data-stage="prompting"] {
+  color: #777;
+}
+
+.game-stage-icon[data-stage="fooling"] {
+  color: #888;
+}
+
+.game-stage-icon[data-stage="guessing"] {
+  color: #999;
+}
+
+.game-stage-icon[data-stage="scoring"] {
+  color: #aaa;
+}
+
+.game-stage-icon[data-stage="game_over"] {
+  color: #bbb;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .game-stage-icon {
+    color: #999;
+  }
+
+  .game-stage-icon:hover {
+    color: #fff;
+  }
+
+  .game-stage-icon.active {
+    color: #fff;
+    filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.3));
+  }
+
+  .game-stage-icon[data-stage="lobby"] {
+    color: #999;
+  }
+
+  .game-stage-icon[data-stage="prompting"] {
+    color: #aaa;
+  }
+
+  .game-stage-icon[data-stage="fooling"] {
+    color: #bbb;
+  }
+
+  .game-stage-icon[data-stage="guessing"] {
+    color: #ccc;
+  }
+
+  .game-stage-icon[data-stage="scoring"] {
+    color: #ddd;
+  }
+
+  .game-stage-icon[data-stage="game_over"] {
+    color: #eee;
+  }
+} 

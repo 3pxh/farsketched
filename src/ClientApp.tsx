@@ -3,6 +3,7 @@ import "./App.css";
 import { PeerProvider } from '@/contexts/PeerContext';
 import { usePeer } from '@/contexts/PeerContext';
 import { Client } from '@/games/farsketched/Client';
+import { AudioProvider } from './contexts/AudioProvider';
 
 function ClientContent() {
   const { isConnected, setHostPeerId, connectToHost, peerId } = usePeer();
@@ -46,7 +47,9 @@ function ClientContent() {
 function ClientApp() {
   return (
     <PeerProvider isHost={false}>
-      <ClientContent />
+      <AudioProvider>
+        <ClientContent />
+      </AudioProvider>
     </PeerProvider>
   );
 }
