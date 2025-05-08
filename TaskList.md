@@ -1,76 +1,37 @@
 # Farsketched Implementation Task List
 
-## 1. Core Infrastructure Setup
-- [x] Initialize project with Vite, React, and TypeScript
-- [x] Set up Tauri for desktop application
-- [x] Create basic type definitions in types.ts
-- [x] Set up WebRTC connection infrastructure
-- [x] Implement STUN server configuration
-- [x] Create SQLite database for host settings and game history
-- [x] Set up build process for client web page
+## Developer Experience
+- [ ] Run the client via vite. When gh tried peerjs wouldn't connect, unlike the python server. It would be nice for hot module reloading.
+- [ ] Having a single-component workflow where we mock data would be nice. Storybook seems heavyweight, but maybe something similar. Might take care of most of the use above too. 
 
-## 2. Host Application Development
-- [ ] Create host UI components:
-  - [ ] Lobby screen with QR code generation
-  - [ ] Player list display
-  - [ ] Game state display
-  - [ ] Image display with animations
-  - [ ] Timer display with audio effects
-  - [ ] Scoring display
-- [ ] Implement game state management:
-  - [ ] Create game state reducer
-  - [ ] Implement timer system
-  - [ ] Add audio effects system
-  - [ ] Add text-to-speech system
-- [ ] Set up image generation API integration:
-  - [ ] Implement Stable Diffusion API client
-  - [ ] Add error handling and retry logic
-  - [ ] Create settings UI for API key management
+## Game functionality
+- [ ] Go through all images in a round
+- [ ] Play multiple rounds
+- [ ] Final scoring screen, show players all the images on their devices w/ ability to save
+- [ ] Handle edge cases
 
-## 3. Client Application Development
-- [ ] Create client UI components:
-  - [ ] QR code scanner
-  - [ ] Player setup form
-  - [ ] Game state displays
-  - [ ] Input forms for prompts and guesses
-  - [ ] Timer display
-- [ ] Implement client state management:
-  - [ ] Create local storage for player ID
-  - [ ] Handle connection state
-  - [ ] Manage game state updates
-  - [ ] Implement reconnection logic
+## Logging / Feedback
+- [ ] Add some logging which we can use to diagnose crashes? Having a host send us a stack trace as well as the set of all messages ever processed would be convenient. Also the ability to report in-game that something is wrong (and sends us a list of all the messages received).
 
-## 4. Game Logic Implementation
-- [ ] Implement game flow:
-  - [ ] Lobby stage
-  - [ ] Prompting stage
-  - [ ] Fooling stage
-  - [ ] Guessing stage
-  - [ ] Scoring stage
-  - [ ] Game over stage
-- [ ] Add scoring system:
-  - [ ] Calculate points for correct guesses
-  - [ ] Calculate points for fooling others
-  - [ ] Calculate points for image creators
-- [ ] Implement achievement system:
-  - [ ] Track statistics during gameplay
-  - [ ] Calculate achievements at game end
-  - [ ] Display achievement results
+## Aesthetics / Fun
+- [ ] Add an in-game announcer who speaks
+- [ ] Background music
+- [ ] Sound effects
+- [ ] Animations
+- [ ] Something for people to do while they wait?
+  - [ ] ChatGPT says it prefers X or Y? (precompute)
 
-## 5. Error Handling and Resilience
+## Error Handling
 - [ ] Implement connection recovery:
   - [ ] Automatic reconnection attempts
+  - [ ] Store the peer id in localstorage on clients, have them attempt to use the same id to connect (so they're identified as the same player; otherwise we'll need a player id)
   - [ ] State synchronization on reconnection
-  - [ ] Handle disconnection gracefully
-- [ ] Add message idempotency:
-  - [ ] Track processed message IDs
-  - [ ] Prevent duplicate message processing
+  - [ ] Handle disconnection gracefully (and don't wait on non-present players)
 - [ ] Handle API failures:
-  - [ ] Retry logic for image generation
-  - [ ] Error feedback to players
-  - [ ] Alternative prompt submission
+  - [ ] Retry logic for image generation?
+  - [ ] Error feedback to players on generation failure?
 
-## 6. Testing
+## Testing
 - [ ] Unit tests:
   - [ ] Game state reducer
   - [ ] Message handling
@@ -85,23 +46,11 @@
   - [ ] Connection recovery
   - [ ] API integration
 
-## 7. Polish and Optimization
-- [ ] Add animations:
-  - [ ] Image reveal effects
-  - [ ] Prompt reveal effects
-  - [ ] Scoring reveal effects
-- [ ] Implement audio:
-  - [ ] Timer sounds
-  - [ ] Reveal sounds
-  - [ ] Voice announcements
-- [ ] UI/UX improvements:
-  - [ ] Responsive design
-  - [ ] Loading states
-  - [ ] Error states
-  - [ ] Accessibility features
-
-## 8. Documentation
-- [ ] Create API documentation
-- [ ] Write setup instructions
-- [ ] Document deployment process
-- [ ] Create user guide
+## Publishing
+- [ ] Github pages or netlify site with the clientindex.html
+  - [ ] Add the url as the base in the qr code (but not in development)
+- [ ] Store Listings
+  - [ ] Steam? Mac? ...
+  - [ ] File a new corporation?
+  - [ ] Pricing? Some initial credits, plus use your own API key? Hm.
+- [ ] Web version which runs the host in the cloud?
