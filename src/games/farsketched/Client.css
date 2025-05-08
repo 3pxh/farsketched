@@ -1,0 +1,95 @@
+.prompting-stage {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.prompting-stage h2 {
+  margin-bottom: 20px;
+}
+
+.prompting-stage form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.prompting-stage textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  resize: vertical;
+  min-height: 100px;
+}
+
+.prompting-stage button {
+  padding: 8px 16px;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.prompting-stage button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.prompting-stage button:hover:not(:disabled) {
+  background-color: #2563eb;
+}
+
+.image-container {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  margin-top: 16px;
+}
+
+.generated-image {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.image-prompt {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #666;
+}
+
+.error-message {
+  padding: 16px;
+  background-color: #fee2e2;
+  color: #b91c1c;
+  border-radius: 8px;
+  margin-top: 16px;
+}
+
+.loading-container {
+  padding: 16px;
+  background-color: #f3f4f6;
+  border-radius: 8px;
+  margin-top: 16px;
+}
+
+.loading-placeholder {
+  height: 256px;
+  background-color: #e5e7eb;
+  border-radius: 8px;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+} 

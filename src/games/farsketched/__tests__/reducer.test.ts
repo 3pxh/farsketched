@@ -100,7 +100,6 @@ describe('farsketchedReducer', () => {
   it('should handle game flow messages without state changes', () => {
     const gameFlowMessages = [
       createMessage<GameStartingMessage>(MessageType.GAME_STARTING, { players: [], config: initialState.config }),
-      createMessage<GameStateUpdateMessage>(MessageType.GAME_STATE_UPDATE, { stage: GameStage.LOBBY, currentRound: 0, activeImageIndex: 0, timerSeconds: 0 }),
       createMessage<SubmitPromptMessage>(MessageType.SUBMIT_PROMPT, { playerId: 'test', prompt: 'test' }),
       createMessage<PromptResultMessage>(MessageType.PROMPT_RESULT, { success: true, imageId: 'test', imageUrl: 'test' }),
       createMessage<SubmitFakePromptMessage>(MessageType.SUBMIT_FAKE_PROMPT, { playerId: 'test', imageId: 'test', fakePrompt: 'test' }),

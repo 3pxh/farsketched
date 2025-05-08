@@ -3,8 +3,6 @@
  * This module handles all image generation related functionality
  */
 
-import { settingsManager } from '../settings';
-
 export type ImageProvider = 'openai' | 'stability';
 
 interface ImageGenerationOptions {
@@ -14,10 +12,11 @@ interface ImageGenerationOptions {
   numImages?: number;
   provider: ImageProvider;
   outputFormat?: 'webp' | 'png' | 'jpeg';
+  apiKey: string;
 }
 
 interface GeneratedImage {
-  url: string;
+  blob: Blob;
   alt: string;
 }
 
@@ -30,8 +29,7 @@ async function generateWithStabilityAI(options: ImageGenerationOptions): Promise
   const STABILITY_API_URL = 'https://api.stability.ai/v2beta/stable-image/generate/core';
   
   try {
-    const apiKey = await settingsManager.getStabilityApiKey();
-    if (!apiKey) {
+    if (!options.apiKey) {
       throw new Error('Stability AI API key not found. Please set it in the settings.');
     }
 
@@ -45,7 +43,7 @@ async function generateWithStabilityAI(options: ImageGenerationOptions): Promise
     const response = await fetch(STABILITY_API_URL, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
+        'Authorization': `Bearer ${options.apiKey}`,
         'Accept': 'image/*',
       },
       body: formData,
@@ -55,13 +53,11 @@ async function generateWithStabilityAI(options: ImageGenerationOptions): Promise
       throw new Error(`Stability AI API error: ${response.statusText}`);
     }
 
-    // Convert the response to a blob
+    // Get the blob directly from the response
     const blob = await response.blob();
-    // Create a URL for the blob
-    const imageUrl = URL.createObjectURL(blob);
 
     return [{
-      url: imageUrl,
+      blob,
       alt: options.prompt
     }];
   } catch (error) {

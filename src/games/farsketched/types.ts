@@ -23,9 +23,10 @@ export interface Player {
     id: string;           // Unique ID for the image
     creatorId: string;    // Player ID who created the image
     prompt: string;       // The real prompt used to generate the image
-    imageUrl: string;     // URL to the generated image (base64 or file path)
+    imageBlob: Blob;      // The actual image data as a Blob
     roundIndex: number;   // Which round this image belongs to
     timestamp: number;    // When the image was generated
+    status: 'pending' | 'complete' | 'error'; // Status of the image generation
   }
   
   /**
@@ -149,7 +150,6 @@ export interface Player {
     
     // Game flow messages
     GAME_STARTING = 'game_starting',
-    GAME_STATE_UPDATE = 'game_state_update',
     SUBMIT_PROMPT = 'submit_prompt',
     PROMPT_RESULT = 'prompt_result',
     SUBMIT_FAKE_PROMPT = 'submit_fake_prompt',
@@ -279,32 +279,6 @@ export interface Player {
   }
   
   /**
-   * Host updates clients with new game state
-   */
-  export interface GameStateUpdateMessage extends BaseMessage {
-    type: MessageType.GAME_STATE_UPDATE;
-    stage: GameStage;
-    currentRound: number;
-    activeImageIndex: number;
-    timerSeconds: number;
-    // Different data depending on stage
-    imageUrl?: string;              // For FOOLING, GUESSING, SCORING stages  
-    prompts?: Array<{               // For GUESSING stage
-      id: string;
-      text: string;
-    }>;
-    promptResults?: Array<{         // For SCORING stage
-      id: string;
-      text: string;
-      isReal: boolean;
-      authorId: string;
-      guessedBy: string[];
-    }>;
-    finalScores?: Record<string, number>; // For GAME_OVER stage
-    achievements?: Achievement[];   // For GAME_OVER stage
-  }
-  
-  /**
    * Client submits a prompt to generate an image
    */
   export interface SubmitPromptMessage extends BaseMessage {
@@ -320,7 +294,7 @@ export interface Player {
     type: MessageType.PROMPT_RESULT;
     success: boolean;
     imageId?: string;
-    imageUrl?: string;
+    imageBlob?: Blob;
     errorMessage?: string;
   }
   
@@ -399,7 +373,6 @@ export interface Player {
     | RequestStartGameMessage
     | CancelStartGameMessage
     | GameStartingMessage
-    | GameStateUpdateMessage
     | SubmitPromptMessage
     | PromptResultMessage
     | SubmitFakePromptMessage
