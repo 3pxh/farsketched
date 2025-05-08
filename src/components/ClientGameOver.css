@@ -1,0 +1,276 @@
+.game-over-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.game-over-stages {
+  margin-bottom: 2rem;
+  opacity: 0.8;
+}
+
+.game-over-title {
+  font-size: 2.5rem;
+  color: #646cff;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.scores-container {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.scores-container h2 {
+  color: #646cff;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.scores-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.score-item {
+  display: grid;
+  grid-template-columns: 48px 80px 1fr auto;
+  align-items: center;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  gap: 1rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  transform-origin: center;
+  will-change: transform;
+  opacity: 0;
+  transform: translateY(-520%);
+  animation: slideDownFadeIn 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes slideDownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-520%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-120%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(120%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.score-item-left {
+  animation: slideInLeft .75s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.score-item-right {
+  animation: slideInRight .75s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.score-item:hover {
+  transform: scale(1.02);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.player-avatar {
+  grid-column: 1;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #646cff;
+  transition: border-color 0.3s ease;
+}
+
+.score-item:hover .player-avatar {
+  border-color: #535bf2;
+}
+
+.player-name {
+  grid-column: 2;
+  font-weight: 500;
+  text-align: left;
+  font-size: 1.1rem;
+  line-height: 1.2;
+}
+
+.player-score {
+  grid-column: 3;
+  color: #646cff;
+  font-weight: 500;
+  font-size: 1.1rem;
+  transition: color 0.3s ease;
+  text-align: left;
+  justify-self: start;
+  line-height: 1.2;
+}
+
+.score-item:hover .player-score {
+  color: #535bf2;
+}
+
+.achievements {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0;
+  grid-column: 4;
+}
+
+.achievement-badge {
+  position: relative;
+  background: none;
+  padding: 0;
+  border-radius: 1rem;
+  font-size: 0.875rem;
+  transition: background-color 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.achievement-tooltip {
+  visibility: hidden;
+  opacity: 0;
+  width: max-content;
+  max-width: 200px;
+  background: #222;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 0.5em 1em;
+  position: absolute;
+  z-index: 10;
+  bottom: 120%;
+  left: 50%;
+  transform: translateX(-50%);
+  transition: opacity 0.2s;
+  pointer-events: none;
+  font-size: 0.95em;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.achievement-badge:hover .achievement-tooltip,
+.achievement-badge:focus .achievement-tooltip,
+.achievement-badge.show-tooltip .achievement-tooltip {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.achievement-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: #222 transparent transparent transparent;
+}
+
+.score-item:hover .achievement-badge {
+  background: #535bf2;
+}
+
+.thank-you-message {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.thank-you-message h2 {
+  color: #646cff;
+  margin-bottom: 0.5rem;
+}
+
+.play-again-button {
+  background: #646cff;
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.play-again-button:hover {
+  background: #535bf2;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .game-over-title {
+    color: #24c8db;
+  }
+
+  .scores-container h2 {
+    color: #24c8db;
+  }
+
+  .player-avatar {
+    border-color: #24c8db;
+  }
+
+  .score-item:hover .player-avatar {
+    border-color: #1a8f9d;
+  }
+
+  .player-score {
+    color: #24c8db;
+  }
+
+  .score-item:hover .player-score {
+    color: #1a8f9d;
+  }
+
+  .achievement-badge {
+    background: #24c8db;
+  }
+
+  .score-item:hover .achievement-badge {
+    background: #1a8f9d;
+  }
+
+  .thank-you-message h2 {
+    color: #24c8db;
+  }
+
+  .play-again-button {
+    background: #24c8db;
+  }
+
+  .play-again-button:hover {
+    background: #1a8f9d;
+  }
+} 

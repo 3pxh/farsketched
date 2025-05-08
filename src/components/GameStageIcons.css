@@ -1,0 +1,26 @@
+.game-stage-icons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 32px;
+}
+
+.stage-connector {
+  width: 48px;
+  height: 2px;
+  background-color: #666;
+  opacity: 0.2;
+}
+
+.game-stage-icons .game-stage-icon.active {
+  transform: scale(1.2);
+  filter: drop-shadow(0 0 16px currentColor);
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .stage-connector {
+    background-color: #999;
+  }
+} 
