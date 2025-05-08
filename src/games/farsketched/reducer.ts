@@ -196,24 +196,182 @@ export function farsketchedReducer(
         // Update the existing image with the generated blob and mark as complete
         const existingImage = state.images[message.imageId];
         if (existingImage) {
-          return {
+          const updatedState = {
             ...state,
             images: {
               ...state.images,
               [message.imageId]: {
                 ...existingImage,
                 imageBlob: message.imageBlob,
-                status: 'complete'
+                status: 'complete' as const
               }
             }
           };
+
+          // Check if we should transition to fooling stage
+          if (state.stage === GameStage.PROMPTING) {
+            const currentRoundImageIds = updatedState.roundImages[updatedState.currentRound] || [];
+            const successfulImages = currentRoundImageIds.filter(imageId => {
+              const image = updatedState.images[imageId];
+              return image && image.status === 'complete' && image.imageBlob.size > 0;
+            });
+
+            // Check if all players have submitted image requests
+            const allPlayersSubmitted = Object.keys(updatedState.players).length === currentRoundImageIds.length;
+
+            // If all players have submitted and we have at least one successful image, move to fooling
+            if (allPlayersSubmitted && successfulImages.length > 0) {
+              const now = Date.now();
+              const timeoutId = setTimeout(() => {
+                const timerExpiredMessage: GameMessage = {
+                  type: MessageType.TIMER_EXPIRED,
+                  stage: GameStage.FOOLING,
+                  timestamp: Date.now(),
+                  messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
+                };
+                sendSelfMessage(timerExpiredMessage);
+              }, updatedState.config.foolingTimerSeconds * 1000);
+
+              // Set the first successful image as active
+              const activeImage = {
+                imageId: successfulImages[0],
+                fakePrompts: [],
+                guesses: []
+              };
+
+              return {
+                ...updatedState,
+                stage: GameStage.FOOLING,
+                activeImage,
+                activeImageIndex: currentRoundImageIds.indexOf(successfulImages[0]),
+                timer: {
+                  startTime: now,
+                  duration: updatedState.config.foolingTimerSeconds,
+                  isRunning: true,
+                  timeoutId
+                }
+              };
+            }
+          }
+
+          return updatedState;
         }
       }
       return state;
     }
 
-    case MessageType.SUBMIT_FAKE_PROMPT:
-    case MessageType.SUBMIT_GUESS:
+    case MessageType.SUBMIT_FAKE_PROMPT: {
+      if (!state.activeImage) return state;
+
+      // Check if this player has already submitted a fake prompt
+      const hasSubmitted = state.activeImage.fakePrompts.some(
+        prompt => prompt.authorId === message.playerId
+      );
+      if (hasSubmitted) return state;
+
+      // Create new fake prompt
+      const fakePrompt = {
+        id: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
+        imageId: state.activeImage.imageId,
+        authorId: message.playerId,
+        text: message.fakePrompt
+      };
+
+      const updatedActiveImage = {
+        ...state.activeImage,
+        fakePrompts: [...state.activeImage.fakePrompts, fakePrompt]
+      };
+
+      // Check if all players have submitted fake prompts
+      const allPlayersSubmitted = Object.keys(state.players).length === updatedActiveImage.fakePrompts.length;
+
+      if (allPlayersSubmitted) {
+        const now = Date.now();
+        const timeoutId = setTimeout(() => {
+          const timerExpiredMessage: GameMessage = {
+            type: MessageType.TIMER_EXPIRED,
+            stage: GameStage.GUESSING,
+            timestamp: Date.now(),
+            messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
+          };
+          sendSelfMessage(timerExpiredMessage);
+        }, state.config.guessingTimerSeconds * 1000);
+
+        return {
+          ...state,
+          stage: GameStage.GUESSING,
+          activeImage: updatedActiveImage,
+          timer: {
+            startTime: now,
+            duration: state.config.guessingTimerSeconds,
+            isRunning: true,
+            timeoutId
+          }
+        };
+      }
+
+      return {
+        ...state,
+        activeImage: updatedActiveImage
+      };
+    }
+
+    case MessageType.SUBMIT_GUESS: {
+      if (!state.activeImage) return state;
+
+      // Check if this player has already submitted a guess
+      const hasSubmitted = state.activeImage.guesses.some(
+        guess => guess.playerId === message.playerId
+      );
+      if (hasSubmitted) return state;
+
+      // Create new guess
+      const guess = {
+        playerId: message.playerId,
+        imageId: state.activeImage.imageId,
+        promptId: message.promptId,
+        isCorrect: message.promptId === 'real'
+      };
+
+      const updatedActiveImage = {
+        ...state.activeImage,
+        guesses: [...state.activeImage.guesses, guess]
+      };
+
+      // Check if all players have submitted guesses
+      const allPlayersGuessed = Object.keys(state.players).length === updatedActiveImage.guesses.length;
+
+      if (allPlayersGuessed) {
+        const now = Date.now();
+        const timeoutId = setTimeout(() => {
+          const timerExpiredMessage: GameMessage = {
+            type: MessageType.TIMER_EXPIRED,
+            stage: GameStage.SCORING,
+            timestamp: Date.now(),
+            messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
+          };
+          sendSelfMessage(timerExpiredMessage);
+        }, state.config.scoringDisplaySeconds * 1000);
+
+        return {
+          ...state,
+          stage: GameStage.SCORING,
+          activeImage: updatedActiveImage,
+          timer: {
+            startTime: now,
+            duration: state.config.scoringDisplaySeconds,
+            isRunning: true,
+            timeoutId
+          }
+        };
+      }
+
+      return {
+        ...state,
+        activeImage: updatedActiveImage
+      };
+    }
+
     case MessageType.ROUND_COMPLETE:
     case MessageType.GAME_OVER:
       return state;
@@ -232,9 +390,25 @@ export function farsketchedReducer(
           sendSelfMessage(timerExpiredMessage);
         }, state.config.foolingTimerSeconds * 1000);
 
+        // Find a completed image from the current round
+        const currentRoundImageIds = state.roundImages[state.currentRound] || [];
+        const completedImage = currentRoundImageIds.find(imageId => {
+          const image = state.images[imageId];
+          return image && image.status === 'complete';
+        });
+
+        // If we found a completed image, set it as active
+        const activeImage = completedImage ? {
+          imageId: completedImage,
+          fakePrompts: [],
+          guesses: []
+        } : null;
+
         return {
           ...state,
           stage: GameStage.FOOLING,
+          activeImage,
+          activeImageIndex: completedImage ? currentRoundImageIds.indexOf(completedImage) : 0,
           timer: {
             startTime: now,
             duration: state.config.foolingTimerSeconds,
