@@ -86,11 +86,29 @@ export function farsketchedReducer(
       };
 
     case MessageType.PLAYER_JOINED:
-    case MessageType.REQUEST_START_GAME:
+    case MessageType.REQUEST_START_GAME: {
+      const now = Date.now();
+      const timeoutId = setTimeout(() => {
+        const timerExpiredMessage: GameMessage = {
+          type: MessageType.TIMER_EXPIRED,
+          stage: GameStage.PROMPTING,
+          timestamp: Date.now(),
+          messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
+        };
+        sendSelfMessage(timerExpiredMessage);
+      }, state.config.promptTimerSeconds * 1000);
+
       return {
         ...state,
-        stage: GameStage.PROMPTING
+        stage: GameStage.PROMPTING,
+        timer: {
+          startTime: now,
+          duration: state.config.promptTimerSeconds,
+          isRunning: true,
+          timeoutId
+        }
       };
+    }
 
     // Game flow messages
     case MessageType.SUBMIT_PROMPT: {
@@ -199,6 +217,59 @@ export function farsketchedReducer(
     case MessageType.ROUND_COMPLETE:
     case MessageType.GAME_OVER:
       return state;
+
+    case MessageType.TIMER_EXPIRED: {
+      // Handle transition from prompting to fooling
+      if (state.stage === GameStage.PROMPTING && message.stage === GameStage.PROMPTING) {
+        const now = Date.now();
+        const timeoutId = setTimeout(() => {
+          const timerExpiredMessage: GameMessage = {
+            type: MessageType.TIMER_EXPIRED,
+            stage: GameStage.FOOLING,
+            timestamp: Date.now(),
+            messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
+          };
+          sendSelfMessage(timerExpiredMessage);
+        }, state.config.foolingTimerSeconds * 1000);
+
+        return {
+          ...state,
+          stage: GameStage.FOOLING,
+          timer: {
+            startTime: now,
+            duration: state.config.foolingTimerSeconds,
+            isRunning: true,
+            timeoutId
+          }
+        };
+      }
+      
+      // Handle transition from fooling to guessing
+      if (state.stage === GameStage.FOOLING && message.stage === GameStage.FOOLING) {
+        const now = Date.now();
+        const timeoutId = setTimeout(() => {
+          const timerExpiredMessage: GameMessage = {
+            type: MessageType.TIMER_EXPIRED,
+            stage: GameStage.GUESSING,
+            timestamp: Date.now(),
+            messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
+          };
+          sendSelfMessage(timerExpiredMessage);
+        }, state.config.guessingTimerSeconds * 1000);
+
+        return {
+          ...state,
+          stage: GameStage.GUESSING,
+          timer: {
+            startTime: now,
+            duration: state.config.guessingTimerSeconds,
+            isRunning: true,
+            timeoutId
+          }
+        };
+      }
+      return state;
+    }
 
     // Error messages
     case MessageType.ERROR:

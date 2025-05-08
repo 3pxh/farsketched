@@ -123,6 +123,7 @@ export interface Player {
       startTime: number;  // When the current timer started
       duration: number;   // Duration in seconds
       isRunning: boolean;
+      timeoutId?: NodeJS.Timeout; // ID of the current timer timeout
     };
     achievements: Achievement[]; // Only populated at game end
   }
@@ -156,6 +157,7 @@ export interface Player {
     SUBMIT_GUESS = 'submit_guess',
     ROUND_COMPLETE = 'round_complete',
     GAME_OVER = 'game_over',
+    TIMER_EXPIRED = 'timer_expired',
     
     // Error messages
     ERROR = 'error',
@@ -336,6 +338,14 @@ export interface Player {
     achievements: Achievement[];
   }
   
+  /**
+   * Host notifies all clients that a timer has expired
+   */
+  export interface TimerExpiredMessage extends BaseMessage {
+    type: MessageType.TIMER_EXPIRED;
+    stage: GameStage;     // Which game stage the timer was for
+  }
+  
   // ==================== Error Messages ====================
   
   /**
@@ -379,5 +389,6 @@ export interface Player {
     | SubmitGuessMessage
     | RoundCompleteMessage
     | GameOverMessage
+    | TimerExpiredMessage
     | ErrorMessage
     | PromptErrorMessage;

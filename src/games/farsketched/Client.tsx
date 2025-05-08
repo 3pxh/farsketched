@@ -5,6 +5,7 @@ import { ClientGameStateProvider } from '@/contexts/GameState';
 import { initialState } from '@/games/farsketched/reducer';
 import { useState, useMemo, useEffect } from 'react';
 import { usePeer } from '@/contexts/PeerContext';
+import { Timer } from './components/Timer';
 import './Client.css';
 
 function PromptingStage() {
@@ -137,6 +138,14 @@ function ClientContent() {
     <div className="game-container">
       <h1>Farsketched</h1>
       {renderStage()}
+      {gameState.timer.isRunning && (
+        <div className="timer-wrapper">
+          <Timer 
+            startTime={gameState.timer.startTime} 
+            duration={gameState.timer.duration} 
+          />
+        </div>
+      )}
     </div>
   );
 }
