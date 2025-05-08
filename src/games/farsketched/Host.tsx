@@ -4,6 +4,8 @@ import { farsketchedReducer, initialState } from './reducer';
 import { HostLobby } from '@/components/HostLobby';
 import { usePeer } from '@/contexts/PeerContext';
 import { HostGameStateProvider, useHostGameState } from '@/contexts/GameState';
+import { Timer } from './components/Timer';
+import './Host.css';
 
 interface HostProps {
   gameConfig: GameConfig;
@@ -54,6 +56,14 @@ function HostContent({ gameConfig }: HostProps) {
     <div className="game-container">
       <h1>Farsketched</h1>
       {renderStage()}
+      {gameState.timer.isRunning && (
+        <div className="timer-wrapper">
+          <Timer 
+            startTime={gameState.timer.startTime} 
+            duration={gameState.timer.duration} 
+          />
+        </div>
+      )}
     </div>
   );
 }

@@ -92,4 +92,17 @@
   50% {
     opacity: 0.5;
   }
+}
+
+.game-container {
+  position: relative;
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+.timer-wrapper {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 100;
 } 
