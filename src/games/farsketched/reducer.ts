@@ -41,7 +41,8 @@ export const initialState: GameState = {
 
 export function farsketchedReducer(
   state: GameState = initialState,
-  message: GameMessage
+  message: GameMessage,
+  sendSelfMessage: (msg: GameMessage) => void
 ): GameState {
   switch (message.type) {
     // Connection messages
@@ -84,13 +85,15 @@ export function farsketchedReducer(
 
     case MessageType.PLAYER_JOINED:
     case MessageType.REQUEST_START_GAME:
-    case MessageType.CANCEL_START_GAME:
-      return state;
+      return {
+        ...state,
+        stage: GameStage.PROMPTING
+      };
 
     // Game flow messages
-    case MessageType.GAME_STARTING:
-    case MessageType.GAME_STATE_UPDATE:
     case MessageType.SUBMIT_PROMPT:
+      // We're going to call the image generator,
+      // and on success use sendSelfMessage to send the image to the host
     case MessageType.PROMPT_RESULT:
     case MessageType.SUBMIT_FAKE_PROMPT:
     case MessageType.SUBMIT_GUESS:

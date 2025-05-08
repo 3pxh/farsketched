@@ -1,12 +1,10 @@
 import { GameStage, GameState } from '@/games/farsketched/types';
-import { usePeer } from '@/contexts/PeerContext';
 import { PlayerSetup } from './PlayerSetup';
 import { useClientGameState } from '@/contexts/GameState';
 import { ClientGameStateProvider } from '@/contexts/GameState';
 import { initialState } from '@/games/farsketched/reducer';
 
 function ClientContent() {
-  const { } = usePeer();
   const gameStateContext = useClientGameState<GameState>();
   const gameState = gameStateContext.state;
 
@@ -16,7 +14,7 @@ function ClientContent() {
       case GameStage.LOBBY:
         return <PlayerSetup />;
       case GameStage.PROMPTING:
-        return <p>Prompting Stage</p>;
+        return <p>Prompting Stage client</p>;
       case GameStage.FOOLING:
         return <p>Fooling Stage</p>;
       case GameStage.GUESSING:

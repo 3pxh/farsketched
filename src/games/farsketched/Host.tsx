@@ -12,17 +12,14 @@ interface HostProps {
 function HostContent({ gameConfig }: HostProps) {
   // Get synchronized game state from the context
   const { state: gameState, updateState } = useHostGameState<GameState>();
-  const { messages, markRead } = usePeer();
+  const { messages, markRead, sendSelfMessage } = usePeer<GameMessage>();
 
   // TODO: move this out; it will be used by all games
   useEffect(() => {
-    const unreadMessages = messages.filter(msg => !msg.isRead);
-    
-    unreadMessages.forEach(msg => {
+    messages.forEach(msg => {
       try {
-        const gameMessage = JSON.parse(msg.content) as GameMessage;
-        updateState(currentState => farsketchedReducer(currentState, gameMessage));
-        markRead(msg.id);
+        updateState(currentState => farsketchedReducer(currentState, msg, sendSelfMessage));
+        markRead(msg);
       } catch (error) {
         console.error('Error processing game message:', error);
       }

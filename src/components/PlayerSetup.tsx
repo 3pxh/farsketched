@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
 import { usePeer } from '../contexts/PeerContext';
-// TODO: Extract player setup and start message types to a shared types file
 import { MessageType, GameMessage } from '../games/farsketched/types';
 import './PlayerSetup.css';
 
 export const PlayerSetup = () => {
-  const { peerId, sendMessage } = usePeer();
+  const { peerId, sendMessage } = usePeer<GameMessage>();
   const [name, setName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('https://api.dicebear.com/7.x/avataaars/svg?seed=default');
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -25,7 +24,7 @@ export const PlayerSetup = () => {
         timestamp: Date.now(),
         messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
       };
-      sendMessage(JSON.stringify(message));
+      sendMessage(message);
       setCountdown(null);
     }
     return () => {
@@ -46,7 +45,7 @@ export const PlayerSetup = () => {
       messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
     };
 
-    sendMessage(JSON.stringify(message));
+    sendMessage(message);
     setIsSubmitted(true);
   };
 
@@ -62,7 +61,7 @@ export const PlayerSetup = () => {
       timestamp: Date.now(),
       messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
     };
-    sendMessage(JSON.stringify(message));
+    sendMessage(message);
   };
 
   const generateRandomAvatar = () => {
