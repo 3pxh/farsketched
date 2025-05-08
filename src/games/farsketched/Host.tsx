@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { GameStage, GameConfig, GameMessage, GameState } from '@/games/farsketched/types';
 import { farsketchedReducer, initialState } from './reducer';
-import { HostLobby } from '@/components/HostLobby';
+import { HostLobby } from '@/games/farsketched/HostLobby';
 import { usePeer } from '@/contexts/PeerContext';
 import { HostGameStateProvider, useHostGameState } from '@/contexts/GameState';
 import { Timer } from './components/Timer';

@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { Player, GameConfig } from '../games/farsketched/types';
-import { usePeer } from '../contexts/PeerContext';
-import './HostLobby.css';
+import { Player, GameConfig } from '@/games/farsketched/types';
+import { usePeer } from '@/contexts/PeerContext';
+import '@/games/farsketched/HostLobby.css';
 
 interface HostLobbyProps {
   gameConfig: GameConfig;

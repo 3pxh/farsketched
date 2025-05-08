@@ -1,0 +1,39 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Game Component Structure
+
+## Key Components
+
+### Host Component
+- Manages game state and progression
+- Displays different views based on game stage which all players will see on a shared screen
+- Handles player interactions and scoring
+
+### Client Component
+- Shows appropriate UI based on game stage for each individual player on their personal device
+- Handles player input for prompts and guesses
+- Displays scoring information
+
+### Reducer
+- Manages game state transitions
+- Handles player submissions and scoring
+- Controls stage progression
+
+## State Management
+The game state includes:
+- Current stage
+- Active image
+- Player submissions
+- Player guesses
+- Scores
+
+Message passing an game state syncing are automatically taken care of by [PeerContext.tsx](mdc:src/contexts/PeerContext.tsx) and [GameState.tsx](mdc:src/contexts/GameState.tsx). These files rarely need to be changed. If the state gets changed on the host via the reducer, it will end up on the client. Messages sent by the client using sendMessage will be received on the host.
+
+## File Structure for Farsketched
+- [reducer.ts](mdc:src/reducer.ts) - Game state transition logic
+- [Host.tsx](mdc:src/Host.tsx) - Host interface
+- [Client.tsx](mdc:src/Client.tsx) - Player interface
+- [types.ts](mdc:src/types.ts) - Type definitions
