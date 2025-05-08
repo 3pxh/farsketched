@@ -6,6 +6,8 @@ import {
   GameConfig,
   Player
 } from '@/games/farsketched/types';
+import { generateImages } from '@/apis/imageGeneration';
+import { settingsManager } from '@/settings';
 
 // Default game configuration
 const DEFAULT_CONFIG: GameConfig = {
@@ -16,7 +18,7 @@ const DEFAULT_CONFIG: GameConfig = {
   foolingTimerSeconds: 45,
   guessingTimerSeconds: 20,
   scoringDisplaySeconds: 10,
-  apiProvider: 'openai',
+  apiProvider: 'stability',
   apiKey: '',
   roomCode: ''
 };
@@ -91,10 +93,107 @@ export function farsketchedReducer(
       };
 
     // Game flow messages
-    case MessageType.SUBMIT_PROMPT:
-      // We're going to call the image generator,
-      // and on success use sendSelfMessage to send the image to the host
-    case MessageType.PROMPT_RESULT:
+    case MessageType.SUBMIT_PROMPT: {
+      // Generate a unique ID for the image
+      const imageId = `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+      
+      // Create a new pending image
+      const pendingImage = {
+        id: imageId,
+        creatorId: message.playerId,
+        prompt: message.prompt,
+        imageBlob: new Blob(), // Empty blob for pending state
+        roundIndex: state.currentRound,
+        timestamp: Date.now(),
+        status: 'pending' as const
+      };
+
+      // Add the image to the current round's images
+      const currentRoundImages = state.roundImages[state.currentRound] || [];
+      const updatedRoundImages = [...state.roundImages];
+      updatedRoundImages[state.currentRound] = [...currentRoundImages, imageId];
+      
+      // Get the appropriate API key based on provider
+      const getApiKey = async () => {
+        if (state.config.apiProvider === 'stability') {
+          return await settingsManager.getStabilityApiKey();
+        } else if (state.config.apiProvider === 'openai') {
+          return await settingsManager.getOpenaiApiKey();
+        }
+        return null;
+      };
+
+      // Call the image generation API
+      getApiKey().then(async (apiKey) => {
+        if (!apiKey) {
+          throw new Error('API key not found. Please set it in the settings.');
+        }
+
+        const images = await generateImages({
+          prompt: message.prompt,
+          provider: state.config.apiProvider as 'openai' | 'stability',
+          width: 512,
+          height: 512,
+          apiKey
+        });
+
+        if (images.length > 0) {
+          // Send success message with the generated image
+          const successMessage: GameMessage = {
+            type: MessageType.PROMPT_RESULT,
+            success: true,
+            imageId,
+            imageBlob: images[0].blob,
+            timestamp: Date.now(),
+            messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
+          };
+          sendSelfMessage(successMessage);
+        }
+      }).catch((error) => {
+        // Send error message if generation fails
+        const errorMessage: GameMessage = {
+          type: MessageType.PROMPT_ERROR,
+          playerId: message.playerId,
+          prompt: message.prompt,
+          errorCode: 'GENERATION_FAILED',
+          errorMessage: error.message,
+          timestamp: Date.now(),
+          messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
+        };
+        sendSelfMessage(errorMessage);
+      });
+
+      return {
+        ...state,
+        images: {
+          ...state.images,
+          [imageId]: pendingImage
+        },
+        roundImages: updatedRoundImages
+      };
+    }
+
+    case MessageType.PROMPT_RESULT: {
+      if (message.success && message.imageId && message.imageBlob) {
+        // Update the existing image with the generated blob and mark as complete
+        const existingImage = state.images[message.imageId];
+        if (existingImage) {
+          return {
+            ...state,
+            images: {
+              ...state.images,
+              [message.imageId]: {
+                ...existingImage,
+                imageBlob: message.imageBlob,
+                status: 'complete'
+              }
+            }
+          };
+        }
+      }
+      return state;
+    }
+
     case MessageType.SUBMIT_FAKE_PROMPT:
     case MessageType.SUBMIT_GUESS:
     case MessageType.ROUND_COMPLETE:

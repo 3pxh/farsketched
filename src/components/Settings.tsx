@@ -37,7 +37,14 @@ export function Settings({ gameConfig, onSave, onClose }: SettingsProps) {
       // Save API keys to database
       await settingsManager.setOpenaiApiKey(openaiKey);
       await settingsManager.setStabilityApiKey(stabilityKey);
-      onSave(config);
+      
+      // Update game config with the appropriate API key based on provider
+      const updatedConfig = {
+        ...config,
+        apiKey: config.apiProvider === 'openai' ? openaiKey : stabilityKey
+      };
+      
+      onSave(updatedConfig);
       onClose();
     } catch (error) {
       console.error('Error saving settings:', error);
@@ -59,7 +66,8 @@ export function Settings({ gameConfig, onSave, onClose }: SettingsProps) {
         provider,
         width: 512,
         height: 512,
-        outputFormat: 'webp'
+        outputFormat: 'webp',
+        apiKey
       });
       
       if (result && result.length > 0) {
