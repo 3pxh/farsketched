@@ -2,6 +2,15 @@
   position: relative;
   min-height: 100vh;
   padding: 2rem;
+  background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 25%, #fbc2eb 50%, #a6c1ee 75%, #84fab0 100%);
+  background-size: 400% 400%;
+  animation: gradientBG 15s ease infinite;
+}
+
+@keyframes gradientBG {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 .timer-wrapper {
@@ -9,4 +18,92 @@
   bottom: 2rem;
   right: 2rem;
   z-index: 100;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  padding: 1rem;
+  border-radius: 1rem;
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  transition: transform 0.3s ease;
+}
+
+.timer-wrapper:hover {
+  transform: scale(1.05) rotate(2deg);
+}
+
+/* Sparkle effect for buttons */
+.sparkle-button {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(45deg, #ff6b6b, #ffd93d, #6c5ce7, #00cec9);
+  background-size: 300% 300%;
+  animation: gradientMove 3s ease infinite;
+  border: none;
+  color: white;
+  padding: 0.8rem 1.5rem;
+  border-radius: 2rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.sparkle-button::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
+  transform: rotate(45deg);
+  animation: sparkle 2s linear infinite;
+  border-radius: 2rem;
+  overflow: hidden;
+  opacity: 0.5;  /* Make it slightly transparent by default */
+}
+
+.sparkle-button:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.sparkle-button:hover::before {
+  opacity: 1;  /* Make it fully opaque on hover */
+}
+
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes sparkle {
+  0% { transform: rotate(45deg) translateY(-100%); }
+  100% { transform: rotate(45deg) translateY(100%); }
+}
+
+/* Wiggly animation for interactive elements */
+.wiggle {
+  animation: wiggle 0.5s ease-in-out;
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-5deg); }
+  75% { transform: rotate(5deg); }
+}
+
+/* Glass morphism effect for containers */
+.glass-container {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+  padding: 2rem;
+  transition: transform 0.3s ease;
+}
+
+.glass-container:hover {
+  transform: translateY(-5px);
 } 

@@ -124,6 +124,9 @@ function FoolingStage() {
   const image = gameState.images[gameState.activeImage.imageId];
   if (!image) return <p>Image not found</p>;
 
+  // Check if this player is the image creator
+  const isImageCreator = image.creatorId === peerId;
+
   // Convert blob to data URL when image is available
   useEffect(() => {
     if (image.imageBlob) {
@@ -158,7 +161,7 @@ function FoolingStage() {
     setIsSubmitted(true);
   };
 
-  if (isSubmitted || hasSubmitted) {
+  if (isSubmitted || hasSubmitted || isImageCreator) {
     return (
       <div className="fooling-stage">
         <h2>Fooling Stage</h2>
@@ -173,8 +176,14 @@ function FoolingStage() {
             <div className="loading-placeholder">Loading image...</div>
           )}
         </div>
-        <p>Your fake prompt has been submitted!</p>
-        <p>Waiting for other players...</p>
+        {isImageCreator ? (
+          <p>This is your image! Waiting for other players to submit fake prompts...</p>
+        ) : (
+          <>
+            <p>Your fake prompt has been submitted!</p>
+            <p>Waiting for other players...</p>
+          </>
+        )}
       </div>
     );
   }
