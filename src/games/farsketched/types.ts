@@ -155,8 +155,6 @@ export interface Player {
     PROMPT_RESULT = 'prompt_result',
     SUBMIT_FAKE_PROMPT = 'submit_fake_prompt',
     SUBMIT_GUESS = 'submit_guess',
-    ROUND_COMPLETE = 'round_complete',
-    GAME_OVER = 'game_over',
     TIMER_EXPIRED = 'timer_expired',
     
     // Error messages
@@ -319,25 +317,7 @@ export interface Player {
     imageId: string;
     promptId: string;
   }
-  
-  /**
-   * Host notifies all clients that a round is complete
-   */
-  export interface RoundCompleteMessage extends BaseMessage {
-    type: MessageType.ROUND_COMPLETE;
-    roundIndex: number;
-    scores: Record<string, number>;
-  }
-  
-  /**
-   * Host notifies all clients that the game is over
-   */
-  export interface GameOverMessage extends BaseMessage {
-    type: MessageType.GAME_OVER;
-    finalScores: Record<string, number>;
-    achievements: Achievement[];
-  }
-  
+
   /**
    * Host notifies all clients that a timer has expired
    */
@@ -387,8 +367,6 @@ export interface Player {
     | PromptResultMessage
     | SubmitFakePromptMessage
     | SubmitGuessMessage
-    | RoundCompleteMessage
-    | GameOverMessage
     | TimerExpiredMessage
     | ErrorMessage
     | PromptErrorMessage;
