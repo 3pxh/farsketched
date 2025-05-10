@@ -22,6 +22,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const enableAudio = async () => {
       await Tone.start();
       setAudioEnabled(true);
+      console.log("Audio enabled");
     };
     document.addEventListener('click', enableAudio, { once: true });
     return () => {
