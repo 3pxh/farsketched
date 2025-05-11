@@ -340,8 +340,12 @@ export function farsketchedReducer(
         guesses: [...state.activeImage.guesses, guess]
       };
 
-      // Check if all players have submitted guesses
-      const allPlayersGuessed = Object.keys(state.players).length === updatedActiveImage.guesses.length;
+      // Get the image creator's ID
+      const imageCreatorId = state.images[state.activeImage.imageId].creatorId;
+      
+      // Check if all non-creator players have submitted guesses
+      const nonCreatorPlayers = Object.keys(state.players).filter(id => id !== imageCreatorId);
+      const allPlayersGuessed = nonCreatorPlayers.length === updatedActiveImage.guesses.length;
 
       if (allPlayersGuessed) {
         const now = Date.now();
