@@ -546,5 +546,205 @@ describe('farsketchedReducer', () => {
       expect(state.stage).toBe(GameStage.SCORING);
       expect(state.activeImage?.guesses.length).toBe(2);
     });
+
+    it('should calculate scores correctly when transitioning to scoring stage', () => {
+      const players = ['player1', 'player2', 'player3'];
+      let state = initialState;
+
+      // Add players
+      for (const playerId of players) {
+        const playerMessage = createMessage<SetPlayerInfoMessage>(MessageType.SET_PLAYER_INFO, {
+          playerId,
+          name: `Player ${playerId}`,
+          avatarUrl: `https://example.com/avatar-${playerId}.png`
+        });
+        state = farsketchedReducer(state, playerMessage, sendSelfMessage);
+      }
+
+      // Start game and submit a prompt
+      const startMessage = createMessage<RequestStartGameMessage>(MessageType.REQUEST_START_GAME, {
+        playerId: players[0]
+      });
+      state = farsketchedReducer(state, startMessage, sendSelfMessage);
+
+      const promptMessage = createMessage<SubmitPromptMessage>(MessageType.SUBMIT_PROMPT, {
+        playerId: players[0],
+        prompt: 'Test prompt'
+      });
+      state = farsketchedReducer(state, promptMessage, sendSelfMessage);
+
+      // Get the image ID
+      const imageId = Object.keys(state.images)[0];
+
+      // Mock successful image generation
+      const resultMessage = createMessage<PromptResultMessage>(MessageType.PROMPT_RESULT, {
+        success: true,
+        imageId,
+        imageBlob: new Blob(['test'], { type: 'image/png' })
+      });
+      state = farsketchedReducer(state, resultMessage, sendSelfMessage);
+
+      // Set up state for guessing stage with fake prompts
+      state = {
+        ...state,
+        stage: GameStage.GUESSING,
+        activeImage: {
+          imageId,
+          fakePrompts: [
+            { id: 'fake1', imageId, authorId: players[1], text: 'Fake 1' },
+            { id: 'fake2', imageId, authorId: players[2], text: 'Fake 2' }
+          ],
+          guesses: []
+        }
+      };
+
+      // Submit guesses:
+      // - player2 guesses correctly (real prompt)
+      // - player3 guesses player2's fake prompt
+      const guess1 = createMessage<SubmitGuessMessage>(MessageType.SUBMIT_GUESS, {
+        playerId: players[1],
+        imageId,
+        promptId: 'real'
+      });
+      state = farsketchedReducer(state, guess1, sendSelfMessage);
+
+      const guess2 = createMessage<SubmitGuessMessage>(MessageType.SUBMIT_GUESS, {
+        playerId: players[2],
+        imageId,
+        promptId: 'fake1'
+      });
+      state = farsketchedReducer(state, guess2, sendSelfMessage);
+
+      // Verify scores:
+      // - player1 (creator) gets 5 points for player2's correct guess
+      // - player2 gets 5 points for guessing correctly
+      // - player3 gets 0 points (wrong guess)
+      expect(state.players[players[0]].points).toBe(5);
+      expect(state.players[players[1]].points).toBe(8);
+      expect(state.players[players[2]].points).toBe(0);
+    });
+
+    it('should accumulate scores across multiple rounds', () => {
+      const players = ['player1', 'player2', 'player3'];
+      let state = initialState;
+
+      // Add players
+      for (const playerId of players) {
+        const playerMessage = createMessage<SetPlayerInfoMessage>(MessageType.SET_PLAYER_INFO, {
+          playerId,
+          name: `Player ${playerId}`,
+          avatarUrl: `https://example.com/avatar-${playerId}.png`
+        });
+        state = farsketchedReducer(state, playerMessage, sendSelfMessage);
+      }
+
+      // Start game
+      const startMessage = createMessage<RequestStartGameMessage>(MessageType.REQUEST_START_GAME, {
+        playerId: players[0]
+      });
+      state = farsketchedReducer(state, startMessage, sendSelfMessage);
+
+      // First round
+      const promptMessage1 = createMessage<SubmitPromptMessage>(MessageType.SUBMIT_PROMPT, {
+        playerId: players[0],
+        prompt: 'Test prompt 1'
+      });
+      state = farsketchedReducer(state, promptMessage1, sendSelfMessage);
+
+      const imageId1 = Object.keys(state.images)[0];
+
+      const resultMessage1 = createMessage<PromptResultMessage>(MessageType.PROMPT_RESULT, {
+        success: true,
+        imageId: imageId1,
+        imageBlob: new Blob(['test'], { type: 'image/png' })
+      });
+      state = farsketchedReducer(state, resultMessage1, sendSelfMessage);
+
+      state = {
+        ...state,
+        stage: GameStage.GUESSING,
+        activeImage: {
+          imageId: imageId1,
+          fakePrompts: [
+            { id: 'fake1', imageId: imageId1, authorId: players[1], text: 'Fake 1' },
+            { id: 'fake2', imageId: imageId1, authorId: players[2], text: 'Fake 2' }
+          ],
+          guesses: []
+        }
+      };
+
+      // All players guess correctly in first round
+      const guess1 = createMessage<SubmitGuessMessage>(MessageType.SUBMIT_GUESS, {
+        playerId: players[1],
+        imageId: imageId1,
+        promptId: 'real'
+      });
+      state = farsketchedReducer(state, guess1, sendSelfMessage);
+
+      const guess2 = createMessage<SubmitGuessMessage>(MessageType.SUBMIT_GUESS, {
+        playerId: players[2],
+        imageId: imageId1,
+        promptId: 'real'
+      });
+      state = farsketchedReducer(state, guess2, sendSelfMessage);
+
+      // Move to next round
+      const timerExpiredMessage1 = createMessage<GameMessage>(MessageType.TIMER_EXPIRED, {
+        stage: GameStage.SCORING
+      });
+      state = farsketchedReducer(state, timerExpiredMessage1, sendSelfMessage);
+
+      // Second round
+      const promptMessage2 = createMessage<SubmitPromptMessage>(MessageType.SUBMIT_PROMPT, {
+        playerId: players[1],
+        prompt: 'Test prompt 2'
+      });
+      state = farsketchedReducer(state, promptMessage2, sendSelfMessage);
+
+      const imageId2 = Object.keys(state.images)[1];
+
+      const resultMessage2 = createMessage<PromptResultMessage>(MessageType.PROMPT_RESULT, {
+        success: true,
+        imageId: imageId2,
+        imageBlob: new Blob(['test'], { type: 'image/png' })
+      });
+      state = farsketchedReducer(state, resultMessage2, sendSelfMessage);
+
+      state = {
+        ...state,
+        stage: GameStage.GUESSING,
+        activeImage: {
+          imageId: imageId2,
+          fakePrompts: [
+            { id: 'fake3', imageId: imageId2, authorId: players[0], text: 'Fake 3' },
+            { id: 'fake4', imageId: imageId2, authorId: players[2], text: 'Fake 4' }
+          ],
+          guesses: []
+        }
+      };
+
+      // All players guess correctly in second round
+      const guess3 = createMessage<SubmitGuessMessage>(MessageType.SUBMIT_GUESS, {
+        playerId: players[0],
+        imageId: imageId2,
+        promptId: 'real'
+      });
+      state = farsketchedReducer(state, guess3, sendSelfMessage);
+
+      const guess4 = createMessage<SubmitGuessMessage>(MessageType.SUBMIT_GUESS, {
+        playerId: players[2],
+        imageId: imageId2,
+        promptId: 'real'
+      });
+      state = farsketchedReducer(state, guess4, sendSelfMessage);
+
+      // Verify accumulated scores:
+      // player1: 5 points from first round + 5 points for correct guess in second round
+      // player2: 5 points from first round + 10 points from second round (creator)
+      // player3: 5 points from first round + 5 points for correct guess in second round
+      expect(state.players[players[0]].points).toBe(15);
+      expect(state.players[players[1]].points).toBe(15);
+      expect(state.players[players[2]].points).toBe(10);
+    });
   });
 }); 
