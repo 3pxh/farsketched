@@ -369,18 +369,21 @@ describe('farsketchedReducer', () => {
           expect(state.activeImage?.fakePrompts.length).toBe(players.length - 1);
           expect(state.stage).toBe(GameStage.GUESSING);
 
-          // All players submit guesses
+          // All non-creator players submit guesses
           for (const playerId of players) {
-            const guessMessage = createMessage<SubmitGuessMessage>(MessageType.SUBMIT_GUESS, {
-              playerId,
-              imageId: currentImageId,
-              promptId: 'real' // Everyone guesses the real prompt for simplicity
-            });
-            state = farsketchedReducer(state, guessMessage, sendSelfMessage);
+            // Skip the image creator
+            if (state.images[currentImageId].creatorId !== playerId) {
+              const guessMessage = createMessage<SubmitGuessMessage>(MessageType.SUBMIT_GUESS, {
+                playerId,
+                imageId: currentImageId,
+                promptId: 'real' // Everyone guesses the real prompt for simplicity
+              });
+              state = farsketchedReducer(state, guessMessage, sendSelfMessage);
+            }
           }
 
-          // Verify guesses were submitted
-          expect(state.activeImage?.guesses.length).toBe(players.length);
+          // Verify guesses were submitted (should be one less than total players)
+          expect(state.activeImage?.guesses.length).toBe(players.length - 1);
 
           // Move to scoring
           expect(state.stage).toBe(GameStage.SCORING);
@@ -475,6 +478,73 @@ describe('farsketchedReducer', () => {
       // Verify we moved to guessing stage
       expect(state.stage).toBe(GameStage.GUESSING);
       expect(state.activeImage?.fakePrompts.length).toBe(players.length - 1);
+    });
+
+    it('should transition to scoring when all non-creator players have guessed', () => {
+      // This test would fail with the old logic (before the reducer fix)
+      const players = ['player1', 'player2', 'player3'];
+      let state = initialState;
+
+      // Add players
+      for (const playerId of players) {
+        const playerMessage = createMessage<SetPlayerInfoMessage>(MessageType.SET_PLAYER_INFO, {
+          playerId,
+          name: `Player ${playerId}`,
+          avatarUrl: `https://example.com/avatar-${playerId}.png`
+        });
+        state = farsketchedReducer(state, playerMessage, sendSelfMessage);
+      }
+
+      // Start game and submit a prompt
+      const startMessage = createMessage<RequestStartGameMessage>(MessageType.REQUEST_START_GAME, {
+        playerId: players[0]
+      });
+      state = farsketchedReducer(state, startMessage, sendSelfMessage);
+
+      const promptMessage = createMessage<SubmitPromptMessage>(MessageType.SUBMIT_PROMPT, {
+        playerId: players[0],
+        prompt: 'Test prompt'
+      });
+      state = farsketchedReducer(state, promptMessage, sendSelfMessage);
+
+      // Get the image ID
+      const imageId = Object.keys(state.images)[0];
+
+      // Mock successful image generation
+      const resultMessage = createMessage<PromptResultMessage>(MessageType.PROMPT_RESULT, {
+        success: true,
+        imageId,
+        imageBlob: new Blob(['test'], { type: 'image/png' })
+      });
+      state = farsketchedReducer(state, resultMessage, sendSelfMessage);
+
+      // Set up state for guessing stage
+      state = {
+        ...state,
+        stage: GameStage.GUESSING,
+        activeImage: {
+          imageId,
+          fakePrompts: [
+            { id: 'fake1', imageId, authorId: players[1], text: 'Fake 1' },
+            { id: 'fake2', imageId, authorId: players[2], text: 'Fake 2' }
+          ],
+          guesses: []
+        }
+      };
+
+      // Only non-creator players submit guesses
+      for (const playerId of players.slice(1)) {
+        const guessMessage = createMessage<SubmitGuessMessage>(MessageType.SUBMIT_GUESS, {
+          playerId,
+          imageId,
+          promptId: 'real'
+        });
+        state = farsketchedReducer(state, guessMessage, sendSelfMessage);
+      }
+
+      // Should now be in scoring stage
+      expect(state.stage).toBe(GameStage.SCORING);
+      expect(state.activeImage?.guesses.length).toBe(2);
     });
   });
 }); 
