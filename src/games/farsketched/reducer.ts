@@ -348,6 +348,45 @@ export function farsketchedReducer(
       const allPlayersGuessed = nonCreatorPlayers.length === updatedActiveImage.guesses.length;
 
       if (allPlayersGuessed) {
+        // Calculate scores before moving to scoring stage
+        const updatedPlayers = { ...state.players };
+        
+        // Count correct guesses for the real prompt
+        const correctGuesses = updatedActiveImage.guesses.filter(guess => guess.isCorrect).length;
+        
+        // Award points to image creator for each correct guess
+        updatedPlayers[imageCreatorId] = {
+          ...updatedPlayers[imageCreatorId],
+          points: (updatedPlayers[imageCreatorId].points || 0) + (correctGuesses * 5)
+        };
+
+        // Award points to players who wrote fake prompts
+        for (const fakePrompt of updatedActiveImage.fakePrompts) {
+          const fakePromptAuthor = fakePrompt.authorId;
+          
+          // Count how many players guessed this fake prompt
+          const guessesForThisFake = updatedActiveImage.guesses.filter(
+            guess => guess.promptId === fakePrompt.id
+          ).length;
+
+          // Award points to fake prompt author
+          updatedPlayers[fakePromptAuthor] = {
+            ...updatedPlayers[fakePromptAuthor],
+            points: (updatedPlayers[fakePromptAuthor].points || 0) + (guessesForThisFake * 3)
+          };
+
+          // If they guessed correctly, award additional points
+          const authorGuessedCorrectly = updatedActiveImage.guesses.some(
+            guess => guess.playerId === fakePromptAuthor && guess.isCorrect
+          );
+          if (authorGuessedCorrectly) {
+            updatedPlayers[fakePromptAuthor] = {
+              ...updatedPlayers[fakePromptAuthor],
+              points: (updatedPlayers[fakePromptAuthor].points || 0) + 5
+            };
+          }
+        }
+
         const now = Date.now();
         const timeoutId = setTimeout(() => {
           const timerExpiredMessage: GameMessage = {
@@ -363,6 +402,7 @@ export function farsketchedReducer(
           ...state,
           stage: GameStage.SCORING,
           activeImage: updatedActiveImage,
+          players: updatedPlayers,
           timer: {
             startTime: now,
             duration: state.config.scoringDisplaySeconds,

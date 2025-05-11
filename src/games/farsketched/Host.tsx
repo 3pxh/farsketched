@@ -32,7 +32,7 @@ function FoolingStage({ gameState }: { gameState: GameState }) {
   );
 }
 
-function ScoringStage({ gameState }: { gameState: GameState }) {
+export function ScoringStage({ gameState }: { gameState: GameState }) {
   if (!gameState.activeImage) return <p>No active image to score</p>;
 
   const image = gameState.images[gameState.activeImage.imageId];
@@ -56,6 +56,31 @@ function ScoringStage({ gameState }: { gameState: GameState }) {
       isReal: false
     }))
   ];
+
+  // Calculate current round points
+  const roundPoints: Record<string, number> = {};
+  
+  // Points for image creator (5 points per correct guess)
+  const correctGuesses = gameState.activeImage.guesses.filter(guess => guess.isCorrect).length;
+  roundPoints[image.creatorId] = correctGuesses * 5;
+
+  // Points for fake prompt authors
+  for (const fakePrompt of gameState.activeImage.fakePrompts) {
+    const guessesForThisFake = gameState.activeImage.guesses.filter(
+      guess => guess.promptId === fakePrompt.id
+    ).length;
+    
+    // 3 points per guess on their fake prompt
+    roundPoints[fakePrompt.authorId] = (roundPoints[fakePrompt.authorId] || 0) + (guessesForThisFake * 3);
+
+    // 5 points if they guessed correctly
+    const authorGuessedCorrectly = gameState.activeImage.guesses.some(
+      guess => guess.playerId === fakePrompt.authorId && guess.isCorrect
+    );
+    if (authorGuessedCorrectly) {
+      roundPoints[fakePrompt.authorId] = (roundPoints[fakePrompt.authorId] || 0) + 5;
+    }
+  }
 
   return (
     <div className="scoring-stage">
@@ -84,6 +109,28 @@ function ScoringStage({ gameState }: { gameState: GameState }) {
             </div>
           </div>
         ))}
+      </div>
+      <div className="score-summary">
+        <h3>Score Summary</h3>
+        <div className="player-scores">
+          {Object.entries(gameState.players).map(([playerId, player]) => (
+            <div key={playerId} className="player-score">
+              <div className="player-info">
+                <img 
+                  src={player.avatarUrl} 
+                  alt={player.name} 
+                  className="player-avatar"
+                  style={{ width: '32px', height: '32px', borderRadius: '50%' }}
+                />
+                <span className="player-name">{player.name}</span>
+              </div>
+              <div className="score-details">
+                <span className="round-points">+{roundPoints[playerId] || 0} points this round</span>
+                <span className="total-points">Total: {player.points} points</span>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

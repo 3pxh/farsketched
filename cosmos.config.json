@@ -1,0 +1,9 @@
+{
+    "plugins": ["react-cosmos-plugin-vite"],
+    "staticPath": "public",
+    "fixturesDir": "__fixtures__",
+    "fixturesPort": 5000,
+    "globalImports": ["src/cosmos/global.css"],
+    "watchDirs": ["src"],
+    "exportPath": "dist/cosmos"
+}
