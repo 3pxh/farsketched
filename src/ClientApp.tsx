@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import "./App.css";
+import "./ClientApp.css";
 import { PeerProvider } from '@/contexts/PeerContext';
 import { usePeer } from '@/contexts/PeerContext';
 import { Client } from '@/games/farsketched/Client';
