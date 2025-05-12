@@ -146,17 +146,6 @@ export function ScoringStage({ gameState }: { gameState: GameState }) {
     }
   }, [revealedCount, allPrompts.length]);
 
-  const handleNext = () => {
-    if (revealedCount < allPrompts.length) {
-      setRevealedCount(revealedCount + 1);
-    }
-  };
-  const handlePrev = () => {
-    if (revealedCount > 1) {
-      setRevealedCount(revealedCount - 1);
-    }
-  };
-
   // Sort all prompts by fewest to most guessers
   const sortedPrompts = [...allPrompts]
     .sort((a, b) => (guessesByPrompt[a.id]?.length || 0) - (guessesByPrompt[b.id]?.length || 0));
@@ -171,7 +160,6 @@ export function ScoringStage({ gameState }: { gameState: GameState }) {
   const prevTopPromptId = useRef(topPrompt.id);
   // For real/fake reveal after last prompt's author is shown
   const [showRealFake, setShowRealFake] = useState(false);
-  const lastPromptId = revealedPrompts.length > 0 ? revealedPrompts[0].id : null;
 
   useEffect(() => {
     // If a new prompt is revealed, start progressive reveal
@@ -200,10 +188,6 @@ export function ScoringStage({ gameState }: { gameState: GameState }) {
       const t = setTimeout(() => setShowRealFake(true), 500);
       return () => clearTimeout(t);
     }
-    // Reset showRealFake if we go back
-    if ((revealedCount < allPrompts.length || !topShowAuthor) && showRealFake) {
-      setShowRealFake(false);
-    }
   }, [revealedCount, allPrompts.length, topShowAuthor, topPrompt.id, sortedPrompts, showRealFake]);
 
   // Calculate current round points
@@ -213,14 +197,14 @@ export function ScoringStage({ gameState }: { gameState: GameState }) {
   const correctGuesses = gameState.activeImage.guesses.filter(guess => guess.isCorrect).length;
   roundPoints[image.creatorId] = correctGuesses * 5;
 
-  // Points for fake prompt authors
+  // // Points for fake prompt authors
   for (const fakePrompt of gameState.activeImage.fakePrompts) {
     const guessesForThisFake = gameState.activeImage.guesses.filter(
       guess => guess.promptId === fakePrompt.id
     ).length;
     
-    // 3 points per guess on their fake prompt
-    roundPoints[fakePrompt.authorId] = (roundPoints[fakePrompt.authorId] || 0) + (guessesForThisFake * 3);
+    // 5 points per guess on their fake prompt
+    roundPoints[fakePrompt.authorId] = (roundPoints[fakePrompt.authorId] || 0) + (guessesForThisFake * 5);
 
     // 5 points if they guessed correctly
     const authorGuessedCorrectly = gameState.activeImage.guesses.some(
@@ -231,37 +215,37 @@ export function ScoringStage({ gameState }: { gameState: GameState }) {
     }
   }
 
-  // Permanently add 3 points for each player who guessed correctly
-  for (const guess of gameState.activeImage.guesses) {
-    if (guess.isCorrect) {
-      roundPoints[guess.playerId] = (roundPoints[guess.playerId] || 0) + 3;
-    }
-  }
+  // // Permanently add 3 points for each player who guessed correctly
+  // for (const guess of gameState.activeImage.guesses) {
+  //   if (guess.isCorrect) {
+  //     roundPoints[guess.playerId] = (roundPoints[guess.playerId] || 0) + 3;
+  //   }
+  // }
 
-  // Log the round score for each player
-  console.log('Round points for each player:', roundPoints);
+  // // Log the round score for each player
+  // console.log('Round points for each player:', roundPoints);
 
   // Precompute points and animated scores for all prompts
-  const allPromptPoints = sortedPrompts.map(prompt => {
-    let points = 0;
-    const guesses = (gameState.activeImage && gameState.activeImage.guesses) ? gameState.activeImage.guesses : [];
-    if (prompt.isReal) {
-      points = (guessesByPrompt['real']?.length || 0) * 5;
-    } else {
-      points = (guessesByPrompt[prompt.id]?.length || 0) * 3;
-      const authorGuessedReal = guesses.some(
-        g => g.playerId === prompt.authorId && g.promptId === 'real'
-      );
-      if (authorGuessedReal) points += 5;
-    }
-    const creator = gameState.players[prompt.authorId];
-    const prevTotal = creator.points - points;
-    return { points, prevTotal, creatorPoints: creator.points };
-  });
-  // Precompute animated scores for all prompts
-  const allAnimatedScores = allPromptPoints.map(({ creatorPoints, prevTotal }, i) =>
-    useCountUp(creatorPoints, prevTotal, showRealFake)
-  );
+  // const allPromptPoints = sortedPrompts.map(prompt => {
+  //   let points = 0;
+  //   const guesses = (gameState.activeImage && gameState.activeImage.guesses) ? gameState.activeImage.guesses : [];
+  //   if (prompt.isReal) {
+  //     points = (guessesByPrompt['real']?.length || 0) * 5;
+  //   } else {
+  //     points = (guessesByPrompt[prompt.id]?.length || 0) * 3;
+  //     const authorGuessedReal = guesses.some(
+  //       g => g.playerId === prompt.authorId && g.promptId === 'real'
+  //     );
+  //     if (authorGuessedReal) points += 5;
+  //   }
+  //   const creator = gameState.players[prompt.authorId];
+  //   const prevTotal = creator.points - points;
+  //   return { points, prevTotal, creatorPoints: creator.points };
+  // });
+  // // Precompute animated scores for all prompts
+  // const allAnimatedScores = allPromptPoints.map(({ creatorPoints, prevTotal }, i) =>
+  //   useCountUp(creatorPoints, prevTotal, showRealFake)
+  // );
 
   // State to trigger resorting by score after score reveal
   const [shouldResortByScore, setShouldResortByScore] = useState(false);
@@ -320,12 +304,10 @@ export function ScoringStage({ gameState }: { gameState: GameState }) {
         <div className="prompt-boxes compact" style={{ minHeight: 90 }}>
           <AnimatePresence>
             {revealedPromptsWithScores.map((prompt, idx) => {
-              console.log('prompt', prompt);
               const guessers = guessesByPrompt[prompt.id] || [];
               const isTop = idx === 0;
               const creator = gameState.players[prompt.authorId];
               let points = prompt.roundScore;
-              const showScore = showRealFake;
               const guessersShown = isTop ? topGuessersShown : guessers.length;
               // If the author guessed correctly, and we're in the bonus window, add 3 points
               if (showRealFake && !shouldResortByScore && correctGuessers.has(prompt.authorId)) {
