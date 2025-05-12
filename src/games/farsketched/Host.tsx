@@ -66,17 +66,21 @@ function CreatorAvatarWithScore({
   prompt,
   creator,
   points,
-  showRealFake
+  showRealFake,
+  guessersShown
 }: {
   prompt: any;
   creator: any;
   points: number;
   showRealFake: boolean;
+  guessersShown: number;
 }) {
-  const prevTotal = creator.points - points;
-  const animatedScore = useCountUp(creator.points, prevTotal, showRealFake);
   return (
-    <div className="row-avatar" style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+    <motion.div 
+      className="row-avatar" 
+      style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+      layout
+    >
       <img
         src={creator.avatarUrl}
         alt={creator.name}
@@ -84,14 +88,22 @@ function CreatorAvatarWithScore({
         title={creator.name + (prompt.isReal ? ' (Creator)' : '')}
       />
       {/* Show points badge after real/fake is revealed */}
-      {showRealFake && points > 0 && (
+      {showRealFake ? points > 0 && (
         <span className="points-badge">+{points}</span>
+      ) : guessersShown > 0 && (
+        <motion.span
+          className="points-badge"
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+          layout
+        >
+          +{guessersShown * 5}
+        </motion.span>
       )}
-      {/* Show animated total score after real/fake is revealed */}
-      {showRealFake && (
-        <span className="creator-total-score">{animatedScore}</span>
-      )}
-    </div>
+      {/* Always show total score when row enters */}
+      <span className="creator-total-score">{creator.points}</span>
+    </motion.div>
   );
 }
 
@@ -129,7 +141,7 @@ export function ScoringStage({ gameState }: { gameState: GameState }) {
     if (revealedCount < allPrompts.length) {
       const timer = setTimeout(() => {
         setRevealedCount(count => count + 1);
-      }, 2500);
+      }, 1000);
       return () => clearTimeout(timer);
     }
   }, [revealedCount, allPrompts.length]);
@@ -219,6 +231,16 @@ export function ScoringStage({ gameState }: { gameState: GameState }) {
     }
   }
 
+  // Permanently add 3 points for each player who guessed correctly
+  for (const guess of gameState.activeImage.guesses) {
+    if (guess.isCorrect) {
+      roundPoints[guess.playerId] = (roundPoints[guess.playerId] || 0) + 3;
+    }
+  }
+
+  // Log the round score for each player
+  console.log('Round points for each player:', roundPoints);
+
   // Precompute points and animated scores for all prompts
   const allPromptPoints = sortedPrompts.map(prompt => {
     let points = 0;
@@ -270,6 +292,19 @@ export function ScoringStage({ gameState }: { gameState: GameState }) {
     sortedRevealedPrompts = revealedPrompts;
   }
 
+  // Add roundScore and authorRoundScore to each revealed prompt
+  const revealedPromptsWithScores = sortedRevealedPrompts.map(prompt => ({
+    ...prompt,
+    roundScore: roundPoints[prompt.authorId] || 0,
+    authorRoundScore: roundPoints[prompt.authorId] || 0
+  }));
+  // Find players who guessed correctly
+  const correctGuessers = new Set(
+    (gameState.activeImage?.guesses || [])
+      .filter(g => g.isCorrect)
+      .map(g => g.playerId)
+  );
+
   return (
     <div className="scoring-stage">
       <h2>Scoring Stage</h2>
@@ -284,13 +319,18 @@ export function ScoringStage({ gameState }: { gameState: GameState }) {
         <h3>Results:</h3>
         <div className="prompt-boxes compact" style={{ minHeight: 90 }}>
           <AnimatePresence>
-            {sortedRevealedPrompts.map((prompt, idx) => {
+            {revealedPromptsWithScores.map((prompt, idx) => {
+              console.log('prompt', prompt);
               const guessers = guessesByPrompt[prompt.id] || [];
               const isTop = idx === 0;
-              const animatedScore = allAnimatedScores[idx];
               const creator = gameState.players[prompt.authorId];
-              const { points } = allPromptPoints[idx];
+              let points = prompt.roundScore;
               const showScore = showRealFake;
+              const guessersShown = isTop ? topGuessersShown : guessers.length;
+              // If the author guessed correctly, and we're in the bonus window, add 3 points
+              if (showRealFake && !shouldResortByScore && correctGuessers.has(prompt.authorId)) {
+                points += 3;
+              }
               return (
                 <motion.div
                   key={prompt.id}
@@ -305,11 +345,11 @@ export function ScoringStage({ gameState }: { gameState: GameState }) {
                     className={`prompt-box-row ${showRealFake ? (prompt.isReal ? 'real-prompt' : 'fake-prompt') : 'neutral-prompt'}`}
                   >
                     <CreatorAvatarWithScore
-                      key={prompt.id + '-' + creator.points}
                       prompt={prompt}
                       creator={creator}
                       points={points}
                       showRealFake={showRealFake}
+                      guessersShown={guessersShown}
                     />
                     <div className="row-prompt-text">
                       <span className="prompt-text-row">{prompt.text}</span>
