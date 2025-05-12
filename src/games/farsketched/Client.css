@@ -59,7 +59,6 @@
 
 .image-prompt {
   margin-top: 8px;
-  font-size: 14px;
   color: #666;
 }
 
@@ -139,7 +138,6 @@
 
 .prompt-label {
   display: block;
-  font-size: 0.9em;
   color: #666;
   font-style: italic;
 }
