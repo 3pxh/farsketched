@@ -5,32 +5,12 @@ import { HostLobby } from '@/games/farsketched/HostLobby';
 import { usePeer } from '@/contexts/PeerContext';
 import { HostGameStateProvider, useHostGameState } from '@/contexts/GameState';
 import { Timer } from './components/Timer';
-import { ScoringStage } from './components/ScoringStage';
+import { ScoringStage } from './host/ScoringStage';
+import { FoolingStage, PromptingStage, GuessingStage, GameOverStage } from './host/index';
 import './Host.css';
 
 interface HostProps {
   gameConfig: GameConfig;
-}
-
-function FoolingStage({ gameState }: { gameState: GameState }) {
-  if (!gameState.activeImage) return <p>No active image</p>;
-
-  const image = gameState.images[gameState.activeImage.imageId];
-  if (!image) return <p>Image not found</p>;
-
-  return (
-    <div className="fooling-stage">
-      <h2>Fooling Stage</h2>
-      <div className="active-image">
-        <img 
-          src={URL.createObjectURL(image.imageBlob)} 
-          alt="Generated image for fooling"
-          style={{ maxWidth: '512px', maxHeight: '512px' }}
-        />
-        <p>Real prompt: {image.prompt}</p>
-      </div>
-    </div>
-  );
 }
 
 function HostContent({ gameConfig }: HostProps) {
@@ -60,15 +40,15 @@ function HostContent({ gameConfig }: HostProps) {
           />
         );
       case GameStage.PROMPTING:
-        return <p>Prompting Stage</p>;
+        return <PromptingStage gameState={gameState} />;
       case GameStage.FOOLING:
         return <FoolingStage gameState={gameState} />;
       case GameStage.GUESSING:
-        return <p>Guessing Stage</p>;
+        return <GuessingStage gameState={gameState} />;
       case GameStage.SCORING:
         return <ScoringStage gameState={gameState} />;
       case GameStage.GAME_OVER:
-        return <p>Game Over Stage</p>;
+        return <GameOverStage gameState={gameState} />;
       default:
         return <p>Unknown Stage</p>;
     }

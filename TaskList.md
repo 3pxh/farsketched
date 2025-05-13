@@ -12,6 +12,8 @@
 
 ## Nits
 - [ ] can't guess your own prompt
+- [ ] if you don't submit a fool, you should appear with a blank on scoring
+- [ ] make the client full width
 - [ ] creator can't guess
 - [ ] does guessing stage progress via timer without clicks?
 - [ ] if no images created, what happens when time runs out? (pause screen or game over?)
