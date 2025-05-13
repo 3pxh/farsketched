@@ -99,14 +99,11 @@
   transform: scale(1.05);
 }
 
-.join-url {
-  margin-bottom: 1rem;
-  width: 100%;
-}
 
 .join-url button {
+  font-size: 2vh;
   width: 100%;
-  padding: 0.8rem 1.5rem;
+  padding: 0.8rem 4rem;
   background: linear-gradient(45deg, #ff6b6b, #ffd93d, #6c5ce7, #00cec9);
   background-size: 300% 300%;
   animation: gradientMove 3s ease infinite;

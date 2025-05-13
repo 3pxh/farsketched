@@ -1,5 +1,22 @@
 # Farsketched Implementation Task List
 
+## On Deck
+- [ ] Iterate on UI for client prompt, fool, guess (using cosmos)
+- [ ] Iterate on UI for host prompt, fool, guess?? (using cosmos)
+- [ ] Add Narrator
+- [ ] Award achievements
+  - [ ] Track history of active images to compute stats and awards
+  - [ ] Game over screen progressively reveals
+- [ ] Lobby game for client?
+
+
+## Nits
+- [ ] can't guess your own prompt
+- [ ] creator can't guess
+- [ ] does guessing stage progress via timer without clicks?
+- [ ] if no images created, what happens when time runs out? (pause screen or game over?)
+- [ ] separate css files per component, no inheritance aside from document level (i.e. App > Game > component)
+
 ## Developer Experience
 - [ ] Run the client via vite. When gh tried peerjs wouldn't connect, unlike the python server. It would be nice for hot module reloading.
 - [ ] Having a single-component workflow where we mock data would be nice. Storybook seems heavyweight, but maybe something similar. Might take care of most of the use above too. 
