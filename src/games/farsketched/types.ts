@@ -119,6 +119,7 @@ export interface Player {
     roundImages: string[][]; // Array of image IDs per round
     activeImageIndex: number; // Index within current round
     activeImage: ActiveImage | null;
+    history: ActiveImage[]; // Array of completed ActiveImage instances
     timer: {
       startTime: number;  // When the current timer started
       duration: number;   // Duration in seconds

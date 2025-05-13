@@ -4,7 +4,10 @@ import {
   MessageType,
   GameStage,
   GameConfig,
-  Player
+  Player,
+  AchievementType,
+  ActiveImage,
+  GeneratedImage
 } from '@/games/farsketched/types';
 import { generateImages } from '@/apis/imageGeneration';
 import { settingsManager } from '@/settings';
@@ -33,6 +36,7 @@ export const initialState: GameState = {
   roundImages: [],
   activeImageIndex: 0,
   activeImage: null,
+  history: [],
   timer: {
     startTime: 0,
     duration: 0,
@@ -40,6 +44,126 @@ export const initialState: GameState = {
   },
   achievements: []
 };
+
+/**
+ * Calculates which players earned which achievements based on game history
+ * @param history Array of completed game rounds
+ * @param players Map of all players in the game
+ * @param images Map of all generated images
+ * @returns Map of achievement type to player ID who earned it
+ */
+function calculateAchievements(
+  history: ActiveImage[],
+  players: Record<string, Player>,
+  images: Record<string, GeneratedImage>
+): Map<AchievementType, string> {
+  const achievementMap = new Map<AchievementType, string>();
+  
+  // Track statistics for each player
+  const playerStats = new Map<string, {
+    correctGuesses: number,      // For MOST_ACCURATE
+    peopleFooled: number,        // For BEST_BULLSHITTER
+    voteSpread: number,          // For THE_CHAOTICIAN
+    ownPromptsGuessed: number    // For THE_PAINTER
+  }>();
+
+  // Initialize stats for all players
+  Object.keys(players).forEach(playerId => {
+    playerStats.set(playerId, {
+      correctGuesses: 0,
+      peopleFooled: 0,
+      voteSpread: 0,
+      ownPromptsGuessed: 0
+    });
+  });
+
+  // Analyze each round
+  history.forEach(round => {
+    const image = images[round.imageId];
+    if (!image) return; // Skip if image not found
+    
+    const imageCreatorId = image.creatorId;
+    
+    // Count votes for each prompt
+    const promptVotes = new Map<string, number>();
+    round.guesses.forEach(guess => {
+      promptVotes.set(guess.promptId, (promptVotes.get(guess.promptId) || 0) + 1);
+    });
+
+    // Update player statistics
+    round.guesses.forEach(guess => {
+      const stats = playerStats.get(guess.playerId)!;
+      
+      // Update correct guesses
+      if (guess.isCorrect) {
+        stats.correctGuesses++;
+      }
+    });
+
+    // Update fake prompt authors' stats
+    round.fakePrompts.forEach(fakePrompt => {
+      const stats = playerStats.get(fakePrompt.authorId)!;
+      const votesForThisFake = promptVotes.get(fakePrompt.id) || 0;
+      
+      // Update people fooled count
+      stats.peopleFooled += votesForThisFake;
+      
+      // Update vote spread (using standard deviation of votes)
+      const meanVotes = round.guesses.length / (round.fakePrompts.length + 1); // +1 for real prompt
+      const variance = Math.pow(votesForThisFake - meanVotes, 2);
+      stats.voteSpread += variance;
+    });
+
+    // Update image creator's stats
+    const creatorStats = playerStats.get(imageCreatorId)!;
+    const correctGuessesForCreator = round.guesses.filter(g => g.isCorrect).length;
+    creatorStats.ownPromptsGuessed += correctGuessesForCreator;
+  });
+
+  // Determine winners for each achievement
+  let mostAccurate = { playerId: '', score: -1 };
+  let bestBullshitter = { playerId: '', score: -1 };
+  let mostChaotic = { playerId: '', score: -1 };
+  let bestPainter = { playerId: '', score: -1 };
+
+  playerStats.forEach((stats, playerId) => {
+    // Most Accurate: Most correct guesses
+    if (stats.correctGuesses > mostAccurate.score) {
+      mostAccurate = { playerId, score: stats.correctGuesses };
+    }
+
+    // Best Bullshitter: Most people fooled by fake prompts
+    if (stats.peopleFooled > bestBullshitter.score) {
+      bestBullshitter = { playerId, score: stats.peopleFooled };
+    }
+
+    // The Chaotician: Highest vote spread (most variance in votes)
+    if (stats.voteSpread > mostChaotic.score) {
+      mostChaotic = { playerId, score: stats.voteSpread };
+    }
+
+    // The Painter: Most correct guesses of their own prompts
+    if (stats.ownPromptsGuessed > bestPainter.score) {
+      bestPainter = { playerId, score: stats.ownPromptsGuessed };
+    }
+  });
+
+  // Assign achievements to winners
+  if (mostAccurate.playerId) {
+    achievementMap.set(AchievementType.MOST_ACCURATE, mostAccurate.playerId);
+  }
+  if (bestBullshitter.playerId) {
+    achievementMap.set(AchievementType.BEST_BULLSHITTER, bestBullshitter.playerId);
+  }
+  if (mostChaotic.playerId) {
+    achievementMap.set(AchievementType.THE_CHAOTICIAN, mostChaotic.playerId);
+  }
+  if (bestPainter.playerId) {
+    achievementMap.set(AchievementType.THE_PAINTER, bestPainter.playerId);
+  }
+
+  return achievementMap;
+}
 
 export function farsketchedReducer(
   state: GameState = initialState,
@@ -402,6 +526,7 @@ export function farsketchedReducer(
           ...state,
           stage: GameStage.SCORING,
           activeImage: updatedActiveImage,
+          history: [...state.history, updatedActiveImage],
           players: updatedPlayers,
           timer: {
             startTime: now,
@@ -485,6 +610,75 @@ export function farsketchedReducer(
         };
       }
 
+      // Handle transition from guessing to scoring
+      if (state.stage === GameStage.GUESSING && message.stage === GameStage.GUESSING) {
+        const now = Date.now();
+        const timeoutId = setTimeout(() => {
+          const timerExpiredMessage: GameMessage = {
+            type: MessageType.TIMER_EXPIRED,
+            stage: GameStage.SCORING,
+            timestamp: Date.now(),
+            messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
+          };
+          sendSelfMessage(timerExpiredMessage);
+        }, state.config.scoringDisplaySeconds * 1000);
+
+        // Calculate scores for the guesses we have
+        const updatedPlayers = { ...state.players };
+        if (state.activeImage) {
+          const imageCreatorId = state.images[state.activeImage.imageId].creatorId;
+          
+          // Count correct guesses for the real prompt
+          const correctGuesses = state.activeImage.guesses.filter(guess => guess.isCorrect).length;
+          
+          // Award points to image creator for each correct guess
+          updatedPlayers[imageCreatorId] = {
+            ...updatedPlayers[imageCreatorId],
+            points: (updatedPlayers[imageCreatorId].points || 0) + (correctGuesses * 5)
+          };
+
+          // Award points to players who wrote fake prompts
+          for (const fakePrompt of state.activeImage.fakePrompts) {
+            const fakePromptAuthor = fakePrompt.authorId;
+            
+            // Count how many players guessed this fake prompt
+            const guessesForThisFake = state.activeImage.guesses.filter(
+              guess => guess.promptId === fakePrompt.id
+            ).length;
+
+            // Award points to fake prompt author
+            updatedPlayers[fakePromptAuthor] = {
+              ...updatedPlayers[fakePromptAuthor],
+              points: (updatedPlayers[fakePromptAuthor].points || 0) + (guessesForThisFake * 3)
+            };
+
+            // If they guessed correctly, award additional points
+            const authorGuessedCorrectly = state.activeImage.guesses.some(
+              guess => guess.playerId === fakePromptAuthor && guess.isCorrect
+            );
+            if (authorGuessedCorrectly) {
+              updatedPlayers[fakePromptAuthor] = {
+                ...updatedPlayers[fakePromptAuthor],
+                points: (updatedPlayers[fakePromptAuthor].points || 0) + 5
+              };
+            }
+          }
+        }
+
+        return {
+          ...state,
+          stage: GameStage.SCORING,
+          history: state.activeImage ? [...state.history, state.activeImage] : state.history,
+          players: updatedPlayers,
+          timer: {
+            startTime: now,
+            duration: state.config.scoringDisplaySeconds,
+            isRunning: true,
+            timeoutId
+          }
+        };
+      }
+
       // Handle transition from scoring stage
       if (state.stage === GameStage.SCORING && message.stage === GameStage.SCORING) {
         const currentRoundImageIds = state.roundImages[state.currentRound] || [];
@@ -553,9 +747,17 @@ export function farsketchedReducer(
         }
 
         // If this is the last round and last image, move to game over
+        const achievementMap = calculateAchievements(state.history, state.players, state.images);
+        const achievements = Array.from(achievementMap.entries()).map(([type, playerId]) => ({
+          type,
+          playerId,
+          value: 0 // We could calculate specific values if needed
+        }));
+
         return {
           ...state,
-          stage: GameStage.GAME_OVER
+          stage: GameStage.GAME_OVER,
+          achievements
         };
       }
 
