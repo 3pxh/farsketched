@@ -1,4 +1,4 @@
-import { ScoringStage } from '../Host';
+import { ScoringStage } from '../components/ScoringStage';
 import { GameState, GameStage } from '../types';
 import '../../../HostApp.css';
 
