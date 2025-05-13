@@ -12,6 +12,7 @@ interface HostLobbyProps {
 export const HostLobby = ({ gameConfig, players }: HostLobbyProps) => {
   const { peerId } = usePeer();
   const [joinUrl, setJoinUrl] = useState<string>('');
+  const [isCopied, setIsCopied] = useState(false);
 
   useEffect(() => {
     if (peerId) {
@@ -20,6 +21,12 @@ export const HostLobby = ({ gameConfig, players }: HostLobbyProps) => {
       setJoinUrl(url.toString());
     }
   }, [peerId]);
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(joinUrl);
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2000);
+  };
 
   return (
     <div className="host-lobby">
@@ -48,8 +55,8 @@ export const HostLobby = ({ gameConfig, players }: HostLobbyProps) => {
               />
             </div>
             <div className="join-url">
-              <button onClick={() => navigator.clipboard.writeText(joinUrl)}>
-                Copy Link
+              <button onClick={handleCopyLink}>
+                {isCopied ? 'Link Copied!' : 'Copy Link'}
               </button>
             </div>
           </>}

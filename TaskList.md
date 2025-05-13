@@ -1,5 +1,15 @@
 # Farsketched Implementation Task List
 
+## On Deck
+- [ ] Iterate on UI for client prompt, fool, guess (using cosmos)
+- [ ] Iterate on UI for host prompt, fool, guess?? (using cosmos)
+- [ ] Add Narrator
+- [ ] Award achievements
+  - [ ] Track history of active images to compute stats and awards
+  - [ ] Game over screen progressively reveals
+- [ ] Lobby game for client?
+
+
 ## Developer Experience
 - [ ] Run the client via vite. When gh tried peerjs wouldn't connect, unlike the python server. It would be nice for hot module reloading.
 - [ ] Having a single-component workflow where we mock data would be nice. Storybook seems heavyweight, but maybe something similar. Might take care of most of the use above too. 

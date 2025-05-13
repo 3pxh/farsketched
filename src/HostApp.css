@@ -24,12 +24,6 @@
   --font-size-body: 24pt;         /* Example: var(--font-size-body) */
 }
 
-.container {
-  max-width: 800px;
-  margin: 0 auto;
-  text-align: center;
-}
-
 .logo {
   height: 6em;
   padding: 1.5em;
@@ -193,12 +187,6 @@ button {
   background-color: #f0f0f0;
   border-radius: 4px;
   font-family: monospace;
-}
-
-.game-container {
-  width: 100%;
-  max-width: 800px;
-  margin: 0 auto;
 }
 
 /* Settings Styles */
@@ -378,4 +366,10 @@ button {
 
 body {
   font-size: var(--font-size-body);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  /* Beautiful soft gradient background */
+  background: linear-gradient(135deg, #f8cdda 0%, #a1c4fd 100%);
+  background-attachment: fixed;
 }
