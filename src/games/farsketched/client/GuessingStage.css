@@ -1,0 +1,113 @@
+.guessing-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 2rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.guessing-stage h2 {
+  font-size: 2rem;
+  color: #333;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.guessing-stage h3 {
+  font-size: 1.2rem;
+  color: #666;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.active-image {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.active-image img {
+  max-width: 100%;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.loading-placeholder {
+  width: 200px;
+  height: 200px;
+  background: linear-gradient(45deg, #f3f3f3, #e0e0e0);
+  border-radius: 8px;
+  margin: 1rem auto;
+  animation: pulse 1.5s infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+.prompt-options {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.prompt-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.prompt-option {
+  width: 100%;
+  padding: 1rem;
+  font-size: 1.1rem;
+  background-color: white;
+  color: #333;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: left;
+  line-height: 1.4;
+}
+
+.prompt-option:hover {
+  border-color: #4a90e2;
+  background-color: #f8f9fa;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.prompt-option:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+@keyframes wiggle {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(-5deg); }
+  50% { transform: rotate(0deg); }
+  75% { transform: rotate(5deg); }
+  100% { transform: rotate(0deg); }
+}
+
+.prompt-option:active {
+  animation: wiggle 0.3s ease-in-out;
+}
+
+.guessing-stage p {
+  text-align: center;
+  color: #666;
+  margin: 0.5rem 0;
+}
