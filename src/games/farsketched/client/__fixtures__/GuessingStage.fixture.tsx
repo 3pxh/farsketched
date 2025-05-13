@@ -2,6 +2,7 @@ import { GuessingStage } from '../GuessingStage';
 import { GameState, GameStage } from '../../types';
 import { ClientGameStateProvider } from '@/contexts/GameState';
 import { PeerProvider } from '@/contexts/PeerContext';
+import { mockBlob } from './BlobMock';
 
 const mockGameState: GameState = {
   stage: GameStage.GUESSING,
@@ -33,7 +34,7 @@ const mockGameState: GameState = {
       creatorId: 'player1',
       prompt: 'A beautiful sunset over mountains',
       status: 'complete',
-      imageBlob: new Blob([new Uint8Array([1, 2, 3])], { type: 'image/webp' }),
+      imageBlob: mockBlob,
       roundIndex: 0,
       timestamp: Date.now()
     }
@@ -132,3 +133,13 @@ export default {
     </PeerProvider>
   )
 }; 
+
+function base64ToBlob(base64: string, mime = 'image/png') {
+  const byteChars = atob(base64);
+  const byteNumbers = new Array(byteChars.length);
+  for (let i = 0; i < byteChars.length; i++) {
+    byteNumbers[i] = byteChars.charCodeAt(i);
+  }
+  const byteArray = new Uint8Array(byteNumbers);
+  return new Blob([byteArray], { type: mime });
+} 

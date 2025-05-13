@@ -2,6 +2,7 @@ import { PromptingStage } from '../PromptingStage';
 import { GameState, GameStage } from '../../types';
 import { ClientGameStateProvider } from '@/contexts/GameState';
 import { PeerProvider } from '@/contexts/PeerContext';
+import { mockBlob } from './BlobMock';
 
 const mockGameState: GameState = {
   stage: GameStage.PROMPTING,
@@ -91,7 +92,7 @@ export default {
               creatorId: 'player1',
               prompt: 'A beautiful sunset over mountains',
               status: 'complete',
-              imageBlob: new Blob([new Uint8Array([1, 2, 3])], { type: 'image/webp' }),
+              imageBlob: mockBlob,
               roundIndex: 0,
               timestamp: Date.now()
             }
