@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { GameState } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import '../Host.css';
@@ -38,7 +38,7 @@ function CreatorAvatarWithScore({
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-          layout
+          layout={false}
         >
           +{guessersShown * 5}
         </motion.span>
@@ -54,6 +54,8 @@ export function ScoringStage({ gameState }: { gameState: GameState }) {
 
   const image = gameState.images[gameState.activeImage.imageId];
   if (!image) return <p>Image not found</p>;
+
+  const imageUrl = useMemo(() => URL.createObjectURL(image.imageBlob), [image.imageBlob]);
 
   // Group guesses by promptId
   const guessesByPrompt = gameState.activeImage.guesses.reduce((acc, guess) => {
@@ -127,7 +129,8 @@ export function ScoringStage({ gameState }: { gameState: GameState }) {
       topPrompt.id === sortedPrompts[sortedPrompts.length - 1].id &&
       !showRealFake
     ) {
-      const t = setTimeout(() => setShowRealFake(true), 500);
+      // Wait for image collapse animation (0.3s) plus an additional delay
+      const t = setTimeout(() => setShowRealFake(true), 800);
       return () => clearTimeout(t);
     }
   }, [revealedCount, allPrompts.length, topShowAuthor, topPrompt.id, sortedPrompts, showRealFake]);
@@ -193,16 +196,38 @@ export function ScoringStage({ gameState }: { gameState: GameState }) {
 
   return (
     <div className="scoring-stage">
-      <h2>Scoring Stage</h2>
-      <div className="active-image">
-        <img 
-          src={URL.createObjectURL(image.imageBlob)} 
-          alt="Generated image"
-          style={{ maxWidth: '512px', maxHeight: '512px' }}
-        />
-      </div>
+      <AnimatePresence>
+        {!showRealFake && (
+          <motion.div 
+            className="active-image"
+            initial={{ height: '512px', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ type: 'tween', duration: 0.3 }}
+            style={{
+              width: '512px',
+              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+              margin: '0 auto'
+            }}
+          >
+            <img 
+              src={imageUrl}
+              alt="Generated image"
+              style={{ 
+                maxWidth: '100%',
+                maxHeight: '100%',
+                objectFit: 'contain'
+              }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
       <div className="prompt-results">
-        <h3>Results:</h3>
+        <h2>Results:</h2>
         <div className="prompt-boxes compact" style={{ minHeight: 90 }}>
           <AnimatePresence>
             {revealedPromptsWithScores.map((prompt, idx) => {
@@ -219,7 +244,6 @@ export function ScoringStage({ gameState }: { gameState: GameState }) {
                   animate={{ x: 0, opacity: 1 }}
                   exit={{ x: -100, opacity: 0 }}
                   transition={{ type: 'tween', stiffness: 400, damping: 30, duration: shouldResortByScore ? 1.5 : 0.3 }}
-                  style={{ marginBottom: 12 }}
                 >
                   <div 
                     className={`prompt-box-row ${showRealFake ? (prompt.isReal ? 'real-prompt' : 'fake-prompt') : 'neutral-prompt'}`}

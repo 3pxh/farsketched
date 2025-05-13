@@ -301,19 +301,18 @@
 .prompt-boxes.compact {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: .2rem;
   margin-top: 1rem;
 }
 
 .prompt-box-row {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
-  padding: 0.75rem 0.5rem;
-  border-radius: 10px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
-  min-height: 64px;
-  margin-bottom: 1px;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  margin-bottom: 0;
 }
 
 .prompt-box-row.real-prompt {
