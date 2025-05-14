@@ -1,10 +1,4 @@
-import { GameState } from '../types';
-
-interface PromptingStageProps {
-  gameState: GameState;
-}
-
-export function PromptingStage({ gameState }: PromptingStageProps) {
+export function PromptingStage() {
   return (
     <div className="prompting-stage">
       <h2>Prompting Stage</h2>

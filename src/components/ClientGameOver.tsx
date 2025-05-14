@@ -7,7 +7,6 @@ import { useAudio } from '../contexts/AudioProvider';
 
 interface ClientGameOverProps {
   gameState: GameState;
-  onPlayAgain?: () => void;
 }
 
 const achievementDescriptions: Record<string, string> = {
@@ -35,7 +34,6 @@ interface ScoreRowProps {
 
 const ScoreRow: React.FC<ScoreRowProps> = ({ player, index, total, onHover }) => {
   const { playNote, audioEnabled } = useAudio();
-  const [showTooltip, setShowTooltip] = useState<number | null>(null);
   const animationDelay = (total - 1 - index) * ANIMATION_STAGGER;
 
   React.useEffect(() => {
@@ -95,7 +93,7 @@ const ScoreRow: React.FC<ScoreRowProps> = ({ player, index, total, onHover }) =>
   );
 };
 
-const ClientGameOver: React.FC<ClientGameOverProps> = ({ gameState, onPlayAgain }) => {
+const ClientGameOver: React.FC<ClientGameOverProps> = ({ gameState }) => {
   const { playNote, audioEnabled, playSound } = useAudio();
 
   // Convert game state to scores array

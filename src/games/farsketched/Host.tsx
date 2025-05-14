@@ -40,11 +40,11 @@ function HostContent({ gameConfig }: HostProps) {
           />
         );
       case GameStage.PROMPTING:
-        return <PromptingStage gameState={gameState} />;
+        return <PromptingStage />;
       case GameStage.FOOLING:
         return <FoolingStage gameState={gameState} />;
       case GameStage.GUESSING:
-        return <GuessingStage gameState={gameState} />;
+        return <GuessingStage />;
       case GameStage.SCORING:
         return <ScoringStage gameState={gameState} />;
       case GameStage.GAME_OVER:
