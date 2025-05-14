@@ -94,8 +94,8 @@ export interface Player {
    */
   export interface Achievement {
     type: AchievementType;
-    playerId: string;
-    value: number;        // The relevant count/score for this achievement
+    playerIds: string[];
+    value: number;
   }
   
   /**
@@ -119,6 +119,7 @@ export interface Player {
     roundImages: string[][]; // Array of image IDs per round
     activeImageIndex: number; // Index within current round
     activeImage: ActiveImage | null;
+    history: ActiveImage[]; // Array of completed ActiveImage instances
     timer: {
       startTime: number;  // When the current timer started
       duration: number;   // Duration in seconds

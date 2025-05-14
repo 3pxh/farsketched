@@ -1,0 +1,153 @@
+.game-over-stage {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.game-over-stage h2 {
+  text-align: center;
+  margin-bottom: 2rem;
+  font-size: 2.5rem;
+  color: #333;
+}
+
+.game-over-stage h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.achievements-section {
+  margin-bottom: 3rem;
+}
+
+.achievements-section h3 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  font-size: 1.8rem;
+  color: #444;
+}
+
+.achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  padding: 0.5rem;
+}
+
+.achievement-card {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: transform 0.2s;
+}
+
+.achievement-card:hover {
+  transform: translateY(-5px);
+}
+
+.achievement-avatars {
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
+  justify-content: center;
+}
+
+.achievement-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  object-fit: cover;
+}
+
+.achievement-title {
+  font-size: 1.2rem;
+  color: #2c3e50;
+  margin: 0.25rem 0;
+}
+
+.achievement-description {
+  color: #666;
+  font-size: 0.85rem;
+  margin: 0.25rem 0;
+}
+
+.achievement-players {
+  color: #2c3e50;
+  font-weight: 500;
+  font-size: 0.9rem;
+  margin: 0.25rem 0;
+}
+
+.scores-section {
+  height: 16rem;
+}
+
+.scores-section h3 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  font-size: 1.8rem;
+  color: #444;
+}
+
+.scores-container {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 1rem;
+  height: 100%;
+}
+
+.score-bar-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.score-bar-wrapper {
+  flex: 1 1 0%;
+  display: flex;
+  align-items: flex-end;
+  width: 100%;
+}
+
+.score-bar {
+  width: 4rem;
+  background-color: #4f46e5;
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
+  transition: height 0.5s ease;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  position: relative;
+  overflow: hidden;
+}
+
+.score-points {
+  font-weight: 600;
+  color: #fff;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 1.25rem;
+  z-index: 1;
+}
+
+.score-avatar {
+  margin-top: 0.5rem;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 9999px;
+  border: 2px solid #4f46e5;
+} 

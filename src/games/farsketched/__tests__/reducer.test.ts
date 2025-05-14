@@ -1,4 +1,4 @@
-import { farsketchedReducer, initialState } from '../reducer';
+import { farsketchedReducer, initialState, calculateAchievements } from '../reducer';
 import { 
   MessageType, 
   GameStage, 
@@ -18,7 +18,9 @@ import {
   SubmitFakePromptMessage,
   SubmitGuessMessage,
   ErrorMessage,
-  PromptErrorMessage
+  PromptErrorMessage,
+  ActiveImage,
+  AchievementType
 } from '@/games/farsketched/types';
 
 // Mock the image generation API
@@ -745,6 +747,235 @@ describe('farsketchedReducer', () => {
       expect(state.players[players[0]].points).toBe(15);
       expect(state.players[players[1]].points).toBe(15);
       expect(state.players[players[2]].points).toBe(10);
+    });
+
+    it('should calculate achievements correctly based on player performance', () => {
+      // Create test players
+      const players = {
+        'playerA': {
+          id: 'playerA',
+          name: 'Player A',
+          avatarUrl: 'https://example.com/avatar-a.png',
+          connected: true,
+          points: 0,
+          lastSeen: Date.now()
+        },
+        'playerB': {
+          id: 'playerB',
+          name: 'Player B',
+          avatarUrl: 'https://example.com/avatar-b.png',
+          connected: true,
+          points: 0,
+          lastSeen: Date.now()
+        },
+        'playerC': {
+          id: 'playerC',
+          name: 'Player C',
+          avatarUrl: 'https://example.com/avatar-c.png',
+          connected: true,
+          points: 0,
+          lastSeen: Date.now()
+        }
+      };
+
+      // Create test images
+      const images = {
+        'imgA1': { 
+          id: 'imgA1', 
+          creatorId: 'playerA', 
+          prompt: 'A1 prompt', 
+          status: 'complete' as const,
+          imageBlob: new Blob(['test'], { type: 'image/png' }),
+          roundIndex: 0,
+          timestamp: Date.now()
+        },
+        'imgA2': { 
+          id: 'imgA2', 
+          creatorId: 'playerA', 
+          prompt: 'A2 prompt', 
+          status: 'complete' as const,
+          imageBlob: new Blob(['test'], { type: 'image/png' }),
+          roundIndex: 0,
+          timestamp: Date.now()
+        },
+        'imgA3': { 
+          id: 'imgA3', 
+          creatorId: 'playerA', 
+          prompt: 'A3 prompt', 
+          status: 'complete' as const,
+          imageBlob: new Blob(['test'], { type: 'image/png' }),
+          roundIndex: 0,
+          timestamp: Date.now()
+        },
+        'imgB1': { 
+          id: 'imgB1', 
+          creatorId: 'playerB', 
+          prompt: 'B1 prompt', 
+          status: 'complete' as const,
+          imageBlob: new Blob(['test'], { type: 'image/png' }),
+          roundIndex: 0,
+          timestamp: Date.now()
+        },
+        'imgB2': { 
+          id: 'imgB2', 
+          creatorId: 'playerB', 
+          prompt: 'B2 prompt', 
+          status: 'complete' as const,
+          imageBlob: new Blob(['test'], { type: 'image/png' }),
+          roundIndex: 0,
+          timestamp: Date.now()
+        },
+        'imgB3': { 
+          id: 'imgB3', 
+          creatorId: 'playerB', 
+          prompt: 'B3 prompt', 
+          status: 'complete' as const,
+          imageBlob: new Blob(['test'], { type: 'image/png' }),
+          roundIndex: 0,
+          timestamp: Date.now()
+        },
+        'imgC1': { 
+          id: 'imgC1', 
+          creatorId: 'playerC', 
+          prompt: 'C1 prompt', 
+          status: 'complete' as const,
+          imageBlob: new Blob(['test'], { type: 'image/png' }),
+          roundIndex: 0,
+          timestamp: Date.now()
+        },
+        'imgC2': { 
+          id: 'imgC2', 
+          creatorId: 'playerC', 
+          prompt: 'C2 prompt', 
+          status: 'complete' as const,
+          imageBlob: new Blob(['test'], { type: 'image/png' }),
+          roundIndex: 0,
+          timestamp: Date.now()
+        },
+        'imgC3': { 
+          id: 'imgC3', 
+          creatorId: 'playerC', 
+          prompt: 'C3 prompt', 
+          status: 'complete' as const,
+          imageBlob: new Blob(['test'], { type: 'image/png' }),
+          roundIndex: 0,
+          timestamp: Date.now()
+        }
+      };
+
+      // Create history with active images
+      const history: ActiveImage[] = [
+        // Player A's images
+        {
+          imageId: 'imgA1',
+          fakePrompts: [
+            { id: 'fakeA1B', imageId: 'imgA1', authorId: 'playerB', text: 'Fake A1 by B' },
+            { id: 'fakeA1C', imageId: 'imgA1', authorId: 'playerC', text: 'Fake A1 by C' }
+          ],
+          guesses: [
+            { playerId: 'playerB', imageId: 'imgA1', promptId: 'fakeA1B', isCorrect: false },
+            { playerId: 'playerC', imageId: 'imgA1', promptId: 'fakeA1C', isCorrect: false }
+          ]
+        },
+        {
+          imageId: 'imgA2',
+          fakePrompts: [
+            { id: 'fakeA2B', imageId: 'imgA2', authorId: 'playerB', text: 'Fake A2 by B' },
+            { id: 'fakeA2C', imageId: 'imgA2', authorId: 'playerC', text: 'Fake A2 by C' }
+          ],
+          guesses: [
+            { playerId: 'playerB', imageId: 'imgA2', promptId: 'fakeA2B', isCorrect: false },
+            { playerId: 'playerC', imageId: 'imgA2', promptId: 'fakeA2C', isCorrect: false }
+          ]
+        },
+        {
+          imageId: 'imgA3',
+          fakePrompts: [
+            { id: 'fakeA3B', imageId: 'imgA3', authorId: 'playerB', text: 'Fake A3 by B' },
+            { id: 'fakeA3C', imageId: 'imgA3', authorId: 'playerC', text: 'Fake A3 by C' }
+          ],
+          guesses: [
+            { playerId: 'playerB', imageId: 'imgA3', promptId: 'fakeA3B', isCorrect: false },
+            { playerId: 'playerC', imageId: 'imgA3', promptId: 'fakeA3C', isCorrect: false }
+          ]
+        },
+        // Player B's images
+        {
+          imageId: 'imgB1',
+          fakePrompts: [
+            { id: 'fakeB1A', imageId: 'imgB1', authorId: 'playerA', text: 'Fake B1 by A' },
+            { id: 'fakeB1C', imageId: 'imgB1', authorId: 'playerC', text: 'Fake B1 by C' }
+          ],
+          guesses: [
+            { playerId: 'playerA', imageId: 'imgB1', promptId: 'real', isCorrect: true },
+            { playerId: 'playerC', imageId: 'imgB1', promptId: 'fakeB1A', isCorrect: false }
+          ]
+        },
+        {
+          imageId: 'imgB2',
+          fakePrompts: [
+            { id: 'fakeB2A', imageId: 'imgB2', authorId: 'playerA', text: 'Fake B2 by A' },
+            { id: 'fakeB2C', imageId: 'imgB2', authorId: 'playerC', text: 'Fake B2 by C' }
+          ],
+          guesses: [
+            { playerId: 'playerA', imageId: 'imgB2', promptId: 'real', isCorrect: true },
+            { playerId: 'playerC', imageId: 'imgB2', promptId: 'fakeB2A', isCorrect: false }
+          ]
+        },
+        {
+          imageId: 'imgB3',
+          fakePrompts: [
+            { id: 'fakeB3A', imageId: 'imgB3', authorId: 'playerA', text: 'Fake B3 by A' },
+            { id: 'fakeB3C', imageId: 'imgB3', authorId: 'playerC', text: 'Fake B3 by C' }
+          ],
+          guesses: [
+            { playerId: 'playerA', imageId: 'imgB3', promptId: 'real', isCorrect: true },
+            { playerId: 'playerC', imageId: 'imgB3', promptId: 'fakeB3A', isCorrect: false }
+          ]
+        },
+        // Player C's images
+        {
+          imageId: 'imgC1',
+          fakePrompts: [
+            { id: 'fakeC1A', imageId: 'imgC1', authorId: 'playerA', text: 'Fake C1 by A' },
+            { id: 'fakeC1B', imageId: 'imgC1', authorId: 'playerB', text: 'Fake C1 by B' }
+          ],
+          guesses: [
+            { playerId: 'playerA', imageId: 'imgC1', promptId: 'real', isCorrect: true },
+            { playerId: 'playerB', imageId: 'imgC1', promptId: 'fakeC1A', isCorrect: false }
+          ]
+        },
+        {
+          imageId: 'imgC2',
+          fakePrompts: [
+            { id: 'fakeC2A', imageId: 'imgC2', authorId: 'playerA', text: 'Fake C2 by A' },
+            { id: 'fakeC2B', imageId: 'imgC2', authorId: 'playerB', text: 'Fake C2 by B' }
+          ],
+          guesses: [
+            { playerId: 'playerA', imageId: 'imgC2', promptId: 'fakeC2B', isCorrect: false },
+            { playerId: 'playerB', imageId: 'imgC2', promptId: 'fakeC2A', isCorrect: false }
+          ]
+        },
+        {
+          imageId: 'imgC3',
+          fakePrompts: [
+            { id: 'fakeC3A', imageId: 'imgC3', authorId: 'playerA', text: 'Fake C3 by A' },
+            { id: 'fakeC3B', imageId: 'imgC3', authorId: 'playerB', text: 'Fake C3 by B' }
+          ],
+          guesses: [
+            { playerId: 'playerA', imageId: 'imgC3', promptId: 'fakeC3B', isCorrect: false },
+            { playerId: 'playerB', imageId: 'imgC3', promptId: 'fakeC3A', isCorrect: false }
+          ]
+        }
+      ];
+
+      const achievementMap = calculateAchievements(history, players, images);
+
+      // Verify achievements
+      expect(achievementMap.get(AchievementType.MOST_ACCURATE)).toEqual(['playerA']); // A always guesses correctly
+      expect(achievementMap.get(AchievementType.BEST_BULLSHITTER)).toEqual(['playerA']); // A fools C consistently
+      expect(achievementMap.get(AchievementType.THE_PAINTER)).toEqual(['playerB']); // B's prompts get guessed correctly
+      expect(achievementMap.get(AchievementType.THE_CHAOTICIAN)).toEqual(['playerC']); // C's fake prompts get varied votes
     });
   });
 }); 
