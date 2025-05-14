@@ -1,7 +1,13 @@
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { GameState } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
-import '../Host.css';
+import {
+  Box,
+  Typography,
+  Avatar,
+  Paper,
+  Stack,
+} from '@mui/material';
 
 // Component for avatar + score
 function CreatorAvatarWithScore({
@@ -18,42 +24,45 @@ function CreatorAvatarWithScore({
   guessersShown: number;
 }) {
   return (
-    <motion.div 
-      className="row-avatar" 
-      style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+    <Box
+      component={motion.div}
+      sx={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 64 }}
       layout
     >
-      <img
+      <Avatar
         src={creator.avatarUrl}
         alt={creator.name}
-        className="author-avatar"
+        sx={{ width: 48, height: 48, mb: 0.5, border: '2px solid #fff', boxShadow: 1 }}
         title={creator.name + (prompt.isReal ? ' (Creator)' : '')}
       />
       {/* Show points badge after real/fake is revealed */}
       {showRealFake ? points > 0 && (
-        <span className="points-badge">+{points}</span>
+        <Box sx={{ position: 'absolute', top: 0, right: -8, bgcolor: 'primary.main', color: '#fff', borderRadius: 2, px: 1, fontWeight: 700, fontSize: 14, boxShadow: 2 }}>
+          +{points}
+        </Box>
       ) : guessersShown > 0 && (
-        <motion.span
-          className="points-badge"
+        <Box
+          component={motion.span}
+          sx={{ position: 'absolute', top: 0, right: -8, bgcolor: 'primary.main', color: '#fff', borderRadius: 2, px: 1, fontWeight: 700, fontSize: 14, boxShadow: 2 }}
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: 'spring', stiffness: 300, damping: 20 }}
           layout={false}
         >
           +{guessersShown * 5}
-        </motion.span>
+        </Box>
       )}
       {/* Always show total score when row enters */}
-      <span className="creator-total-score">{creator.points}</span>
-    </motion.div>
+      <Typography variant="caption" sx={{ mt: 0.5, fontWeight: 700, fontSize: { xs: '1.1rem', md: '1.3rem' } }}>{creator.points}</Typography>
+    </Box>
   );
 }
 
 export function ScoringStage({ gameState }: { gameState: GameState }) {
-  if (!gameState.activeImage) return <p>No active image to score</p>;
+  if (!gameState.activeImage) return <Typography>No active image to score</Typography>;
 
   const image = gameState.images[gameState.activeImage.imageId];
-  if (!image) return <p>Image not found</p>;
+  if (!image) return <Typography>Image not found</Typography>;
 
   const imageUrl = useMemo(() => URL.createObjectURL(image.imageBlob), [image.imageBlob]);
 
@@ -195,40 +204,43 @@ export function ScoringStage({ gameState }: { gameState: GameState }) {
   }));
 
   return (
-    <div className="scoring-stage">
+    <Box sx={{ width: '100%', maxWidth: 850, mx: 'auto', mt: 3, mb: 3 }}>
       <AnimatePresence>
         {!showRealFake && (
-          <motion.div 
-            className="active-image"
-            initial={{ height: '512px', opacity: 1 }}
+          <Box
+            component={motion.div}
+            initial={{ height: 512, opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ type: 'tween', duration: 0.3 }}
-            style={{
-              width: '512px',
+            sx={{
+              width: 512,
+              maxWidth: '100%',
               backgroundColor: 'rgba(255, 255, 255, 0.1)',
-              borderRadius: '8px',
+              borderRadius: 2,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               overflow: 'hidden',
-              margin: '0 auto'
+              mx: 'auto',
+              mb: 3,
             }}
           >
-            <img 
+            <Box
+              component="img"
               src={imageUrl}
               alt="Generated image"
-              style={{ 
+              sx={{
                 maxWidth: '100%',
                 maxHeight: '100%',
-                objectFit: 'contain'
+                objectFit: 'contain',
               }}
             />
-          </motion.div>
+          </Box>
         )}
       </AnimatePresence>
-      <div className="prompt-results">
-        <h2>Results:</h2>
-        <div className="prompt-boxes compact" style={{ minHeight: 90 }}>
+      <Paper elevation={3} sx={{ p: { xs: 2, md: 3 }, bgcolor: 'rgba(255,255,255,0.8)' }}>
+        <Typography variant="h5" fontWeight={700} mb={2}>Results:</Typography>
+        <Box sx={{ minHeight: 90 }}>
           <AnimatePresence>
             {revealedPromptsWithScores.map((prompt, idx) => {
               const guessers = guessesByPrompt[prompt.id] || [];
@@ -237,16 +249,40 @@ export function ScoringStage({ gameState }: { gameState: GameState }) {
               let points = prompt.roundScore;
               const guessersShown = isTop ? topGuessersShown : guessers.length;
               return (
-                <motion.div
+                <Box
                   key={prompt.id}
+                  component={motion.div}
                   layout
                   initial={{ x: 100, opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
                   exit={{ x: -100, opacity: 0 }}
                   transition={{ type: 'tween', stiffness: 400, damping: 30, duration: shouldResortByScore ? 1.5 : 0.3 }}
+                  sx={{ mb: 2 }}
                 >
-                  <div 
-                    className={`prompt-box-row ${showRealFake ? (prompt.isReal ? 'real-prompt' : 'fake-prompt') : 'neutral-prompt'}`}
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      bgcolor: showRealFake
+                        ? (prompt.isReal
+                            ? 'rgba(76, 175, 80, 0.08)' // very light green
+                            : 'rgba(255, 152, 0, 0.08)') // very light orange
+                        : 'grey.100',
+                      border: showRealFake
+                        ? (prompt.isReal
+                            ? '2px solid'
+                            : '2px solid')
+                        : '2px solid transparent',
+                      borderColor: showRealFake
+                        ? (prompt.isReal
+                            ? 'success.main'
+                            : 'warning.main')
+                        : 'transparent',
+                      borderRadius: 2,
+                      boxShadow: 1,
+                      p: { xs: 1, md: 1.25 },
+                      mb: 1,
+                    }}
                   >
                     <CreatorAvatarWithScore
                       prompt={prompt}
@@ -255,36 +291,37 @@ export function ScoringStage({ gameState }: { gameState: GameState }) {
                       showRealFake={showRealFake}
                       guessersShown={guessersShown}
                     />
-                    <div className="row-prompt-text">
-                      <span className="prompt-text-row">{prompt.text}</span>
-                    </div>
-                    <div className="row-guessers">
+                    <Typography sx={{ flex: 1, mx: 2, fontWeight: 500, fontSize: { xs: '1.2rem', md: '1.5rem' } }}>
+                      {prompt.text}
+                    </Typography>
+                    <Stack direction="row" spacing={-1} alignItems="center" sx={{ minWidth: 48 }}>
                       {guessers.length ? (
                         guessers.map((playerId, i) =>
                           (!isTop || i < topGuessersShown) ? (
-                            <motion.img
+                            <Box
                               key={playerId}
+                              component={motion.img}
                               src={gameState.players[playerId].avatarUrl}
                               alt={gameState.players[playerId].name}
-                              className="guesser-avatar"
                               title={gameState.players[playerId].name}
                               initial={{ scale: 0.7, opacity: 0 }}
                               animate={{ scale: 1, opacity: 1 }}
                               transition={{ delay: isTop ? i * 0.15 : 0, type: 'spring', stiffness: 300, damping: 20 }}
+                              sx={{ width: 32, height: 32, borderRadius: '50%', border: '2px solid #fff', boxShadow: 1, ml: -1 }}
                             />
                           ) : null
                         )
                       ) : (
-                        <span className="no-guesses">😪</span>
+                        <Typography variant="body2" color="text.secondary" sx={{ ml: 1, fontSize: '32px', lineHeight: 1, display: 'flex', alignItems: 'center', height: 32 }}>😪</Typography>
                       )}
-                    </div>
-                  </div>
-                </motion.div>
+                    </Stack>
+                  </Box>
+                </Box>
               );
             })}
           </AnimatePresence>
-        </div>
-      </div>
-    </div>
+        </Box>
+      </Paper>
+    </Box>
   );
 } 

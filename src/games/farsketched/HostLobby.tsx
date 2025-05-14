@@ -37,12 +37,14 @@ export const HostLobby = ({ gameConfig, players }: HostLobbyProps) => {
   };
 
   return (
-    <Box sx={{ p: 3, height: '100%' }}>
+    <Box sx={{ p: 3, height: '100%', maxWidth: '100vw', overflowX: 'auto' }}>
       <Box sx={{ 
         display: 'grid', 
         gridTemplateColumns: { xs: '1fr', md: '2fr 1fr' },
         gap: 4,
-        height: '100%'
+        height: '100%',
+        maxWidth: '100%',
+        minWidth: 0,
       }}>
         {/* Players Section */}
         <Paper 
@@ -54,6 +56,8 @@ export const HostLobby = ({ gameConfig, players }: HostLobbyProps) => {
             flexDirection: 'column',
             bgcolor: 'rgba(255, 255, 255, 0.1)',
             backdropFilter: 'blur(8px)',
+            minWidth: 0,
+            maxWidth: '100%',
           }}
         >
           <Typography variant="h4" gutterBottom>
@@ -66,6 +70,8 @@ export const HostLobby = ({ gameConfig, players }: HostLobbyProps) => {
             gridTemplateColumns: 'repeat(2, 1fr)',
             gap: 2,
             alignContent: 'start',
+            minWidth: 0,
+            maxWidth: '100%',
           }}>
             {players.map((player) => (
               <Box
@@ -77,6 +83,8 @@ export const HostLobby = ({ gameConfig, players }: HostLobbyProps) => {
                   p: 1,
                   borderRadius: 1,
                   bgcolor: 'rgba(255, 255, 255, 0.2)',
+                  minWidth: 0,
+                  overflow: 'hidden',
                 }}
               >
                 <Avatar
@@ -89,6 +97,10 @@ export const HostLobby = ({ gameConfig, players }: HostLobbyProps) => {
                   sx={{
                     textDecoration: player.connected ? 'none' : 'line-through',
                     opacity: player.connected ? 1 : 0.7,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    minWidth: 0,
                   }}
                 >
                   {player.name}
@@ -109,6 +121,8 @@ export const HostLobby = ({ gameConfig, players }: HostLobbyProps) => {
             alignItems: 'center',
             bgcolor: 'rgba(255, 255, 255, 0.1)',
             backdropFilter: 'blur(8px)',
+            minWidth: 0,
+            maxWidth: '100%',
           }}
         >
           <Typography variant="h4" gutterBottom>
@@ -122,6 +136,8 @@ export const HostLobby = ({ gameConfig, players }: HostLobbyProps) => {
                   bgcolor: 'white',
                   borderRadius: 2,
                   display: 'inline-block',
+                  maxWidth: '100%',
+                  minWidth: 0,
                 }}
               >
                 <QRCodeSVG

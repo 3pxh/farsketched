@@ -2,8 +2,13 @@ import { useState, useEffect, useMemo } from 'react';
 import { GameState, MessageType, GameMessage } from '../types';
 import { useClientGameState } from '@/contexts/GameState';
 import { usePeer } from '@/contexts/PeerContext';
-import './GuessingStage.css';
-import './shared.css';
+import {
+  Box,
+  Typography,
+  Button,
+  Paper,
+  CircularProgress,
+} from '@mui/material';
 
 export function GuessingStage() {
   const [hasGuessed, setHasGuessed] = useState(false);
@@ -12,10 +17,10 @@ export function GuessingStage() {
   const gameState = gameStateContext.state;
   const { peerId, sendMessage } = usePeer<GameMessage>();
 
-  if (!gameState.activeImage) return <p>No active image to guess for</p>;
+  if (!gameState.activeImage) return <Typography>No active image to guess for</Typography>;
 
   const image = gameState.images[gameState.activeImage.imageId];
-  if (!image) return <p>Image not found</p>;
+  if (!image) return <Typography>Image not found</Typography>;
 
   // Convert blob to data URL when image is available
   useEffect(() => {
@@ -64,53 +69,80 @@ export function GuessingStage() {
 
   if (hasGuessed || hasSubmitted) {
     return (
-      <div className="guessing-stage">
-        <h2>Guessing Stage</h2>
-        <div className="active-image">
-          {imageUrl ? (
-            <img 
-              src={imageUrl} 
-              alt="Image to guess for"
-              className="generated-image"
-            />
-          ) : (
-            <div className="loading-placeholder">Loading image...</div>
-          )}
-        </div>
-        <p>Your guess has been submitted!</p>
-        <p>Waiting for other players...</p>
-      </div>
+      <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="100vh" px={2}>
+        <Paper elevation={3} sx={{ p: 3, width: '100%', maxWidth: 420, textAlign: 'center', bgcolor: 'rgba(255,255,255,0.8)' }}>
+          <Typography variant="h5" fontWeight={600} gutterBottom>Guessing Stage</Typography>
+          <Box mt={2} mb={2} display="flex" flexDirection="column" alignItems="center">
+            {imageUrl ? (
+              <Box
+                component="img"
+                src={imageUrl}
+                alt="Image to guess for"
+                sx={{
+                  width: '100%',
+                  maxWidth: 320,
+                  borderRadius: 2,
+                  boxShadow: 2,
+                  mb: 2,
+                }}
+              />
+            ) : (
+              <Box display="flex" flexDirection="column" alignItems="center" gap={2}>
+                <CircularProgress />
+                <Typography variant="body2">Loading image...</Typography>
+              </Box>
+            )}
+          </Box>
+          <Typography variant="body1">Your guess has been submitted!</Typography>
+          <Typography variant="body2" color="text.secondary">Waiting for other players...</Typography>
+        </Paper>
+      </Box>
     );
   }
 
   return (
-    <div className="guessing-stage">
-      <h2>Guessing Stage</h2>
-      <div className="active-image">
-        {imageUrl ? (
-          <img 
-            src={imageUrl} 
-            alt="Image to guess for"
-            className="generated-image"
-          />
-        ) : (
-          <div className="loading-placeholder">Loading image...</div>
-        )}
-      </div>
-      <div className="prompt-options">
-        <h3>Which prompt do you think generated this image?</h3>
-        <div className="prompt-list">
-          {allPrompts.map(prompt => (
-            <button
-              key={prompt.id}
-              onClick={() => handleGuess(prompt.id)}
-              className="prompt-option"
-            >
-              {prompt.text}
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
+    <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="100vh" px={2}>
+      <Paper elevation={3} sx={{ p: 3, width: '100%', maxWidth: 420, textAlign: 'center', bgcolor: 'rgba(255,255,255,0.8)' }}>
+        <Typography variant="h5" fontWeight={600} gutterBottom>Guessing Stage</Typography>
+        <Box mt={2} mb={2} display="flex" flexDirection="column" alignItems="center">
+          {imageUrl ? (
+            <Box
+              component="img"
+              src={imageUrl}
+              alt="Image to guess for"
+              sx={{
+                width: '100%',
+                maxWidth: 320,
+                borderRadius: 2,
+                boxShadow: 2,
+                mb: 2,
+              }}
+            />
+          ) : (
+            <Box display="flex" flexDirection="column" alignItems="center" gap={2}>
+              <CircularProgress />
+              <Typography variant="body2">Loading image...</Typography>
+            </Box>
+          )}
+        </Box>
+        <Box mt={2}>
+          <Typography variant="subtitle1" gutterBottom>Which prompt do you think generated this image?</Typography>
+          <Box display="flex" flexDirection="column" gap={2}>
+            {allPrompts.map(prompt => (
+              <Button
+                key={prompt.id}
+                onClick={() => handleGuess(prompt.id)}
+                variant="outlined"
+                color="primary"
+                fullWidth
+                sx={{ fontWeight: 600, fontSize: '1.1rem', py: 1.5 }}
+              >
+                {prompt.text}
+              </Button>
+            ))}
+          </Box>
+        </Box>
+      </Paper>
+    </Box>
   );
 } 

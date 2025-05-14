@@ -2,8 +2,14 @@ import { useState, useMemo, useEffect } from 'react';
 import { GameState, MessageType, GameMessage } from '../types';
 import { useClientGameState } from '@/contexts/GameState';
 import { usePeer } from '@/contexts/PeerContext';
-import './PromptingStage.css';
-import './shared.css';
+import {
+  Box,
+  Typography,
+  Button,
+  TextField,
+  Paper,
+  CircularProgress,
+} from '@mui/material';
 
 export function PromptingStage() {
   const [prompt, setPrompt] = useState('');
@@ -61,57 +67,80 @@ export function PromptingStage() {
 
   if (isSubmitted || playerImage) {
     return (
-      <div className="prompting-stage">
-        <h2>Your prompt was sent!</h2>
-        <div>
-          <h3>Your generated image:</h3>
-          {!playerImage ? (
-            <div className="loading-container">
-              <p>Waiting for server confirmation...</p>
-              <div className="loading-placeholder"></div>
-            </div>
-          ) : playerImage.status === 'pending' ? (
-            <div className="loading-container">
-              <p>Generating your image...</p>
-              <div className="loading-placeholder"></div>
-            </div>
-          ) : playerImage.status === 'complete' && imageUrl ? (
-            <div className="image-container">
-              <img 
-                src={imageUrl} 
-                alt={playerImage.prompt}
-                className="generated-image"
-              />
-              <p className="image-prompt">Prompt: {playerImage.prompt}</p>
-            </div>
-          ) : (
-            <div className="error-message">
-              <p>Error generating image. Please try again.</p>
-            </div>
-          )}
-        </div>
-        <p>Waiting for other players...</p>
-      </div>
+      <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="100vh" px={2}>
+        <Paper elevation={3} sx={{ p: 3, width: '100%', maxWidth: 420, textAlign: 'center', bgcolor: 'rgba(255,255,255,0.8)' }}>
+          <Typography variant="h5" fontWeight={600} gutterBottom>Your prompt was sent!</Typography>
+          <Box mt={2}>
+            <Typography variant="subtitle1" gutterBottom>Your generated image:</Typography>
+            {!playerImage ? (
+              <Box display="flex" flexDirection="column" alignItems="center" gap={2}>
+                <Typography variant="body2">Waiting for server confirmation...</Typography>
+                <CircularProgress />
+              </Box>
+            ) : playerImage.status === 'pending' ? (
+              <Box display="flex" flexDirection="column" alignItems="center" gap={2}>
+                <Typography variant="body2">Generating your image...</Typography>
+                <CircularProgress />
+              </Box>
+            ) : playerImage.status === 'complete' && imageUrl ? (
+              <Box className="image-container" mt={2}>
+                <Box
+                  component="img"
+                  src={imageUrl}
+                  alt={playerImage.prompt}
+                  sx={{
+                    width: '100%',
+                    maxWidth: 320,
+                    borderRadius: 2,
+                    boxShadow: 2,
+                  }}
+                />
+                <Typography variant="body2" color="text.secondary" mt={1}>
+                  Prompt: {playerImage.prompt}
+                </Typography>
+              </Box>
+            ) : (
+              <Box color="error.main" mt={2}>
+                <Typography variant="body2">Error generating image. Please try again.</Typography>
+              </Box>
+            )}
+          </Box>
+          <Typography variant="body1" mt={3}>Waiting for other players...</Typography>
+        </Paper>
+      </Box>
     );
   }
 
   return (
-    <div className="prompting-stage">
-      <h2>Enter your prompt</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          placeholder="Describe the image you want to generate..."
-        />
-        <button 
-          type="submit"
-          disabled={!prompt.trim()}
-        >
-          Generate Image
-        </button>
-      </form>
-    </div>
+    <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="100vh" px={2}>
+      <Paper elevation={3} sx={{ p: 3, width: '100%', maxWidth: 420, textAlign: 'center', bgcolor: 'rgba(255,255,255,0.8)' }}>
+        <Typography variant="h5" fontWeight={600} gutterBottom>Enter your prompt</Typography>
+        <Box component="form" onSubmit={handleSubmit} mt={2}>
+          <TextField
+            fullWidth
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            placeholder="Describe the image you want to generate..."
+            variant="outlined"
+            size="medium"
+            autoFocus
+            sx={{ mb: 2, bgcolor: 'rgba(255,255,255,0.6)' }}
+            inputProps={{ maxLength: 120 }}
+            disabled={isSubmitted}
+          />
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            fullWidth
+            size="large"
+            disabled={!prompt.trim()}
+            sx={{ fontWeight: 700, py: 1.5 }}
+          >
+            Generate Image
+          </Button>
+        </Box>
+      </Paper>
+    </Box>
   );
 } 

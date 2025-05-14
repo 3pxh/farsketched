@@ -1,9 +1,45 @@
 import { useState, useEffect } from 'react';
-import "./ClientApp.css";
 import { PeerProvider } from '@/contexts/PeerContext';
 import { usePeer } from '@/contexts/PeerContext';
 import { Client } from '@/games/farsketched/Client';
 import { AudioProvider } from './contexts/AudioProvider';
+import { ThemeProvider, createTheme, responsiveFontSizes } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+
+const clientTheme = responsiveFontSizes(createTheme({
+  typography: {
+    fontFamily: '"Space Grotesk", Arial, sans-serif',
+    fontSize: 16,
+  },
+  palette: {
+    mode: 'light',
+    primary: {
+      main: '#00bcd4',
+    },
+    secondary: {
+      main: '#ff4081',
+    },
+    background: {
+      default: '#f8f8ff',
+      paper: 'rgba(255,255,255,0.8)',
+    },
+  },
+  shape: {
+    borderRadius: 12,
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          minHeight: 48,
+          fontWeight: 600,
+          fontSize: '1.2rem',
+          borderRadius: 8,
+        },
+      },
+    },
+  },
+}));
 
 function ClientContent() {
   const { isConnected, setHostPeerId, connectToHost, peerId } = usePeer();
@@ -42,11 +78,14 @@ function ClientContent() {
 
 function ClientApp() {
   return (
-    <PeerProvider isHost={false}>
-      <AudioProvider>
-        <ClientContent />
-      </AudioProvider>
-    </PeerProvider>
+    <ThemeProvider theme={clientTheme}>
+      <CssBaseline />
+      <PeerProvider isHost={false}>
+        <AudioProvider>
+          <ClientContent />
+        </AudioProvider>
+      </PeerProvider>
+    </ThemeProvider>
   );
 }
 

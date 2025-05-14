@@ -2,8 +2,14 @@ import { useState, useEffect } from 'react';
 import { GameState, MessageType, GameMessage } from '../types';
 import { useClientGameState } from '@/contexts/GameState';
 import { usePeer } from '@/contexts/PeerContext';
-import './FoolingStage.css';
-import './shared.css';
+import {
+  Box,
+  Typography,
+  Button,
+  Paper,
+  TextField,
+  CircularProgress,
+} from '@mui/material';
 
 export function FoolingStage() {
   const [fakePrompt, setFakePrompt] = useState('');
@@ -13,10 +19,10 @@ export function FoolingStage() {
   const gameState = gameStateContext.state;
   const { peerId, sendMessage } = usePeer<GameMessage>();
 
-  if (!gameState.activeImage) return <p>No active image to fool with</p>;
+  if (!gameState.activeImage) return <Typography>No active image to fool with</Typography>;
 
   const image = gameState.images[gameState.activeImage.imageId];
-  if (!image) return <p>Image not found</p>;
+  if (!image) return <Typography>Image not found</Typography>;
 
   // Check if this player is the image creator
   const isImageCreator = image.creatorId === peerId;
@@ -57,60 +63,94 @@ export function FoolingStage() {
 
   if (isSubmitted || hasSubmitted || isImageCreator) {
     return (
-      <div className="fooling-stage">
-        <h2>Fooling Stage</h2>
-        <div className="active-image">
-          {imageUrl ? (
-            <img 
-              src={imageUrl} 
-              alt="Image to fool with"
-              className="generated-image"
-            />
+      <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="100vh" px={2}>
+        <Paper elevation={3} sx={{ p: 3, width: '100%', maxWidth: 420, textAlign: 'center', bgcolor: 'rgba(255,255,255,0.8)' }}>
+          <Typography variant="h5" fontWeight={600} gutterBottom>Fooling Stage</Typography>
+          <Box mt={2} mb={2} display="flex" flexDirection="column" alignItems="center">
+            {imageUrl ? (
+              <Box
+                component="img"
+                src={imageUrl}
+                alt="Image to fool with"
+                sx={{
+                  width: '100%',
+                  maxWidth: 320,
+                  borderRadius: 2,
+                  boxShadow: 2,
+                  mb: 2,
+                }}
+              />
+            ) : (
+              <Box display="flex" flexDirection="column" alignItems="center" gap={2}>
+                <CircularProgress />
+                <Typography variant="body2">Loading image...</Typography>
+              </Box>
+            )}
+          </Box>
+          {isImageCreator ? (
+            <Typography variant="body1">This is your image! Waiting for other players to submit fake prompts...</Typography>
           ) : (
-            <div className="loading-placeholder">Loading image...</div>
+            <>
+              <Typography variant="body1">Your fake prompt has been submitted!</Typography>
+              <Typography variant="body2" color="text.secondary">Waiting for other players...</Typography>
+            </>
           )}
-        </div>
-        {isImageCreator ? (
-          <p>This is your image! Waiting for other players to submit fake prompts...</p>
-        ) : (
-          <>
-            <p>Your fake prompt has been submitted!</p>
-            <p>Waiting for other players...</p>
-          </>
-        )}
-      </div>
+        </Paper>
+      </Box>
     );
   }
 
   return (
-    <div className="fooling-stage">
-      <h2>Fooling Stage</h2>
-      <div className="active-image">
-        {imageUrl ? (
-          <img 
-            src={imageUrl} 
-            alt="Image to fool with"
-            className="generated-image"
+    <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="100vh" px={2}>
+      <Paper elevation={3} sx={{ p: 3, width: '100%', maxWidth: 420, textAlign: 'center', bgcolor: 'rgba(255,255,255,0.8)' }}>
+        <Typography variant="h5" fontWeight={600} gutterBottom>Fooling Stage</Typography>
+        <Box mt={2} mb={2} display="flex" flexDirection="column" alignItems="center">
+          {imageUrl ? (
+            <Box
+              component="img"
+              src={imageUrl}
+              alt="Image to fool with"
+              sx={{
+                width: '100%',
+                maxWidth: 320,
+                borderRadius: 2,
+                boxShadow: 2,
+                mb: 2,
+              }}
+            />
+          ) : (
+            <Box display="flex" flexDirection="column" alignItems="center" gap={2}>
+              <CircularProgress />
+              <Typography variant="body2">Loading image...</Typography>
+            </Box>
+          )}
+        </Box>
+        <Box component="form" onSubmit={handleSubmit}>
+          <Typography variant="subtitle1" gutterBottom>Write a convincing fake prompt for this image:</Typography>
+          <TextField
+            fullWidth
+            multiline
+            minRows={4}
+            value={fakePrompt}
+            onChange={(e) => setFakePrompt(e.target.value)}
+            placeholder="Write a prompt that could have generated this image..."
+            variant="outlined"
+            sx={{ mb: 2, bgcolor: 'rgba(255,255,255,0.6)' }}
+            inputProps={{ maxLength: 120 }}
           />
-        ) : (
-          <div className="loading-placeholder">Loading image...</div>
-        )}
-      </div>
-      <form onSubmit={handleSubmit}>
-        <h3>Write a convincing fake prompt for this image:</h3>
-        <textarea
-          value={fakePrompt}
-          onChange={(e) => setFakePrompt(e.target.value)}
-          placeholder="Write a prompt that could have generated this image..."
-          rows={4}
-        />
-        <button 
-          type="submit"
-          disabled={!fakePrompt.trim()}
-        >
-          Submit Fake Prompt
-        </button>
-      </form>
-    </div>
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            fullWidth
+            size="large"
+            disabled={!fakePrompt.trim()}
+            sx={{ fontWeight: 700, py: 1.5 }}
+          >
+            Submit Fake Prompt
+          </Button>
+        </Box>
+      </Paper>
+    </Box>
   );
 } 
