@@ -1,12 +1,22 @@
 import { useState, useEffect } from 'react';
 import { usePeer } from '@/contexts/PeerContext';
 import { MessageType, GameMessage } from '@/games/farsketched/types';
-import './PlayerSetup.css';
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Container,
+  Avatar,
+} from '@mui/material';
+import AutorenewIcon from '@mui/icons-material/Autorenew';
 
 export const PlayerSetup = () => {
   const { peerId, sendMessage } = usePeer<GameMessage>();
   const [name, setName] = useState('');
-  const [avatarUrl, setAvatarUrl] = useState('https://api.dicebear.com/7.x/avataaars/svg?seed=default');
+  const [avatarUrl, setAvatarUrl] = useState(
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=default'
+  );
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
 
@@ -14,15 +24,14 @@ export const PlayerSetup = () => {
     let timer: NodeJS.Timeout;
     if (countdown !== null && countdown > 0) {
       timer = setInterval(() => {
-        setCountdown(prev => prev !== null ? prev - 1 : null);
+        setCountdown((prev) => (prev !== null ? prev - 1 : null));
       }, 1000);
     } else if (countdown === 0) {
-      // Game should start here
       const message: GameMessage = {
         type: MessageType.REQUEST_START_GAME,
         playerId: peerId,
         timestamp: Date.now(),
-        messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
+        messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
       };
       sendMessage(message);
       setCountdown(null);
@@ -42,7 +51,7 @@ export const PlayerSetup = () => {
       name: name.trim(),
       avatarUrl,
       timestamp: Date.now(),
-      messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
+      messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
     };
 
     sendMessage(message);
@@ -59,7 +68,7 @@ export const PlayerSetup = () => {
       type: MessageType.CANCEL_START_GAME,
       playerId: peerId,
       timestamp: Date.now(),
-      messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
+      messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
     };
     sendMessage(message);
   };
@@ -69,67 +78,147 @@ export const PlayerSetup = () => {
       type: MessageType.PLAYER_LEFT,
       playerId: peerId,
       timestamp: Date.now(),
-      messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
+      messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
     };
     sendMessage(message);
+    // Consider redirecting or updating UI state after leaving
   };
 
   const generateRandomAvatar = () => {
     const randomSeed = Math.random().toString(36).substring(7);
-    setAvatarUrl(`https://api.dicebear.com/7.x/avataaars/svg?seed=${randomSeed}`);
+    setAvatarUrl(
+      `https://api.dicebear.com/7.x/avataaars/svg?seed=${randomSeed}`
+    );
   };
 
   if (isSubmitted) {
     return (
-      <div className="player-setup">
-        <h2>Welcome, {name}!</h2>
+      <Container
+        maxWidth="xs"
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100vh',
+          textAlign: 'center',
+          p: 3,
+        }}
+      >
+        <Typography variant="h4" gutterBottom>
+          Welcome, {name}!
+        </Typography>
+        <Avatar
+          src={avatarUrl}
+          alt={name}
+          sx={{ width: 100, height: 100, mb: 2 }}
+        />
         {countdown !== null ? (
-          <div className="countdown">
-            <p>Game starting in {countdown} seconds...</p>
-            <button onClick={handleCancelStart}>Cancel</button>
-          </div>
+          <Box>
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              Game starting in {countdown} seconds...
+            </Typography>
+            <Button
+              variant="outlined"
+              color="secondary"
+              onClick={handleCancelStart}
+              fullWidth
+            >
+              Cancel
+            </Button>
+          </Box>
         ) : (
-          <>
-            <p>Waiting for the host to start the game...</p>
-            <button onClick={handleStartGame}>Start Game</button>
-          </>
+          <Box sx={{ width: '100%'}}>
+            <Typography variant="body1" sx={{ mb: 2 }}>
+              Waiting for the host to start the game...
+            </Typography>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleStartGame}
+              fullWidth
+              sx={{ mb: 1 }}
+            >
+              Start Game
+            </Button>
+          </Box>
         )}
-        <button onClick={handleLeaveGame}>Leave Game</button>
-      </div>
+        <Button
+          variant="outlined"
+          color="error"
+          onClick={handleLeaveGame}
+          fullWidth
+          sx={{ mt: 2 }}
+        >
+          Leave Game
+        </Button>
+      </Container>
     );
   }
 
   return (
-    <div className="player-setup">
-      <h2>Join the Game</h2>
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="name">Your Name</label>
-          <input
-            type="text"
-            id="name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Enter your name"
-            required
-            maxLength={20}
+    <Container
+      maxWidth="xs"
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100vh',
+        p: 3,
+      }}
+    >
+      <Typography variant="h4" component="h1" gutterBottom>
+        Join the Game
+      </Typography>
+      <Box
+        component="form"
+        onSubmit={handleSubmit}
+        sx={{ width: '100%', mt: 1 }}
+      >
+        <TextField
+          margin="normal"
+          required
+          fullWidth
+          id="name"
+          label="Your Name"
+          name="name"
+          autoComplete="off"
+          autoFocus
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          inputProps={{ maxLength: 20 }}
+        />
+
+        <Box sx={{ my: 2, textAlign: 'center' }}>
+          <Typography variant="subtitle1" gutterBottom>
+            Your Avatar
+          </Typography>
+          <Avatar
+            src={avatarUrl}
+            alt="Your avatar"
+            sx={{ width: 100, height: 100, margin: 'auto', mb: 1 }}
           />
-        </div>
+          <Button
+            type="button"
+            variant="outlined"
+            onClick={generateRandomAvatar}
+            startIcon={<AutorenewIcon />}
+          >
+            Randomize Avatar
+          </Button>
+        </Box>
 
-        <div className="form-group">
-          <label>Your Avatar</label>
-          <div className="avatar-preview">
-            <img src={avatarUrl} alt="Your avatar" />
-            <button type="button" onClick={generateRandomAvatar}>
-              Randomize Avatar
-            </button>
-          </div>
-        </div>
-
-        <button type="submit" disabled={!name.trim()}>
+        <Button
+          type="submit"
+          fullWidth
+          variant="contained"
+          disabled={!name.trim()}
+          sx={{ mt: 3, mb: 2 }}
+        >
           Join Game
-        </button>
-      </form>
-    </div>
+        </Button>
+      </Box>
+    </Container>
   );
 }; 

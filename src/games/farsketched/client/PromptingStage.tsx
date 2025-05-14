@@ -8,8 +8,9 @@ import {
   Button,
   TextField,
   Paper,
-  CircularProgress,
 } from '@mui/material';
+import { PlaceholderImage } from './PlaceholderImage';
+import { PlayersSubmitted } from './PlayersSubmitted';
 
 export function PromptingStage() {
   const [prompt, setPrompt] = useState('');
@@ -18,6 +19,8 @@ export function PromptingStage() {
   const gameStateContext = useClientGameState<GameState>();
   const gameState = gameStateContext.state;
   const { peerId, sendMessage } = usePeer<GameMessage>();
+  const player = gameState.players[peerId];
+  const avatarUrl = player?.avatarUrl;
 
   // Find the player's image in the current round
   const playerImage = useMemo(() => {
@@ -66,22 +69,20 @@ export function PromptingStage() {
   };
 
   if (isSubmitted || playerImage) {
+    const currentRoundImageIds = gameState.roundImages[gameState.currentRound] || [];
+    const submittedCount = currentRoundImageIds
+      .map(id => gameState.images[id])
+      .filter(img => !!img && !!img.prompt)
+      .length;
     return (
       <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="100vh" px={2}>
         <Paper elevation={3} sx={{ p: 3, width: '100%', maxWidth: 420, textAlign: 'center', bgcolor: 'rgba(255,255,255,0.8)' }}>
           <Typography variant="h5" fontWeight={600} gutterBottom>Your prompt was sent!</Typography>
           <Box mt={2}>
-            <Typography variant="subtitle1" gutterBottom>Your generated image:</Typography>
             {!playerImage ? (
-              <Box display="flex" flexDirection="column" alignItems="center" gap={2}>
-                <Typography variant="body2">Waiting for server confirmation...</Typography>
-                <CircularProgress />
-              </Box>
+              <PlaceholderImage text="waiting for server confirmation..." showSpinner/>
             ) : playerImage.status === 'pending' ? (
-              <Box display="flex" flexDirection="column" alignItems="center" gap={2}>
-                <Typography variant="body2">Generating your image...</Typography>
-                <CircularProgress />
-              </Box>
+              <PlaceholderImage text="generating image..." showSpinner/>
             ) : playerImage.status === 'complete' && imageUrl ? (
               <Box className="image-container" mt={2}>
                 <Box
@@ -95,9 +96,6 @@ export function PromptingStage() {
                     boxShadow: 2,
                   }}
                 />
-                <Typography variant="body2" color="text.secondary" mt={1}>
-                  Prompt: {playerImage.prompt}
-                </Typography>
               </Box>
             ) : (
               <Box color="error.main" mt={2}>
@@ -105,7 +103,7 @@ export function PromptingStage() {
               </Box>
             )}
           </Box>
-          <Typography variant="body1" mt={3}>Waiting for other players...</Typography>
+          <PlayersSubmitted count={submittedCount} avatarUrl={avatarUrl} />
         </Paper>
       </Box>
     );
@@ -115,12 +113,16 @@ export function PromptingStage() {
     <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="100vh" px={2}>
       <Paper elevation={3} sx={{ p: 3, width: '100%', maxWidth: 420, textAlign: 'center', bgcolor: 'rgba(255,255,255,0.8)' }}>
         <Typography variant="h5" fontWeight={600} gutterBottom>Enter your prompt</Typography>
+        
+        <PlaceholderImage text="future masterpiece here"/>
+
         <Box component="form" onSubmit={handleSubmit} mt={2}>
           <TextField
             fullWidth
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             placeholder="Describe the image you want to generate..."
+            autoComplete="off"
             variant="outlined"
             size="medium"
             autoFocus

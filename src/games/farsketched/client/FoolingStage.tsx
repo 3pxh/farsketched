@@ -129,11 +129,10 @@ export function FoolingStage() {
           <Typography variant="subtitle1" gutterBottom>Write a convincing fake prompt for this image:</Typography>
           <TextField
             fullWidth
-            multiline
-            minRows={4}
             value={fakePrompt}
             onChange={(e) => setFakePrompt(e.target.value)}
-            placeholder="Write a prompt that could have generated this image..."
+            placeholder="What could have generated this image?"
+            autoComplete="off"
             variant="outlined"
             sx={{ mb: 2, bgcolor: 'rgba(255,255,255,0.6)' }}
             inputProps={{ maxLength: 120 }}
