@@ -1,10 +1,17 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import "./HostApp.css";
 import { initializeDatabase } from './database';
 import { PeerProvider } from '@/contexts/PeerContext';
 import { GameConfig } from '@/games/farsketched/types';
 import Host from '@/games/farsketched/Host';
 import { Settings } from './components/Settings';
+import { ThemeProvider, createTheme, responsiveFontSizes } from '@mui/material/styles';
+import { IconButton, CssBaseline, useMediaQuery, Box } from '@mui/material';
+import SettingsIcon from '@mui/icons-material/Settings';
+import '@fontsource/space-grotesk/300.css';
+import '@fontsource/space-grotesk/400.css';
+import '@fontsource/space-grotesk/500.css';
+import '@fontsource/space-grotesk/700.css';
 
 const defaultGameConfig: GameConfig = {
   maxPlayers: 10,
@@ -20,9 +27,73 @@ const defaultGameConfig: GameConfig = {
 };
 
 function HostApp() {
+  const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
   const [dbInitialized, setDbInitialized] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [gameConfig, setGameConfig] = useState<GameConfig>(defaultGameConfig);
+
+  const theme = useMemo(() => {
+    const baseTheme = createTheme({
+      palette: {
+        mode: prefersDarkMode ? 'dark' : 'light',
+        primary: {
+          main: '#90caf9',
+        },
+        secondary: {
+          main: '#f48fb1',
+        },
+      },
+      typography: {
+        fontFamily: '"Space Grotesk", "Helvetica", "Arial", sans-serif',
+        fontSize: 16,
+        htmlFontSize: 16,
+        button: {
+          fontSize: '1rem', // 24px
+          fontWeight: 600,
+          letterSpacing: '0.02em',
+        },
+      },
+      components: {
+        MuiButton: {
+          styleOverrides: {
+            root: {
+              borderRadius: 8,
+              textTransform: 'none',
+              fontWeight: 600,
+              padding: '12px 24px',
+            },
+          },
+        },
+        MuiTextField: {
+          styleOverrides: {
+            root: {
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 8,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return responsiveFontSizes(baseTheme, {
+      breakpoints: ['xs', 'sm', 'md', 'lg', 'xl'],
+      factor: 2,
+      variants: [
+        'h1',
+        'h2',
+        'h3',
+        'h4',
+        'h5',
+        'h6',
+        'subtitle1',
+        'subtitle2',
+        'body1',
+        'body2',
+        'button',
+      ],
+    });
+  }, [prefersDarkMode]);
 
   useEffect(() => {
     // Initialize database
@@ -43,30 +114,49 @@ function HostApp() {
   };
 
   if (!dbInitialized) {
-    return <div className="container">Initializing database...</div>;
+    return (
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <div className="container">Initializing database...</div>
+      </ThemeProvider>
+    );
   }
 
   return (
-    <PeerProvider isHost={true}>
-      <button 
-        className="settings-gear" 
-        onClick={() => setShowSettings(true)}
-        aria-label="Settings"
-      >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
-          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z" />
-        </svg>
-      </button>
-      <Host gameConfig={gameConfig} />
-      {showSettings && (
-        <Settings
-          gameConfig={gameConfig}
-          onSave={handleSaveSettings}
-          onClose={() => setShowSettings(false)}
-        />
-      )}
-    </PeerProvider>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <PeerProvider isHost={true}>
+        <Box sx={{ position: 'relative', width: '100%', height: '100%' }}>
+          <IconButton 
+            onClick={() => setShowSettings(true)}
+            aria-label="Settings"
+            color="primary"
+            size="large"
+            sx={{
+              position: 'fixed',
+              top: 16,
+              right: 16,
+              zIndex: 1000,
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              backdropFilter: 'blur(4px)',
+              '&:hover': {
+                backgroundColor: 'rgba(0, 0, 0, 0.7)',
+              },
+            }}
+          >
+            <SettingsIcon />
+          </IconButton>
+          <Host gameConfig={gameConfig} />
+          {showSettings && (
+            <Settings
+              gameConfig={gameConfig}
+              onSave={handleSaveSettings}
+              onClose={() => setShowSettings(false)}
+            />
+          )}
+        </Box>
+      </PeerProvider>
+    </ThemeProvider>
   );
 }
 

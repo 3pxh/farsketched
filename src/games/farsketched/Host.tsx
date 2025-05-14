@@ -7,7 +7,6 @@ import { HostGameStateProvider, useHostGameState } from '@/contexts/GameState';
 import { Timer } from './components/Timer';
 import { ScoringStage } from './host/ScoringStage';
 import { FoolingStage, PromptingStage, GuessingStage, GameOverStage } from './host/index';
-import './Host.css';
 
 interface HostProps {
   gameConfig: GameConfig;

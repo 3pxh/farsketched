@@ -2,6 +2,24 @@ import { useState, useEffect } from 'react';
 import { GameConfig } from '../games/farsketched/types';
 import { generateImages } from '../apis/imageGeneration';
 import { settingsManager } from '../settings';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Button,
+  Typography,
+  Box,
+  IconButton,
+  Alert,
+  Stack,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+} from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 
 interface SettingsProps {
   gameConfig: GameConfig;
@@ -83,91 +101,127 @@ export function Settings({ gameConfig, onSave, onClose }: SettingsProps) {
   };
 
   return (
-    <div className="settings-overlay">
-      <div className="settings-modal">
-        <div className="settings-header">
-          <h2>Settings</h2>
-          <button className="close-button" onClick={onClose}>×</button>
-        </div>
-        <form onSubmit={handleSubmit}>
-          <div className="settings-section">
-            <h3>API Configuration</h3>
-            <div className="form-group">
-              <label htmlFor="openaiKey">OpenAI API Key:</label>
-              <div className="api-key-input">
-                <input
-                  type="password"
-                  id="openaiKey"
-                  value={openaiKey}
-                  onChange={(e) => setOpenaiKey(e.target.value)}
-                  placeholder="Enter your OpenAI API key"
+    <Dialog 
+      open={true} 
+      onClose={onClose}
+      maxWidth="md"
+      fullWidth
+    >
+      <DialogTitle>
+        Settings
+        <IconButton
+          aria-label="close"
+          onClick={onClose}
+          sx={{
+            position: 'absolute',
+            right: 8,
+            top: 8,
+          }}
+        >
+          <CloseIcon />
+        </IconButton>
+      </DialogTitle>
+      <DialogContent>
+        <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
+          <Stack spacing={3}>
+            <Box>
+              <Typography variant="h6" gutterBottom>
+                API Configuration
+              </Typography>
+              <Stack spacing={2}>
+                <Box>
+                  <TextField
+                    fullWidth
+                    label="OpenAI API Key"
+                    type="password"
+                    value={openaiKey}
+                    onChange={(e) => setOpenaiKey(e.target.value)}
+                    placeholder="Enter your OpenAI API key"
+                    InputProps={{
+                      endAdornment: (
+                        <Button
+                          onClick={() => handleTestApi('openai')}
+                          disabled={testStatus === 'testing' || !openaiKey}
+                          size="small"
+                        >
+                          Test
+                        </Button>
+                      ),
+                    }}
+                  />
+                </Box>
+                <Box>
+                  <TextField
+                    fullWidth
+                    label="Stability AI API Key"
+                    type="password"
+                    value={stabilityKey}
+                    onChange={(e) => setStabilityKey(e.target.value)}
+                    placeholder="Enter your Stability AI API key"
+                    InputProps={{
+                      endAdornment: (
+                        <Button
+                          onClick={() => handleTestApi('stability')}
+                          disabled={testStatus === 'testing' || !stabilityKey}
+                          size="small"
+                        >
+                          Test
+                        </Button>
+                      ),
+                    }}
+                  />
+                </Box>
+                {testStatus !== 'idle' && (
+                  <Alert severity={testStatus === 'success' ? 'success' : 'error'}>
+                    {testMessage}
+                  </Alert>
+                )}
+              </Stack>
+            </Box>
+
+            <Box>
+              <Typography variant="h6" gutterBottom>
+                Game Settings
+              </Typography>
+              <Stack spacing={2}>
+                <TextField
+                  label="Max Players"
+                  type="number"
+                  value={config.maxPlayers}
+                  onChange={(e) => setConfig({ ...config, maxPlayers: parseInt(e.target.value) })}
+                  inputProps={{ min: 2, max: 20 }}
+                  fullWidth
                 />
-                <button
-                  type="button"
-                  className="test-button"
-                  onClick={() => handleTestApi('openai')}
-                  disabled={testStatus === 'testing' || !openaiKey}
-                >
-                  Test
-                </button>
-              </div>
-            </div>
-            <div className="form-group">
-              <label htmlFor="stabilityKey">Stability AI API Key:</label>
-              <div className="api-key-input">
-                <input
-                  type="password"
-                  id="stabilityKey"
-                  value={stabilityKey}
-                  onChange={(e) => setStabilityKey(e.target.value)}
-                  placeholder="Enter your Stability AI API key"
+                <TextField
+                  label="Number of Rounds"
+                  type="number"
+                  value={config.roundCount}
+                  onChange={(e) => setConfig({ ...config, roundCount: parseInt(e.target.value) })}
+                  inputProps={{ min: 1, max: 10 }}
+                  fullWidth
                 />
-                <button
-                  type="button"
-                  className="test-button"
-                  onClick={() => handleTestApi('stability')}
-                  disabled={testStatus === 'testing' || !stabilityKey}
-                >
-                  Test
-                </button>
-              </div>
-            </div>
-            {testStatus !== 'idle' && (
-              <div className={`test-status ${testStatus}`}>
-                {testMessage}
-              </div>
-            )}
-          </div>
-          <div className="settings-section">
-            <h3>Game Settings</h3>
-            <div className="form-group">
-              <label htmlFor="maxPlayers">Max Players:</label>
-              <input
-                type="number"
-                id="maxPlayers"
-                value={config.maxPlayers}
-                onChange={(e) => setConfig({ ...config, maxPlayers: parseInt(e.target.value) })}
-                min="2"
-                max="20"
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="roundCount">Number of Rounds:</label>
-              <input
-                type="number"
-                id="roundCount"
-                value={config.roundCount}
-                onChange={(e) => setConfig({ ...config, roundCount: parseInt(e.target.value) })}
-                min="1"
-                max="10"
-              />
-            </div>
-          </div>
-          <div className="settings-actions">
-            <button type="submit" className="save-button">Save Settings</button>
-          </div>
-        </form>
-      </div>
-    </div>
+                <FormControl fullWidth>
+                  <InputLabel>API Provider</InputLabel>
+                  <Select
+                    value={config.apiProvider}
+                    label="API Provider"
+                    onChange={(e) => setConfig({ ...config, apiProvider: e.target.value as 'openai' | 'stability' })}
+                  >
+                    <MenuItem value="openai">OpenAI</MenuItem>
+                    <MenuItem value="stability">Stability AI</MenuItem>
+                  </Select>
+                </FormControl>
+              </Stack>
+            </Box>
+          </Stack>
+        </Box>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Cancel</Button>
+        <Button onClick={handleSubmit} variant="contained" color="primary">
+          Save Settings
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 } 
