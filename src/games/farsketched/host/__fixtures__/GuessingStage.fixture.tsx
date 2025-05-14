@@ -61,7 +61,8 @@ const mockGameState: GameState = {
     duration: 20,
     isRunning: true
   },
-  achievements: []
+  achievements: [],
+  history: []
 };
 
 export default {
