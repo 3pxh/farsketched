@@ -1,33 +1,16 @@
 # Farsketched Implementation Task List
 
 ## On Deck
-- [ ] Iterate on UI for client prompt, fool, guess (using cosmos)
-- [ ] Iterate on UI for host prompt, fool, guess?? (using cosmos)
 - [ ] Add Narrator
-- [ ] Award achievements
-  - [ ] Track history of active images to compute stats and awards
-  - [ ] Game over screen progressively reveals
 - [ ] Lobby game for client?
 
-
 ## Nits
-- [ ] can't guess your own prompt
-- [ ] if you don't submit a fool, you should appear with a blank on scoring
-- [ ] make the client full width
-- [ ] creator can't guess
 - [ ] does guessing stage progress via timer without clicks?
 - [ ] if no images created, what happens when time runs out? (pause screen or game over?)
-- [ ] separate css files per component, no inheritance aside from document level (i.e. App > Game > component)
 
 ## Developer Experience
 - [ ] Run the client via vite. When gh tried peerjs wouldn't connect, unlike the python server. It would be nice for hot module reloading.
 - [ ] Having a single-component workflow where we mock data would be nice. Storybook seems heavyweight, but maybe something similar. Might take care of most of the use above too. 
-
-## Game functionality
-- [ ] Go through all images in a round
-- [ ] Play multiple rounds
-- [ ] Final scoring screen, show players all the images on their devices w/ ability to save
-- [ ] Handle edge cases
 
 ## Logging / Feedback
 - [ ] Add some logging which we can use to diagnose crashes? Having a host send us a stack trace as well as the set of all messages ever processed would be convenient. Also the ability to report in-game that something is wrong (and sends us a list of all the messages received).
@@ -36,7 +19,6 @@
 - [ ] Add an in-game announcer who speaks
 - [ ] Background music
 - [ ] Sound effects
-- [ ] Animations
 - [ ] Something for people to do while they wait?
   - [ ] ChatGPT says it prefers X or Y? (precompute)
 
@@ -51,11 +33,6 @@
   - [ ] Error feedback to players on generation failure?
 
 ## Testing
-- [ ] Unit tests:
-  - [ ] Game state reducer
-  - [ ] Message handling
-  - [ ] Scoring calculations
-  - [ ] Achievement calculations
 - [ ] Integration tests:
   - [ ] WebRTC connection
   - [ ] Game flow
@@ -66,8 +43,6 @@
   - [ ] API integration
 
 ## Publishing
-- [ ] Github pages or netlify site with the clientindex.html
-  - [ ] Add the url as the base in the qr code (but not in development)
 - [ ] Store Listings
   - [ ] Steam? Mac? ...
   - [ ] File a new corporation?

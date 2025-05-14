@@ -8,6 +8,7 @@ import {
   Button,
   Paper,
   CircularProgress,
+  Tooltip,
 } from '@mui/material';
 
 export function GuessingStage() {
@@ -21,6 +22,9 @@ export function GuessingStage() {
 
   const image = gameState.images[gameState.activeImage.imageId];
   if (!image) return <Typography>Image not found</Typography>;
+
+  // Determine if the current player is the creator of this image
+  const isImageCreator = image.creatorId === peerId;
 
   // Convert blob to data URL when image is available
   useEffect(() => {
@@ -39,19 +43,20 @@ export function GuessingStage() {
     guess => guess.playerId === peerId
   );
 
-  // Create array of all prompts (real + fake)
+  // Create array of all prompts (real + fake) and mark the one written by this player
   const allPrompts = useMemo(() => {
     const prompts = [
-      { id: 'real', text: image.prompt, isReal: true },
+      { id: 'real', text: image.prompt, isReal: true, isPlayersOwn: false },
       ...gameState.activeImage!.fakePrompts.map(fp => ({
         id: fp.id,
         text: fp.text,
-        isReal: false
+        isReal: false,
+        isPlayersOwn: fp.authorId === peerId
       }))
     ];
     // Shuffle the prompts
     return prompts.sort(() => Math.random() - 0.5);
-  }, [image.prompt, gameState.activeImage!.fakePrompts]);
+  }, [image.prompt, gameState.activeImage!.fakePrompts, peerId]);
 
   const handleGuess = (promptId: string) => {
     const message: GameMessage = {
@@ -66,6 +71,41 @@ export function GuessingStage() {
     sendMessage(message);
     setHasGuessed(true);
   };
+
+  // Display a different message if the player is the creator of the image
+  if (isImageCreator) {
+    return (
+      <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="100vh" px={2}>
+        <Paper elevation={3} sx={{ p: 3, width: '100%', maxWidth: 420, textAlign: 'center', bgcolor: 'rgba(255,255,255,0.8)' }}>
+          <Typography variant="h5" fontWeight={600} gutterBottom>Guessing Stage</Typography>
+          <Box mt={2} mb={2} display="flex" flexDirection="column" alignItems="center">
+            {imageUrl ? (
+              <Box
+                component="img"
+                src={imageUrl}
+                alt="Your created image"
+                sx={{
+                  width: '100%',
+                  maxWidth: 320,
+                  borderRadius: 2,
+                  boxShadow: 2,
+                  mb: 2,
+                }}
+              />
+            ) : (
+              <Box display="flex" flexDirection="column" alignItems="center" gap={2}>
+                <CircularProgress />
+                <Typography variant="body2">Loading image...</Typography>
+              </Box>
+            )}
+          </Box>
+          <Typography variant="h6" gutterBottom>This is your image!</Typography>
+          <Typography variant="body1">Since you created this image, you don't need to guess the prompt.</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>Waiting for other players to make their guesses...</Typography>
+        </Paper>
+      </Box>
+    );
+  }
 
   if (hasGuessed || hasSubmitted) {
     return (
@@ -129,16 +169,58 @@ export function GuessingStage() {
           <Typography variant="subtitle1" gutterBottom>Which prompt do you think generated this image?</Typography>
           <Box display="flex" flexDirection="column" gap={2}>
             {allPrompts.map(prompt => (
-              <Button
-                key={prompt.id}
-                onClick={() => handleGuess(prompt.id)}
-                variant="outlined"
-                color="primary"
-                fullWidth
-                sx={{ fontWeight: 600, fontSize: '1.1rem', py: 1.5 }}
-              >
-                {prompt.text}
-              </Button>
+              prompt.isPlayersOwn ? (
+                <Tooltip 
+                  key={prompt.id}
+                  title="You can't choose the prompt you wrote" 
+                  arrow
+                  placement="right"
+                >
+                  <Box sx={{ position: 'relative' }}>
+                    <Button
+                      disabled={true}
+                      variant="outlined"
+                      color="primary"
+                      fullWidth
+                      sx={{ 
+                        fontWeight: 600, 
+                        fontSize: '1.1rem', 
+                        py: 1.5,
+                        backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                        opacity: 0.7,
+                        textAlign: 'left',
+                        justifyContent: 'flex-start',
+                        pl: 2
+                      }}
+                    >
+                      {prompt.text}
+                    </Button>
+                    <Box 
+                      sx={{ 
+                        position: 'absolute', 
+                        right: 10, 
+                        bottom: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        color: 'text.secondary'
+                      }}
+                    >
+                      <Typography variant="caption">Your prompt</Typography>
+                    </Box>
+                  </Box>
+                </Tooltip>
+              ) : (
+                <Button
+                  key={prompt.id}
+                  onClick={() => handleGuess(prompt.id)}
+                  variant="outlined"
+                  color="primary"
+                  fullWidth
+                  sx={{ fontWeight: 600, fontSize: '1.1rem', py: 1.5 }}
+                >
+                  {prompt.text}
+                </Button>
+              )
             ))}
           </Box>
         </Box>

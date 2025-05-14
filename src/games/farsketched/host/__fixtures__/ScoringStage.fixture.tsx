@@ -29,7 +29,6 @@ const fakePrompts = [
   { id: 'fake4', imageId: 'image1', authorId: 'player5', text: 'A dense forest in morning fog with sunlight rays.' },
   { id: 'fake5', imageId: 'image1', authorId: 'player6', text: 'A desert with cacti and a dramatic sunset sky.' },
   { id: 'fake6', imageId: 'image1', authorId: 'player7', text: 'A snowy mountain peak under a starry night sky.' },
-  { id: 'fake7', imageId: 'image1', authorId: 'player8', text: 'A winding river through green hills and wildflowers.' },
 ];
 
 const guesses = [

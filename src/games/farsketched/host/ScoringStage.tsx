@@ -9,6 +9,19 @@ import {
   Stack,
 } from '@mui/material';
 
+// Define prompt types
+interface BasePrompt {
+  id: string;
+  text: string;
+  isReal: boolean;
+  authorId: string;
+}
+
+interface DisplayPrompt extends BasePrompt {
+  roundScore: number;
+  noSubmission?: boolean;
+}
+
 // Component for avatar + score
 function CreatorAvatarWithScore({
   prompt,
@@ -17,7 +30,7 @@ function CreatorAvatarWithScore({
   showRealFake,
   guessersShown
 }: {
-  prompt: any;
+  prompt: DisplayPrompt;
   creator: any;
   points: number;
   showRealFake: boolean;
@@ -76,7 +89,7 @@ export function ScoringStage({ gameState }: { gameState: GameState }) {
   }, {} as Record<string, string[]>);
 
   // Get all prompts (real + fake)
-  const allPrompts = [
+  const allPrompts: BasePrompt[] = [
     { id: 'real', text: image.prompt, isReal: true, authorId: image.creatorId },
     ...gameState.activeImage.fakePrompts.map(fp => ({
       id: fp.id,
@@ -85,6 +98,24 @@ export function ScoringStage({ gameState }: { gameState: GameState }) {
       authorId: fp.authorId
     }))
   ];
+
+  // Find all connected players who didn't submit a fake prompt and aren't the image creator
+  const missingPromptPlayers = useMemo((): BasePrompt[] => {
+    const promptAuthorIds = new Set(allPrompts.map(p => p.authorId));
+    const connectedPlayers = Object.values(gameState.players).filter(
+      player => player.connected && !promptAuthorIds.has(player.id)
+    );
+    return connectedPlayers.map(player => ({
+      id: `missing-${player.id}`,
+      text: "No prompt submitted",
+      isReal: false,
+      authorId: player.id,
+      noSubmission: true
+    }));
+  }, [allPrompts, gameState.players]);
+
+  // State for whether to show missing players
+  const [showMissingPlayers, setShowMissingPlayers] = useState(false);
 
   // State for how many prompts are revealed
   const [revealedCount, setRevealedCount] = useState(1);
@@ -144,6 +175,17 @@ export function ScoringStage({ gameState }: { gameState: GameState }) {
     }
   }, [revealedCount, allPrompts.length, topShowAuthor, topPrompt.id, sortedPrompts, showRealFake]);
 
+  // Show missing players before resorting
+  useEffect(() => {
+    if (showRealFake && !showMissingPlayers && missingPromptPlayers.length > 0) {
+      // Show missing players after a delay
+      const timer = setTimeout(() => {
+        setShowMissingPlayers(true);
+      }, 400);
+      return () => clearTimeout(timer);
+    }
+  }, [showRealFake, showMissingPlayers, missingPromptPlayers.length]);
+
   // Calculate current round points
   const roundPoints: Record<string, number> = {};
   
@@ -175,30 +217,44 @@ export function ScoringStage({ gameState }: { gameState: GameState }) {
   // After the score count-up, trigger resort
   useEffect(() => {
     if (showRealFake && !shouldResortByScore) {
-      // Wait for the count-up animation to finish, then resort
-      const t = setTimeout(() => setShouldResortByScore(true), 1400);
+      // Wait for the count-up animation to finish and after showing missing players
+      const delay = missingPromptPlayers.length > 0 ? 1800 : 1400;
+      const t = setTimeout(() => setShouldResortByScore(true), delay);
       return () => clearTimeout(t);
     }
     if (!showRealFake && shouldResortByScore) {
       setShouldResortByScore(false);
+      setShowMissingPlayers(false);
     }
-  }, [showRealFake, shouldResortByScore]);
+  }, [showRealFake, shouldResortByScore, missingPromptPlayers.length]);
+
+  // Create the final list of prompts to display
+  const finalPrompts = useMemo(() => {
+    const promptsToShow = [...revealedPrompts];
+    
+    // Add missing players if showing them
+    if (showMissingPlayers && missingPromptPlayers.length > 0) {
+      promptsToShow.push(...missingPromptPlayers);
+    }
+    
+    return promptsToShow;
+  }, [revealedPrompts, missingPromptPlayers, showMissingPlayers]);
 
   // Resort revealedPrompts by creator's total points if shouldResortByScore
   let sortedRevealedPrompts;
   if (shouldResortByScore) {
     // Sort all revealed prompts by creator's total points, descending
-    sortedRevealedPrompts = revealedPrompts.slice().sort((a, b) => {
+    sortedRevealedPrompts = finalPrompts.slice().sort((a, b) => {
       const aPoints = gameState.players[a.authorId]?.points ?? 0;
       const bPoints = gameState.players[b.authorId]?.points ?? 0;
       return bPoints - aPoints;
     });
   } else {
     // Show most recently revealed at the top
-    sortedRevealedPrompts = revealedPrompts;
+    sortedRevealedPrompts = finalPrompts;
   }
 
-  const revealedPromptsWithScores = sortedRevealedPrompts.map(prompt => ({
+  const revealedPromptsWithScores: DisplayPrompt[] = sortedRevealedPrompts.map(prompt => ({
     ...prompt,
     roundScore: roundPoints[prompt.authorId] || 0,
   }));
@@ -244,7 +300,7 @@ export function ScoringStage({ gameState }: { gameState: GameState }) {
           <AnimatePresence>
             {revealedPromptsWithScores.map((prompt, idx) => {
               const guessers = guessesByPrompt[prompt.id] || [];
-              const isTop = idx === 0;
+              const isTop = idx === 0 && !prompt.noSubmission;
               const creator = gameState.players[prompt.authorId];
               let points = prompt.roundScore;
               const guessersShown = isTop ? topGuessersShown : guessers.length;
@@ -263,25 +319,32 @@ export function ScoringStage({ gameState }: { gameState: GameState }) {
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
-                      bgcolor: showRealFake
-                        ? (prompt.isReal
-                            ? 'rgba(76, 175, 80, 0.08)' // very light green
-                            : 'rgba(255, 152, 0, 0.08)') // very light orange
-                        : 'grey.100',
-                      border: showRealFake
-                        ? (prompt.isReal
-                            ? '2px solid'
-                            : '2px solid')
-                        : '2px solid transparent',
-                      borderColor: showRealFake
-                        ? (prompt.isReal
-                            ? 'success.main'
-                            : 'warning.main')
-                        : 'transparent',
+                      bgcolor: prompt.noSubmission
+                        ? 'rgba(0, 0, 0, 0.04)' // very light gray for no submission
+                        : showRealFake
+                          ? (prompt.isReal
+                              ? 'rgba(76, 175, 80, 0.08)' // very light green
+                              : 'rgba(255, 152, 0, 0.08)') // very light orange
+                          : 'grey.100',
+                      border: prompt.noSubmission
+                        ? '2px solid rgba(0, 0, 0, 0.12)'
+                        : showRealFake
+                          ? (prompt.isReal
+                              ? '2px solid'
+                              : '2px solid')
+                          : '2px solid transparent',
+                      borderColor: prompt.noSubmission
+                        ? 'transparent'
+                        : showRealFake
+                          ? (prompt.isReal
+                              ? 'success.main'
+                              : 'warning.main')
+                          : 'transparent',
                       borderRadius: 2,
                       boxShadow: 1,
                       p: { xs: 1, md: 1.25 },
                       mb: 1,
+                      opacity: prompt.noSubmission ? 0.7 : 1,
                     }}
                   >
                     <CreatorAvatarWithScore
@@ -291,7 +354,16 @@ export function ScoringStage({ gameState }: { gameState: GameState }) {
                       showRealFake={showRealFake}
                       guessersShown={guessersShown}
                     />
-                    <Typography sx={{ flex: 1, mx: 2, fontWeight: 500, fontSize: { xs: '1.2rem', md: '1.5rem' } }}>
+                    <Typography 
+                      sx={{ 
+                        flex: 1, 
+                        mx: 2, 
+                        fontWeight: prompt.noSubmission ? 400 : 500, 
+                        fontSize: { xs: '1.2rem', md: '1.5rem' },
+                        fontStyle: prompt.noSubmission ? 'italic' : 'normal',
+                        color: prompt.noSubmission ? 'text.secondary' : 'text.primary'
+                      }}
+                    >
                       {prompt.text}
                     </Typography>
                     <Stack direction="row" spacing={-1} alignItems="center" sx={{ minWidth: 48 }}>
