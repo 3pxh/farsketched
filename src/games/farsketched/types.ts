@@ -94,8 +94,8 @@ export interface Player {
    */
   export interface Achievement {
     type: AchievementType;
-    playerId: string;
-    value: number;        // The relevant count/score for this achievement
+    playerIds: string[];
+    value: number;
   }
   
   /**

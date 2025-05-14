@@ -50,14 +50,14 @@ export const initialState: GameState = {
  * @param history Array of completed game rounds
  * @param players Map of all players in the game
  * @param images Map of all generated images
- * @returns Map of achievement type to player ID who earned it
+ * @returns Map of achievement type to array of player IDs who earned it
  */
-function calculateAchievements(
+export function calculateAchievements(
   history: ActiveImage[],
   players: Record<string, Player>,
   images: Record<string, GeneratedImage>
-): Map<AchievementType, string> {
-  const achievementMap = new Map<AchievementType, string>();
+): Map<AchievementType, string[]> {
+  const achievementMap = new Map<AchievementType, string[]>();
   
   // Track statistics for each player
   const playerStats = new Map<string, {
@@ -120,47 +120,39 @@ function calculateAchievements(
     creatorStats.ownPromptsGuessed += correctGuessesForCreator;
   });
 
-  // Determine winners for each achievement
-  let mostAccurate = { playerId: '', score: -1 };
-  let bestBullshitter = { playerId: '', score: -1 };
-  let mostChaotic = { playerId: '', score: -1 };
-  let bestPainter = { playerId: '', score: -1 };
-
-  playerStats.forEach((stats, playerId) => {
-    // Most Accurate: Most correct guesses
-    if (stats.correctGuesses > mostAccurate.score) {
-      mostAccurate = { playerId, score: stats.correctGuesses };
-    }
-
-    // Best Bullshitter: Most people fooled by fake prompts
-    if (stats.peopleFooled > bestBullshitter.score) {
-      bestBullshitter = { playerId, score: stats.peopleFooled };
-    }
-
-    // The Chaotician: Highest vote spread (most variance in votes)
-    if (stats.voteSpread > mostChaotic.score) {
-      mostChaotic = { playerId, score: stats.voteSpread };
-    }
-
-    // The Painter: Most correct guesses of their own prompts
-    if (stats.ownPromptsGuessed > bestPainter.score) {
-      bestPainter = { playerId, score: stats.ownPromptsGuessed };
-    }
-  });
+  // Find winners for each achievement
+  const findWinners = (getScore: (stats: { correctGuesses: number, peopleFooled: number, voteSpread: number, ownPromptsGuessed: number }) => number) => {
+    const scores = new Map<string, number>();
+    playerStats.forEach((stats, playerId) => {
+      scores.set(playerId, getScore(stats));
+    });
+    
+    const maxScore = Math.max(...scores.values());
+    return Array.from(scores.entries())
+      .filter(([_, score]) => score === maxScore)
+      .map(([playerId]) => playerId);
+  };
 
   // Assign achievements to winners
-  if (mostAccurate.playerId) {
-    achievementMap.set(AchievementType.MOST_ACCURATE, mostAccurate.playerId);
-  }
-  if (bestBullshitter.playerId) {
-    achievementMap.set(AchievementType.BEST_BULLSHITTER, bestBullshitter.playerId);
-  }
-  if (mostChaotic.playerId) {
-    achievementMap.set(AchievementType.THE_CHAOTICIAN, mostChaotic.playerId);
-  }
-  if (bestPainter.playerId) {
-    achievementMap.set(AchievementType.THE_PAINTER, bestPainter.playerId);
-  }
+  achievementMap.set(
+    AchievementType.MOST_ACCURATE,
+    findWinners(stats => stats.correctGuesses)
+  );
+
+  achievementMap.set(
+    AchievementType.BEST_BULLSHITTER,
+    findWinners(stats => stats.peopleFooled)
+  );
+
+  achievementMap.set(
+    AchievementType.THE_CHAOTICIAN,
+    findWinners(stats => stats.voteSpread)
+  );
+
+  achievementMap.set(
+    AchievementType.THE_PAINTER,
+    findWinners(stats => stats.ownPromptsGuessed)
+  );
 
   return achievementMap;
 }
@@ -748,9 +740,9 @@ export function farsketchedReducer(
 
         // If this is the last round and last image, move to game over
         const achievementMap = calculateAchievements(state.history, state.players, state.images);
-        const achievements = Array.from(achievementMap.entries()).map(([type, playerId]) => ({
+        const achievements = Array.from(achievementMap.entries()).map(([type, playerIds]) => ({
           type,
-          playerId,
+          playerIds,
           value: 0 // We could calculate specific values if needed
         }));
 

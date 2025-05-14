@@ -16,7 +16,7 @@ const ACHIEVEMENT_DESCRIPTIONS: Record<AchievementType, string> = {
   [AchievementType.MOST_ACCURATE]: 'Made the most correct guesses',
   [AchievementType.BEST_BULLSHITTER]: 'Fooled the most people with fake prompts',
   [AchievementType.THE_CHAOTICIAN]: 'Created the most chaotic vote distribution',
-  [AchievementType.THE_PAINTER]: 'Had their own prompts guessed correctly most often'
+  [AchievementType.THE_PAINTER]: 'Had their image prompts guessed correctly'
 };
 
 export function GameOverStage({ gameState }: GameOverStageProps) {
@@ -32,28 +32,38 @@ export function GameOverStage({ gameState }: GameOverStageProps) {
       <h2>Game Over</h2>
       
       <div className="achievements-section">
-        <h3>Achievements</h3>
         <div className="achievements-grid">
-          {gameState.achievements.map((achievement) => {
-            const player = gameState.players[achievement.playerId];
-            return (
-              <div 
-                key={achievement.type}
-                className="achievement-card"
-              >
-                <img 
-                  src={player.avatarUrl} 
-                  alt={player.name}
-                />
-                <div>
-                  <h4 className="achievement-title">
-                    {ACHIEVEMENT_TITLES[achievement.type]}
-                  </h4>
-                  <p className="achievement-player">{player.name}</p>
-                </div>
+          {gameState.achievements.map((achievement) => (
+            <div 
+              key={achievement.type}
+              className="achievement-card"
+            >
+              <div className="achievement-avatars">
+                {achievement.playerIds.map(playerId => {
+                  const player = gameState.players[playerId];
+                  return (
+                    <img 
+                      key={playerId}
+                      src={player.avatarUrl} 
+                      alt={player.name}
+                      className="achievement-avatar"
+                    />
+                  );
+                })}
               </div>
-            );
-          })}
+              <div>
+                <h4 className="achievement-title">
+                  {ACHIEVEMENT_TITLES[achievement.type]}
+                </h4>
+                <p className="achievement-description">
+                  {ACHIEVEMENT_DESCRIPTIONS[achievement.type]}
+                </p>
+                <p className="achievement-players">
+                  {achievement.playerIds.map(playerId => gameState.players[playerId].name).join(' & ')}
+                </p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 

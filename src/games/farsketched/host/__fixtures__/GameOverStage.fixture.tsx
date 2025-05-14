@@ -71,11 +71,12 @@ const mockGameState: GameState = {
     duration: 0,
     isRunning: false
   },
+  history: [],
   achievements: [
-    { playerId: 'player4', type: AchievementType.MOST_ACCURATE, value: 8 },
-    { playerId: 'player2', type: AchievementType.BEST_BULLSHITTER, value: 5 },
-    { playerId: 'player2', type: AchievementType.THE_CHAOTICIAN, value: 5 },
-    { playerId: 'player3', type: AchievementType.THE_PAINTER, value: 5 }
+    { playerIds: ['player4', 'player1'], type: AchievementType.MOST_ACCURATE, value: 8 },
+    { playerIds: ['player2'], type: AchievementType.BEST_BULLSHITTER, value: 5 },
+    { playerIds: ['player2', 'player3'], type: AchievementType.THE_CHAOTICIAN, value: 5 },
+    { playerIds: ['player3'], type: AchievementType.THE_PAINTER, value: 5 }
   ]
 };
 

@@ -1,14 +1,14 @@
 .game-over-stage {
   padding: 2rem;
-  max-width: 64rem;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
 .game-over-stage h2 {
-  font-size: 1.875rem;
-  font-weight: 700;
-  margin-bottom: 2rem;
   text-align: center;
+  margin-bottom: 2rem;
+  font-size: 2.5rem;
+  color: #333;
 }
 
 .game-over-stage h3 {
@@ -21,43 +21,80 @@
   margin-bottom: 3rem;
 }
 
+.achievements-section h3 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  font-size: 1.8rem;
+  color: #444;
+}
+
 .achievements-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 1rem;
-  background-color: white;
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  padding: 1.5rem;
-  border: 1px solid #e5e7eb;
+  padding: 0.5rem;
 }
 
 .achievement-card {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   display: flex;
+  flex-direction: column;
   align-items: center;
+  text-align: center;
+  transition: transform 0.2s;
 }
 
-.achievement-card img {
-  width: 3rem;
-  height: 3rem;
-  border-radius: 9999px;
-  margin-right: 0.75rem;
+.achievement-card:hover {
+  transform: translateY(-5px);
+}
+
+.achievement-avatars {
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
+  justify-content: center;
+}
+
+.achievement-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  object-fit: cover;
 }
 
 .achievement-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #4f46e5;
-  margin-bottom: 0.25rem;
+  font-size: 1.2rem;
+  color: #2c3e50;
+  margin: 0.25rem 0;
 }
 
-.achievement-player {
-  font-size: 0.875rem;
-  color: #4b5563;
+.achievement-description {
+  color: #666;
+  font-size: 0.85rem;
+  margin: 0.25rem 0;
+}
+
+.achievement-players {
+  color: #2c3e50;
+  font-weight: 500;
+  font-size: 0.9rem;
+  margin: 0.25rem 0;
 }
 
 .scores-section {
   height: 16rem;
+}
+
+.scores-section h3 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  font-size: 1.8rem;
+  color: #444;
 }
 
 .scores-container {
