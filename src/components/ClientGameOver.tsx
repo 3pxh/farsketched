@@ -17,7 +17,6 @@ const achievementDescriptions: Record<string, string> = {
   the_chaotician: 'The Chaotician: Caused the most chaos with unpredictable play.',
 };
 
-const ANIMATION_DURATION = 1.5; // seconds
 const ANIMATION_STAGGER = 0.36; // seconds
 
 const notes = ['C5', 'B4', 'A4', 'G4', 'F4', 'E4', 'D4', 'C4', 'B3', 'A3'];
@@ -106,7 +105,7 @@ const ClientGameOver: React.FC<ClientGameOverProps> = ({ gameState, onPlayAgain 
       score: player.points,
       avatarUrl: player.avatarUrl,
       achievements: gameState.achievements
-        .filter(achievement => achievement.playerId === player.id)
+        .filter(achievement => achievement.playerIds.includes(player.id))
         .map(achievement => achievement.type)
     }))
     .sort((a, b) => b.score - a.score);

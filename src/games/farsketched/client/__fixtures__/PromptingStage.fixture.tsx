@@ -8,16 +8,16 @@ const mockGameState: GameState = {
   stage: GameStage.PROMPTING,
   currentRound: 0,
   players: {
-    'player1': { 
-      id: 'player1', 
+    'player1': {
+      id: 'player1',
       name: 'Player 1',
       avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=player1',
       connected: true,
       points: 0,
       lastSeen: Date.now()
     },
-    'player2': { 
-      id: 'player2', 
+    'player2': {
+      id: 'player2',
       name: 'Player 2',
       avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=player2',
       connected: true,
@@ -46,7 +46,8 @@ const mockGameState: GameState = {
     isRunning: false,
     startTime: 0,
     duration: 0
-  }
+  },
+  history: []
 };
 
 export default {
