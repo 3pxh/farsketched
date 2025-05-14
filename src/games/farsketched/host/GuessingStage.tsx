@@ -1,10 +1,4 @@
-import { GameState } from '../types';
-
-interface GuessingStageProps {
-  gameState: GameState;
-}
-
-export function GuessingStage({ gameState }: GuessingStageProps) {
+export function GuessingStage() {
   return (
     <div className="guessing-stage">
       <h2>Guessing Stage</h2>

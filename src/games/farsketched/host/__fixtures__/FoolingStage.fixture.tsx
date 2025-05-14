@@ -31,6 +31,7 @@ const mockGameState: GameState = {
     roomCode: ''
   },
   stage: GameStage.FOOLING,
+  history: [],
   players: playersObj,
   images: {
     'image1': {
