@@ -22,12 +22,13 @@ const PeerContext = createContext<PeerContextType<any>>({} as PeerContextType<an
 interface PeerProviderProps {
   children: ReactNode;
   isHost: boolean;
+  peerId?: string;
 }
 
 // TODO: Make this generic to a message type
-export const PeerProvider = <T,>({ children, isHost }: PeerProviderProps) => {
+export const PeerProvider = <T,>({ children, isHost, peerId: providedPeerId }: PeerProviderProps) => {
   const [peer, setPeer] = useState<Peer | null>(null);
-  const [peerId, setPeerId] = useState<string>("");
+  const [peerId, setPeerId] = useState<string>(providedPeerId || "");
   const [connectedPeers, setConnectedPeers] = useState<string[]>([]);
   const [messages, setMessages] = useState<T[]>([]);
   const [isConnected, setIsConnected] = useState(false);
@@ -45,8 +46,8 @@ export const PeerProvider = <T,>({ children, isHost }: PeerProviderProps) => {
   };
 
   useEffect(() => {
-    console.log(`Initializing peer...`);
-    const newPeer = new Peer();
+    console.log(`Initializing peer...${providedPeerId ? ` with ID: ${providedPeerId}` : ''}`);
+    const newPeer = providedPeerId ? new Peer(providedPeerId) : new Peer();
     
     newPeer.on('open', (id) => {
       console.log(`Peer initialized with ID:`, id);
@@ -63,7 +64,7 @@ export const PeerProvider = <T,>({ children, isHost }: PeerProviderProps) => {
       console.log(`Cleaning up peer...`);
       newPeer.destroy();
     };
-  }, [isHost]);
+  }, [isHost, providedPeerId]);
 
   useEffect(() => {
     if (!peer) {

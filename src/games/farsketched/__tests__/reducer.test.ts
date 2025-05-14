@@ -20,7 +20,8 @@ import {
   ErrorMessage,
   PromptErrorMessage,
   ActiveImage,
-  AchievementType
+  AchievementType,
+  GameState
 } from '@/games/farsketched/types';
 
 // Mock the image generation API
@@ -205,6 +206,82 @@ describe('farsketchedReducer', () => {
   it('should handle unknown message types by returning current state', () => {
     const result = farsketchedReducer(initialState, createMessage<PingMessage>('UNKNOWN_TYPE' as MessageType, {}), sendSelfMessage);
     expect(result).toEqual(initialState);
+  });
+
+  it('should only store the first guess from a player and ignore subsequent guesses', () => {
+    // Setup initial state with players
+    const players = {
+      'player1': {
+        id: 'player1',
+        name: 'Player 1',
+        avatarUrl: 'https://example.com/avatar1.png',
+        connected: true,
+        points: 0,
+        lastSeen: Date.now()
+      },
+      'player2': {
+        id: 'player2',
+        name: 'Player 2',
+        avatarUrl: 'https://example.com/avatar2.png',
+        connected: true,
+        points: 0,
+        lastSeen: Date.now()
+      }
+    };
+    
+    // Create a test image
+    const image = { 
+      id: 'testImage', 
+      creatorId: 'player1', 
+      prompt: 'Test prompt',
+      status: 'complete' as const,
+      imageBlob: new Blob(['test'], { type: 'image/png' }),
+      roundIndex: 0,
+      timestamp: Date.now()
+    };
+    
+    // Set up initial state in guessing stage with an active image
+    const initialTestState: GameState = {
+      ...initialState,
+      players,
+      images: { 'testImage': image },
+      stage: GameStage.GUESSING,
+      activeImage: {
+        imageId: 'testImage',
+        fakePrompts: [
+          { id: 'fake1', imageId: 'testImage', authorId: 'player2', text: 'Fake prompt' }
+        ],
+        guesses: []
+      }
+    };
+    
+    // Player 2 submits their first guess
+    const firstGuessMessage = createMessage<SubmitGuessMessage>(MessageType.SUBMIT_GUESS, { 
+      playerId: 'player2', 
+      imageId: 'testImage', 
+      promptId: 'real' // Guessing the real prompt
+    });
+    
+    const stateAfterFirstGuess = farsketchedReducer(initialTestState, firstGuessMessage, sendSelfMessage);
+    
+    // Verify the first guess was saved
+    expect(stateAfterFirstGuess.activeImage?.guesses.length).toBe(1);
+    expect(stateAfterFirstGuess.activeImage?.guesses[0].playerId).toBe('player2');
+    expect(stateAfterFirstGuess.activeImage?.guesses[0].promptId).toBe('real');
+    
+    // Player 2 tries to submit a second guess
+    const secondGuessMessage = createMessage<SubmitGuessMessage>(MessageType.SUBMIT_GUESS, { 
+      playerId: 'player2', 
+      imageId: 'testImage', 
+      promptId: 'fake1' // Changing their mind to the fake prompt
+    });
+    
+    const stateAfterSecondGuess = farsketchedReducer(stateAfterFirstGuess, secondGuessMessage, sendSelfMessage);
+    
+    // Verify that the second guess was ignored
+    expect(stateAfterSecondGuess.activeImage?.guesses.length).toBe(1);
+    expect(stateAfterSecondGuess.activeImage?.guesses[0].playerId).toBe('player2');
+    expect(stateAfterSecondGuess.activeImage?.guesses[0].promptId).toBe('real');
   });
 
   describe('Full game flow', () => {

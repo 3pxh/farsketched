@@ -132,5 +132,15 @@ export default {
         <GuessingStage />
       </ClientGameStateProvider>
     </PeerProvider>
+  ),
+  'Player Cannot Select Own Prompt': (
+    <PeerProvider isHost={false} peerId="player2">
+      <ClientGameStateProvider 
+        initialState={mockGameState} 
+        debug={true}
+      >
+        <GuessingStage />
+      </ClientGameStateProvider>
+    </PeerProvider>
   )
 }; 
