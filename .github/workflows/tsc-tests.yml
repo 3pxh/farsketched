@@ -1,4 +1,4 @@
-name: TypeScript Compilation
+name: tsc + tests
 
 on:
   push:
