@@ -8,7 +8,6 @@ import {
   Typography,
   Container,
   Avatar,
-  CircularProgress,
 } from '@mui/material';
 import AutorenewIcon from '@mui/icons-material/Autorenew';
 

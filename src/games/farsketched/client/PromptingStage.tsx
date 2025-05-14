@@ -8,7 +8,6 @@ import {
   Button,
   TextField,
   Paper,
-  CircularProgress,
 } from '@mui/material';
 import { PlaceholderImage } from './PlaceholderImage';
 import { PlayersSubmitted } from './PlayersSubmitted';
