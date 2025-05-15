@@ -2,6 +2,9 @@
 
 ## On Deck
 - [ ] Add Narrator
+- [ ] Make unique event listeners work on ios
+- [ ] remove vertical scroll on client
+- [ ] no "fooling stage", make panel take up full width (timer is close to top, make absolute)
 
 ## Nits
 - [ ] if no images created, what happens when time runs out? (pause screen or game over?)
