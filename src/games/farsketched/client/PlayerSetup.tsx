@@ -8,8 +8,13 @@ import {
   Typography,
   Container,
   Avatar,
+  IconButton,
+  Slide,
 } from '@mui/material';
 import AutorenewIcon from '@mui/icons-material/Autorenew';
+import CloseIcon from '@mui/icons-material/Close';
+import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
+import { UniqueEmoji } from '@/games/lobby/UniqueEmoji';
 
 export const PlayerSetup = () => {
   const { peerId, sendMessage } = usePeer<GameMessage>();
@@ -19,6 +24,8 @@ export const PlayerSetup = () => {
   );
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
+  const [showMiniGame, setShowMiniGame] = useState(false);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -91,68 +98,138 @@ export const PlayerSetup = () => {
     );
   };
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.touches[0].clientY);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchStart) return;
+    
+    const currentTouch = e.touches[0].clientY;
+    const diff = currentTouch - touchStart;
+    
+    // If swiped down more than 100px, close the mini game
+    if (diff > 100) {
+      setShowMiniGame(false);
+      setTouchStart(null);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setTouchStart(null);
+  };
+
   if (isSubmitted) {
     return (
-      <Container
-        maxWidth="xs"
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          height: '100vh',
-          textAlign: 'center',
-          p: 3,
-        }}
-      >
-        <Typography variant="h4" gutterBottom>
-          Welcome, {name}!
-        </Typography>
-        <Avatar
-          src={avatarUrl}
-          alt={name}
-          sx={{ width: 100, height: 100, mb: 2 }}
-        />
-        {countdown !== null ? (
-          <Box>
-            <Typography variant="h6" sx={{ mb: 2 }}>
-              Game starting in {countdown} seconds...
-            </Typography>
-            <Button
-              variant="outlined"
-              color="secondary"
-              onClick={handleCancelStart}
-              fullWidth
-            >
-              Cancel
-            </Button>
-          </Box>
-        ) : (
-          <Box sx={{ width: '100%'}}>
-            <Typography variant="body1" sx={{ mb: 2 }}>
-              Waiting for the host to start the game...
-            </Typography>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleStartGame}
-              fullWidth
-              sx={{ mb: 1 }}
-            >
-              Start Game
-            </Button>
-          </Box>
-        )}
-        <Button
-          variant="outlined"
-          color="error"
-          onClick={handleLeaveGame}
-          fullWidth
-          sx={{ mt: 2 }}
+      <>
+        <Container
+          maxWidth="xs"
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '100vh',
+            textAlign: 'center',
+            p: 3,
+          }}
         >
-          Leave Game
-        </Button>
-      </Container>
+          <Typography variant="h4" gutterBottom>
+            Welcome, {name}!
+          </Typography>
+          <Avatar
+            src={avatarUrl}
+            alt={name}
+            sx={{ width: 100, height: 100, mb: 2 }}
+          />
+          {countdown !== null ? (
+            <Box>
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                Game starting in {countdown} seconds...
+              </Typography>
+              <Button
+                variant="outlined"
+                color="secondary"
+                onClick={handleCancelStart}
+                fullWidth
+              >
+                Cancel
+              </Button>
+            </Box>
+          ) : (
+            <Box sx={{ width: '100%'}}>
+              <Typography variant="body1" sx={{ mb: 2 }}>
+                Waiting for the host to start the game...
+              </Typography>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleStartGame}
+                fullWidth
+                sx={{ mb: 1 }}
+              >
+                Start Game
+              </Button>
+              {!showMiniGame && (
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  onClick={() => setShowMiniGame(true)}
+                  fullWidth
+                  sx={{ mb: 1 }}
+                  startIcon={<SportsEsportsIcon />}
+                >
+                  Play while you wait
+                </Button>
+              )}
+            </Box>
+          )}
+          <Button
+            variant="outlined"
+            color="error"
+            onClick={handleLeaveGame}
+            fullWidth
+            sx={{ mt: 2 }}
+          >
+            Leave Game
+          </Button>
+        </Container>
+
+        <Slide direction="up" in={showMiniGame} mountOnEnter unmountOnExit>
+          <Box
+            sx={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              bgcolor: 'background.paper',
+              zIndex: 1000,
+            }}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            <IconButton
+              onClick={() => setShowMiniGame(false)}
+              sx={{
+                position: 'absolute',
+                right: 8,
+                top: 8,
+                zIndex: 1001,
+                bgcolor: 'rgba(0, 0, 0, 0.2)',
+                color: 'white',
+                '&:hover': {
+                  bgcolor: 'rgba(0, 0, 0, 0.4)',
+                },
+              }}
+            >
+              <CloseIcon />
+            </IconButton>
+            <UniqueEmoji />
+          </Box>
+        </Slide>
+      </>
     );
   }
 

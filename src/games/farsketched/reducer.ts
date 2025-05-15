@@ -26,6 +26,9 @@ const DEFAULT_CONFIG: GameConfig = {
   roomCode: ''
 };
 
+// Helper function to generate timer ID
+const generateTimerId = (round: number, imageIndex: number) => `timer-${round}-${imageIndex}`;
+
 // Initial game state
 export const initialState: GameState = {
   config: DEFAULT_CONFIG,
@@ -204,12 +207,14 @@ export function farsketchedReducer(
     case MessageType.PLAYER_JOINED:
     case MessageType.REQUEST_START_GAME: {
       const now = Date.now();
+      const timerId = generateTimerId(0, 0); // Starting round 0
       const timeoutId = setTimeout(() => {
         const timerExpiredMessage: GameMessage = {
           type: MessageType.TIMER_EXPIRED,
           stage: GameStage.PROMPTING,
           timestamp: Date.now(),
-          messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
+          messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
+          timerId
         };
         sendSelfMessage(timerExpiredMessage);
       }, state.config.promptTimerSeconds * 1000);
@@ -221,7 +226,8 @@ export function farsketchedReducer(
           startTime: now,
           duration: state.config.promptTimerSeconds,
           isRunning: true,
-          timeoutId
+          timeoutId,
+          timerId
         }
       };
     }
@@ -338,12 +344,14 @@ export function farsketchedReducer(
             // If all players have submitted and we have at least one successful image, move to fooling
             if (allPlayersSubmitted && successfulImages.length > 0) {
               const now = Date.now();
+              const timerId = generateTimerId(state.currentRound, 0);
               const timeoutId = setTimeout(() => {
                 const timerExpiredMessage: GameMessage = {
                   type: MessageType.TIMER_EXPIRED,
                   stage: GameStage.FOOLING,
                   timestamp: Date.now(),
-                  messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
+                  messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
+                  timerId
                 };
                 sendSelfMessage(timerExpiredMessage);
               }, updatedState.config.foolingTimerSeconds * 1000);
@@ -364,7 +372,8 @@ export function farsketchedReducer(
                   startTime: now,
                   duration: updatedState.config.foolingTimerSeconds,
                   isRunning: true,
-                  timeoutId
+                  timeoutId,
+                  timerId
                 }
               };
             }
@@ -405,12 +414,14 @@ export function farsketchedReducer(
 
       if (allPlayersSubmitted) {
         const now = Date.now();
+        const timerId = generateTimerId(state.currentRound, state.activeImageIndex);
         const timeoutId = setTimeout(() => {
           const timerExpiredMessage: GameMessage = {
             type: MessageType.TIMER_EXPIRED,
             stage: GameStage.GUESSING,
             timestamp: Date.now(),
-            messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
+            messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
+            timerId
           };
           sendSelfMessage(timerExpiredMessage);
         }, state.config.guessingTimerSeconds * 1000);
@@ -423,7 +434,8 @@ export function farsketchedReducer(
             startTime: now,
             duration: state.config.guessingTimerSeconds,
             isRunning: true,
-            timeoutId
+            timeoutId,
+            timerId
           }
         };
       }
@@ -504,12 +516,14 @@ export function farsketchedReducer(
         }
 
         const now = Date.now();
+        const timerId = generateTimerId(state.currentRound, state.activeImageIndex);
         const timeoutId = setTimeout(() => {
           const timerExpiredMessage: GameMessage = {
             type: MessageType.TIMER_EXPIRED,
             stage: GameStage.SCORING,
             timestamp: Date.now(),
-            messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
+            messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
+            timerId
           };
           sendSelfMessage(timerExpiredMessage);
         }, state.config.scoringDisplaySeconds * 1000);
@@ -524,7 +538,8 @@ export function farsketchedReducer(
             startTime: now,
             duration: state.config.scoringDisplaySeconds,
             isRunning: true,
-            timeoutId
+            timeoutId,
+            timerId
           }
         };
       }
@@ -536,15 +551,22 @@ export function farsketchedReducer(
     }
 
     case MessageType.TIMER_EXPIRED: {
+      // Ignore if timer ID doesn't match current timer
+      if (state.timer.timerId && message.timerId !== state.timer.timerId) {
+        return state;
+      }
+
       // Handle transition from prompting to fooling
       if (state.stage === GameStage.PROMPTING && message.stage === GameStage.PROMPTING) {
         const now = Date.now();
+        const timerId = generateTimerId(state.currentRound, state.activeImageIndex);
         const timeoutId = setTimeout(() => {
           const timerExpiredMessage: GameMessage = {
             type: MessageType.TIMER_EXPIRED,
             stage: GameStage.FOOLING,
             timestamp: Date.now(),
-            messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
+            messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
+            timerId
           };
           sendSelfMessage(timerExpiredMessage);
         }, state.config.foolingTimerSeconds * 1000);
@@ -572,7 +594,8 @@ export function farsketchedReducer(
             startTime: now,
             duration: state.config.foolingTimerSeconds,
             isRunning: true,
-            timeoutId
+            timeoutId,
+            timerId
           }
         };
       }
@@ -580,12 +603,14 @@ export function farsketchedReducer(
       // Handle transition from fooling to guessing
       if (state.stage === GameStage.FOOLING && message.stage === GameStage.FOOLING) {
         const now = Date.now();
+        const timerId = generateTimerId(state.currentRound, state.activeImageIndex);
         const timeoutId = setTimeout(() => {
           const timerExpiredMessage: GameMessage = {
             type: MessageType.TIMER_EXPIRED,
             stage: GameStage.GUESSING,
             timestamp: Date.now(),
-            messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
+            messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
+            timerId
           };
           sendSelfMessage(timerExpiredMessage);
         }, state.config.guessingTimerSeconds * 1000);
@@ -597,7 +622,8 @@ export function farsketchedReducer(
             startTime: now,
             duration: state.config.guessingTimerSeconds,
             isRunning: true,
-            timeoutId
+            timeoutId,
+            timerId
           }
         };
       }
@@ -605,12 +631,14 @@ export function farsketchedReducer(
       // Handle transition from guessing to scoring
       if (state.stage === GameStage.GUESSING && message.stage === GameStage.GUESSING) {
         const now = Date.now();
+        const timerId = generateTimerId(state.currentRound, state.activeImageIndex);
         const timeoutId = setTimeout(() => {
           const timerExpiredMessage: GameMessage = {
             type: MessageType.TIMER_EXPIRED,
             stage: GameStage.SCORING,
             timestamp: Date.now(),
-            messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
+            messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
+            timerId
           };
           sendSelfMessage(timerExpiredMessage);
         }, state.config.scoringDisplaySeconds * 1000);
@@ -666,7 +694,8 @@ export function farsketchedReducer(
             startTime: now,
             duration: state.config.scoringDisplaySeconds,
             isRunning: true,
-            timeoutId
+            timeoutId,
+            timerId
           }
         };
       }
@@ -682,12 +711,14 @@ export function farsketchedReducer(
         if (!isLastImageInRound) {
           const nextImageId = currentRoundImageIds[nextImageIndex];
           const now = Date.now();
+          const timerId = generateTimerId(state.currentRound, nextImageIndex);
           const timeoutId = setTimeout(() => {
             const timerExpiredMessage: GameMessage = {
               type: MessageType.TIMER_EXPIRED,
               stage: GameStage.FOOLING,
               timestamp: Date.now(),
-              messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
+              messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
+              timerId
             };
             sendSelfMessage(timerExpiredMessage);
           }, state.config.foolingTimerSeconds * 1000);
@@ -705,7 +736,8 @@ export function farsketchedReducer(
               startTime: now,
               duration: state.config.foolingTimerSeconds,
               isRunning: true,
-              timeoutId
+              timeoutId,
+              timerId
             }
           };
         }
@@ -713,12 +745,14 @@ export function farsketchedReducer(
         // If this is not the last round, move to prompting stage
         if (!isLastRound) {
           const now = Date.now();
+          const timerId = generateTimerId(state.currentRound + 1, 0);
           const timeoutId = setTimeout(() => {
             const timerExpiredMessage: GameMessage = {
               type: MessageType.TIMER_EXPIRED,
               stage: GameStage.PROMPTING,
               timestamp: Date.now(),
-              messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
+              messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
+              timerId
             };
             sendSelfMessage(timerExpiredMessage);
           }, state.config.promptTimerSeconds * 1000);
@@ -733,7 +767,8 @@ export function farsketchedReducer(
               startTime: now,
               duration: state.config.promptTimerSeconds,
               isRunning: true,
-              timeoutId
+              timeoutId,
+              timerId
             }
           };
         }

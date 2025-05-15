@@ -5,23 +5,39 @@ interface AudioContextValue {
   playNote: (note: string, duration?: string) => void;
   playSound: (sound: string, duration?: string) => void;
   audioEnabled: boolean;
+  volume: number;
+  setVolume: (volume: number) => void;
 }
 
 const AudioContext = createContext<AudioContextValue>({
   playNote: () => {},
   playSound: () => {},
   audioEnabled: false,
+  volume: 0,
+  setVolume: () => {},
 });
 
 export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [audioEnabled, setAudioEnabled] = useState(false);
+  const [volume, setVolumeState] = useState(0);
   const synthRef = useRef<Tone.Synth | null>(null);
+
+  // Convert linear volume (0-1) to decibels (-Infinity to 0)
+  const setVolume = (newVolume: number) => {
+    const clampedVolume = Math.max(0, Math.min(1, newVolume));
+    setVolumeState(clampedVolume);
+    // Convert to decibels, avoiding -Infinity when volume is 0
+    const dbVolume = clampedVolume === 0 ? -Infinity : Tone.gainToDb(clampedVolume);
+    Tone.Destination.volume.value = dbVolume;
+  };
 
   useEffect(() => {
     synthRef.current = new Tone.Synth().toDestination();
     const enableAudio = async () => {
       await Tone.start();
       setAudioEnabled(true);
+      // Set initial volume to 0.75
+      setVolume(0.75);
       console.log("Audio enabled");
     };
     document.addEventListener('click', enableAudio, { once: true });
@@ -103,7 +119,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   return (
-    <AudioContext.Provider value={{ playNote, playSound, audioEnabled }}>
+    <AudioContext.Provider value={{ playNote, playSound, audioEnabled, volume, setVolume }}>
       {children}
     </AudioContext.Provider>
   );

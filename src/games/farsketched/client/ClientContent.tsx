@@ -1,6 +1,6 @@
 import { GameStage, GameState } from '../types';
 import { useClientGameState } from '@/contexts/GameState';
-import { PlayerSetup } from '../PlayerSetup';
+import { PlayerSetup } from './PlayerSetup';
 import { PromptingStage } from './PromptingStage';
 import { FoolingStage } from './FoolingStage';
 import { GuessingStage } from './GuessingStage';
