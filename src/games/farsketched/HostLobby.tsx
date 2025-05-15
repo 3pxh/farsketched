@@ -25,7 +25,9 @@ export const HostLobby = ({ gameConfig, players }: HostLobbyProps) => {
 
   useEffect(() => {
     if (peerId) {
-      const url = new URL('http://localhost:8000/clientindex.html');
+      // const baseUrl = 'https://farsketched.netlify.app';
+      const baseUrl = 'http://localhost:8000'; 
+      const url = new URL('clientindex.html', baseUrl);
       url.searchParams.set('roomCode', peerId);
       setJoinUrl(url.toString());
     }
