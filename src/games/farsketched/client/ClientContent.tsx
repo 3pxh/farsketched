@@ -6,6 +6,7 @@ import { FoolingStage } from './FoolingStage';
 import { GuessingStage } from './GuessingStage';
 import { Timer } from '../components/Timer';
 import { GameOverStage } from './GameOverStage';
+import { ScoringStage } from './ScoringStage';
 
 export function ClientContent() {
   const gameStateContext = useClientGameState<GameState>();
@@ -22,7 +23,7 @@ export function ClientContent() {
       case GameStage.GUESSING:
         return <GuessingStage />;
       case GameStage.SCORING:
-        return <p>Scoring Stage</p>;
+        return <ScoringStage />;
       case GameStage.GAME_OVER:
         return <GameOverStage />;
       default:
@@ -32,7 +33,6 @@ export function ClientContent() {
 
   return (
     <div className="game-container">
-      <h1>Farsketched</h1>
       {renderStage()}
       {gameState.timer.isRunning && (
         <div className="timer-wrapper">

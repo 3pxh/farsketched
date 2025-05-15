@@ -3,10 +3,10 @@ import "./HostApp.css";
 import { initializeDatabase } from './database';
 import { PeerProvider } from '@/contexts/PeerContext';
 import { GameConfig } from '@/games/farsketched/types';
-import Host from '@/games/farsketched/Host';
+import Host from '@/games/farsketched/host/Host';
 import { Settings } from './components/Settings';
 import { ThemeProvider, createTheme, responsiveFontSizes } from '@mui/material/styles';
-import { IconButton, CssBaseline, useMediaQuery, Box } from '@mui/material';
+import { IconButton, CssBaseline, Box } from '@mui/material';
 import SettingsIcon from '@mui/icons-material/Settings';
 import '@fontsource/space-grotesk/300.css';
 import '@fontsource/space-grotesk/400.css';
@@ -26,74 +26,75 @@ const defaultGameConfig: GameConfig = {
   roomCode: ''
 };
 
+export const createHostTheme = () => {
+  const baseTheme = createTheme({
+    palette: {
+      mode: 'light',
+      primary: {
+        main: '#90caf9',
+      },
+      secondary: {
+        main: '#f48fb1',
+      },
+    },
+    typography: {
+      fontFamily: '"Space Grotesk", "Helvetica", "Arial", sans-serif',
+      fontSize: 16,
+      htmlFontSize: 16,
+      button: {
+        fontSize: '1rem', // 24px
+        fontWeight: 600,
+        letterSpacing: '0.02em',
+      },
+    },
+    components: {
+      MuiButton: {
+        styleOverrides: {
+          root: {
+            borderRadius: 8,
+            textTransform: 'none',
+            fontWeight: 600,
+            padding: '12px 24px',
+          },
+        },
+      },
+      MuiTextField: {
+        styleOverrides: {
+          root: {
+            '& .MuiOutlinedInput-root': {
+              borderRadius: 8,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  return responsiveFontSizes(baseTheme, {
+    breakpoints: ['xs', 'sm', 'md', 'lg', 'xl'],
+    factor: 2,
+    variants: [
+      'h1',
+      'h2',
+      'h3',
+      'h4',
+      'h5',
+      'h6',
+      'subtitle1',
+      'subtitle2',
+      'body1',
+      'body2',
+      'button',
+    ],
+  });
+};
+
 function HostApp() {
-  const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
   const [dbInitialized, setDbInitialized] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [gameConfig, setGameConfig] = useState<GameConfig>(defaultGameConfig);
 
-  const theme = useMemo(() => {
-    const baseTheme = createTheme({
-      palette: {
-        mode: prefersDarkMode ? 'dark' : 'light',
-        primary: {
-          main: '#90caf9',
-        },
-        secondary: {
-          main: '#f48fb1',
-        },
-      },
-      typography: {
-        fontFamily: '"Space Grotesk", "Helvetica", "Arial", sans-serif',
-        fontSize: 16,
-        htmlFontSize: 16,
-        button: {
-          fontSize: '1rem', // 24px
-          fontWeight: 600,
-          letterSpacing: '0.02em',
-        },
-      },
-      components: {
-        MuiButton: {
-          styleOverrides: {
-            root: {
-              borderRadius: 8,
-              textTransform: 'none',
-              fontWeight: 600,
-              padding: '12px 24px',
-            },
-          },
-        },
-        MuiTextField: {
-          styleOverrides: {
-            root: {
-              '& .MuiOutlinedInput-root': {
-                borderRadius: 8,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    return responsiveFontSizes(baseTheme, {
-      breakpoints: ['xs', 'sm', 'md', 'lg', 'xl'],
-      factor: 2,
-      variants: [
-        'h1',
-        'h2',
-        'h3',
-        'h4',
-        'h5',
-        'h6',
-        'subtitle1',
-        'subtitle2',
-        'body1',
-        'body2',
-        'button',
-      ],
-    });
-  }, [prefersDarkMode]);
+  const theme = useMemo(() => createHostTheme(), []);
 
   useEffect(() => {
     // Initialize database

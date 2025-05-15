@@ -34,11 +34,10 @@ export function GameOverStage({ gameState }: GameOverStageProps) {
     .sort((a, b) => a.points - b.points);
 
   return (
-    <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="100vh" px={2}>
+    <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="100%" px={2} pt={2}>
       <Paper elevation={3} sx={{ p: { xs: 3, md: 6 }, width: '100%', maxWidth: { xs: 600, md: 900 }, textAlign: 'center', bgcolor: 'rgba(255,255,255,0.8)' }}>
-        <Typography variant="h4" fontWeight={700} gutterBottom sx={{ fontSize: { xs: '2rem', md: '3rem' } }}>Game Over</Typography>
         {/* Achievements Section */}
-        <Box mt={{ xs: 3, md: 6 }} mb={{ xs: 4, md: 6 }}>
+        <Box mt={{ xs: 1, md: 0 }} mb={{ xs: 4, md: 6 }}>
           <Typography variant="h5" fontWeight={600} gutterBottom sx={{ fontSize: { xs: '1.3rem', md: '2rem' } }}>Achievements</Typography>
           <Box display="grid" gridTemplateColumns={{ xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr 1fr' }} gap={{ xs: 2, md: 3 }}>
             {gameState.achievements.map((achievement) => (
