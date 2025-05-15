@@ -40,6 +40,7 @@ export const HostLobby = ({ gameConfig, players }: HostLobbyProps) => {
 
   return (
     <Box sx={{ p: 3, height: '100%', maxWidth: '100vw', overflowX: 'auto' }}>
+      <h1>Farsketched</h1>
       <Box sx={{ 
         display: 'grid', 
         gridTemplateColumns: { xs: '1fr', md: '2fr 1fr' },

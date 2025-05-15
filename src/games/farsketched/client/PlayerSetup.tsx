@@ -7,25 +7,43 @@ import {
   TextField,
   Typography,
   Container,
-  Avatar,
   IconButton,
   Slide,
+  Paper,
 } from '@mui/material';
-import AutorenewIcon from '@mui/icons-material/Autorenew';
 import CloseIcon from '@mui/icons-material/Close';
 import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
 import { UniqueEmoji } from '@/games/lobby/UniqueEmoji';
 
+// RoboHash sets - each provides a different style of avatar
+const AVATAR_SETS = [
+  'set1', // Robots
+  'set2', // Monsters
+  'set3', // Robot Heads
+  'set4', // Cats
+] as const;
+
+type AvatarSet = typeof AVATAR_SETS[number];
+
 export const PlayerSetup = () => {
   const { peerId, sendMessage } = usePeer<GameMessage>();
   const [name, setName] = useState('');
-  const [avatarUrl, setAvatarUrl] = useState(
-    'https://api.dicebear.com/7.x/avataaars/svg?seed=default'
-  );
+  const [avatarSet, setAvatarSet] = useState<AvatarSet>('set1');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [showMiniGame, setShowMiniGame] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
+
+  // Helper function to generate avatar URL
+  const getAvatarUrl = (seed: string, set: AvatarSet) => {
+    return `https://robohash.org/${encodeURIComponent(seed)}.png?set=${set}&size=200x200&bgset=bg1`;
+  };
+
+  // Generate preview URL using current name or a default seed
+  const getPreviewUrl = (set: AvatarSet) => {
+    const seed = name.trim() || 'preview';
+    return getAvatarUrl(seed, set);
+  };
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -56,7 +74,7 @@ export const PlayerSetup = () => {
       type: MessageType.SET_PLAYER_INFO,
       playerId: peerId,
       name: name.trim(),
-      avatarUrl,
+      avatarUrl: getAvatarUrl(name, avatarSet),
       timestamp: Date.now(),
       messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
     };
@@ -88,14 +106,6 @@ export const PlayerSetup = () => {
       messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
     };
     sendMessage(message);
-    // Consider redirecting or updating UI state after leaving
-  };
-
-  const generateRandomAvatar = () => {
-    const randomSeed = Math.random().toString(36).substring(7);
-    setAvatarUrl(
-      `https://api.dicebear.com/7.x/avataaars/svg?seed=${randomSeed}`
-    );
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -108,7 +118,6 @@ export const PlayerSetup = () => {
     const currentTouch = e.touches[0].clientY;
     const diff = currentTouch - touchStart;
     
-    // If swiped down more than 100px, close the mini game
     if (diff > 100) {
       setShowMiniGame(false);
       setTouchStart(null);
@@ -121,7 +130,14 @@ export const PlayerSetup = () => {
 
   if (isSubmitted) {
     return (
-      <>
+      <Box
+        sx={{
+          minHeight: '100vh',
+          width: '100%',
+          background: 'linear-gradient(135deg, #f8cdda 0%, #a1c4fd 100%)',
+          backgroundAttachment: 'fixed',
+        }}
+      >
         <Container
           maxWidth="xs"
           sx={{
@@ -129,173 +145,268 @@ export const PlayerSetup = () => {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            height: '100vh',
+            minHeight: '100vh',
             textAlign: 'center',
             p: 3,
           }}
         >
-          <Typography variant="h4" gutterBottom>
-            Welcome, {name}!
-          </Typography>
-          <Avatar
-            src={avatarUrl}
-            alt={name}
-            sx={{ width: 100, height: 100, mb: 2 }}
-          />
-          {countdown !== null ? (
-            <Box>
-              <Typography variant="h6" sx={{ mb: 2 }}>
-                Game starting in {countdown} seconds...
-              </Typography>
-              <Button
-                variant="outlined"
-                color="secondary"
-                onClick={handleCancelStart}
-                fullWidth
-              >
-                Cancel
-              </Button>
+          <Paper elevation={3} sx={{ p: 4, width: '100%', bgcolor: 'rgba(255,255,255,0.8)', borderRadius: 2 }}>
+            <Typography variant="h4" gutterBottom>
+              Welcome, {name}!
+            </Typography>
+            {/* Single fixed avatar */}
+            <Box sx={{
+              width: 120,
+              height: 120,
+              borderRadius: '50%',
+              overflow: 'hidden',
+              bgcolor: 'background.paper',
+              border: 1,
+              borderColor: 'divider',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              mx: 'auto',
+              mb: 3
+            }}>
+              <Box 
+                component="img"
+                src={getAvatarUrl(name, avatarSet)}
+                alt={name}
+                sx={{ 
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover'
+                }}
+              />
             </Box>
-          ) : (
-            <Box sx={{ width: '100%'}}>
-              <Typography variant="body1" sx={{ mb: 2 }}>
-                Waiting for the host to start the game...
-              </Typography>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleStartGame}
-                fullWidth
-                sx={{ mb: 1 }}
-              >
-                Start Game
-              </Button>
-              {!showMiniGame && (
+            {countdown !== null ? (
+              <Box>
+                <Typography variant="h6" sx={{ mb: 2 }}>
+                  Game starting in {countdown} seconds...
+                </Typography>
                 <Button
                   variant="outlined"
                   color="secondary"
-                  onClick={() => setShowMiniGame(true)}
+                  onClick={handleCancelStart}
+                  fullWidth
+                >
+                  Cancel
+                </Button>
+              </Box>
+            ) : (
+              <Box sx={{ width: '100%'}}>
+                <Typography variant="body1" sx={{ mb: 2 }}>
+                  Waiting for the host to start the game...
+                </Typography>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleStartGame}
                   fullWidth
                   sx={{ mb: 1 }}
-                  startIcon={<SportsEsportsIcon />}
                 >
-                  Play while you wait
+                  Start Game
                 </Button>
-              )}
-            </Box>
-          )}
-          <Button
-            variant="outlined"
-            color="error"
-            onClick={handleLeaveGame}
-            fullWidth
-            sx={{ mt: 2 }}
-          >
-            Leave Game
-          </Button>
+                {!showMiniGame && (
+                  <Button
+                    variant="outlined"
+                    color="secondary"
+                    onClick={() => setShowMiniGame(true)}
+                    fullWidth
+                    sx={{ mb: 1 }}
+                    startIcon={<SportsEsportsIcon />}
+                  >
+                    Play while you wait
+                  </Button>
+                )}
+              </Box>
+            )}
+            <Button
+              variant="outlined"
+              color="error"
+              onClick={handleLeaveGame}
+              fullWidth
+              sx={{ mt: 2 }}
+            >
+              Leave Game
+            </Button>
+          </Paper>
         </Container>
 
         <Slide direction="up" in={showMiniGame} mountOnEnter unmountOnExit>
           <Box
             sx={{
               position: 'fixed',
-              top: 0,
+              bottom: 0,
               left: 0,
               right: 0,
-              bottom: 0,
+              height: '80vh',
               bgcolor: 'background.paper',
-              zIndex: 1000,
+              borderTopLeftRadius: '16px',
+              borderTopRightRadius: '16px',
+              boxShadow: 3,
+              p: 2,
+              display: 'flex',
+              flexDirection: 'column',
             }}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
           >
-            <IconButton
-              onClick={() => setShowMiniGame(false)}
-              sx={{
-                position: 'absolute',
-                right: 8,
-                top: 8,
-                zIndex: 1001,
-                bgcolor: 'rgba(0, 0, 0, 0.2)',
-                color: 'white',
-                '&:hover': {
-                  bgcolor: 'rgba(0, 0, 0, 0.4)',
-                },
-              }}
-            >
-              <CloseIcon />
-            </IconButton>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
+              <IconButton onClick={() => setShowMiniGame(false)} size="small">
+                <CloseIcon />
+              </IconButton>
+            </Box>
             <UniqueEmoji />
           </Box>
         </Slide>
-      </>
+      </Box>
     );
   }
 
   return (
-    <Container
-      maxWidth="xs"
+    <Box
       sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '100vh',
-        p: 3,
+        minHeight: '100vh',
+        width: '100%',
+        background: 'linear-gradient(135deg, #f8cdda 0%, #a1c4fd 100%)',
+        backgroundAttachment: 'fixed',
       }}
     >
-      <Typography variant="h4" component="h1" gutterBottom>
-        Join the Game
-      </Typography>
-      <Box
-        component="form"
-        onSubmit={handleSubmit}
-        sx={{ width: '100%', mt: 1 }}
+      <Container
+        maxWidth="xs"
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '100vh',
+          textAlign: 'center',
+          p: 3,
+        }}
       >
-        <TextField
-          margin="normal"
-          required
-          fullWidth
-          id="name"
-          label="Your Name"
-          name="name"
-          autoComplete="off"
-          autoFocus
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          inputProps={{ maxLength: 20 }}
-        />
-
-        <Box sx={{ my: 2, textAlign: 'center' }}>
-          <Typography variant="subtitle1" gutterBottom>
-            Your Avatar
-          </Typography>
-          <Avatar
-            src={avatarUrl}
-            alt="Your avatar"
-            sx={{ width: 100, height: 100, margin: 'auto', mb: 1 }}
-          />
-          <Button
-            type="button"
-            variant="outlined"
-            onClick={generateRandomAvatar}
-            startIcon={<AutorenewIcon />}
-          >
-            Randomize Avatar
-          </Button>
-        </Box>
-
-        <Button
-          type="submit"
-          fullWidth
-          variant="contained"
-          disabled={!name.trim()}
-          sx={{ mt: 3, mb: 2 }}
+        <Paper 
+          elevation={3} 
+          sx={{ 
+            p: 4, 
+            width: '100%', 
+            bgcolor: 'rgba(255,255,255,0.8)',
+            borderRadius: 2
+          }}
         >
-          Join Game
-        </Button>
-      </Box>
-    </Container>
+          <Typography variant="h4" gutterBottom>
+            Join Game
+          </Typography>
+          <Box
+            component="form"
+            onSubmit={handleSubmit}
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 2,
+              width: '100%',
+              mt: 2,
+            }}
+          >
+            <Box sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 2,
+              mb: 2
+            }}>
+              {/* Main selected avatar */}
+              <Box sx={{
+                width: 120,
+                height: 120,
+                borderRadius: '50%',
+                overflow: 'hidden',
+                bgcolor: 'background.paper',
+                border: 1,
+                borderColor: 'divider',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+                <Box
+                  component="img"
+                  src={getAvatarUrl(name || 'default', avatarSet)}
+                  alt="Avatar"
+                  sx={{ 
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover'
+                  }}
+                />
+              </Box>
+
+              {/* Avatar selection row */}
+              <Box sx={{ 
+                display: 'flex', 
+                gap: 2, 
+                justifyContent: 'center'
+              }}>
+                {AVATAR_SETS.map((set) => (
+                  <Box
+                    key={set}
+                    onClick={() => setAvatarSet(set)}
+                    sx={{
+                      width: 60,
+                      height: 60,
+                      borderRadius: '50%',
+                      overflow: 'hidden',
+                      bgcolor: 'background.paper',
+                      border: 2,
+                      borderColor: avatarSet === set ? 'primary.main' : 'divider',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      transition: 'transform 0.2s, border-color 0.2s',
+                      '&:hover': {
+                        transform: 'scale(1.1)',
+                      },
+                    }}
+                  >
+                    <Box
+                      component="img"
+                      src={getPreviewUrl(set)}
+                      alt={`Avatar style ${set}`}
+                      sx={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                      }}
+                    />
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+
+            <TextField
+              fullWidth
+              label="Your Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              variant="outlined"
+              autoFocus
+              sx={{ bgcolor: 'rgba(255,255,255,0.6)' }}
+            />
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              fullWidth
+              disabled={!name.trim()}
+              sx={{ mt: 2 }}
+            >
+              Join
+            </Button>
+          </Box>
+        </Paper>
+      </Container>
+    </Box>
   );
 }; 

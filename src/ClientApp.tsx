@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { PeerProvider } from '@/contexts/PeerContext';
 import { usePeer } from '@/contexts/PeerContext';
-import { Client } from '@/games/farsketched/Client';
+import { Client } from '@/games/farsketched/client/Client';
 import { AudioProvider } from './contexts/AudioProvider';
 import { ThemeProvider, createTheme, responsiveFontSizes } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 
-const clientTheme = responsiveFontSizes(createTheme({
+export const clientTheme = responsiveFontSizes(createTheme({
   typography: {
     fontFamily: '"Space Grotesk", Arial, sans-serif',
     fontSize: 16,
