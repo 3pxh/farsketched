@@ -5,6 +5,7 @@ import { PromptingStage } from './PromptingStage';
 import { FoolingStage } from './FoolingStage';
 import { GuessingStage } from './GuessingStage';
 import { Timer } from '../components/Timer';
+import { GameOverStage } from './GameOverStage';
 
 export function ClientContent() {
   const gameStateContext = useClientGameState<GameState>();
@@ -23,7 +24,7 @@ export function ClientContent() {
       case GameStage.SCORING:
         return <p>Scoring Stage</p>;
       case GameStage.GAME_OVER:
-        return <p>Game Over Stage</p>;
+        return <GameOverStage />;
       default:
         return <p>Unknown Stage</p>;
     }
