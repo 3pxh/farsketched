@@ -125,6 +125,7 @@ export interface Player {
       duration: number;   // Duration in seconds
       isRunning: boolean;
       timeoutId?: NodeJS.Timeout; // ID of the current timer timeout
+      timerId?: string; // ID to match with timer expired messages
     };
     achievements: Achievement[]; // Only populated at game end
   }
@@ -325,6 +326,7 @@ export interface Player {
   export interface TimerExpiredMessage extends BaseMessage {
     type: MessageType.TIMER_EXPIRED;
     stage: GameStage;     // Which game stage the timer was for
+    timerId: string;      // ID to match with current timer
   }
   
   // ==================== Error Messages ====================

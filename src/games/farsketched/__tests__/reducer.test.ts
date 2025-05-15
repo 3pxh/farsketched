@@ -121,7 +121,8 @@ describe('farsketchedReducer', () => {
         startTime: expect.any(Number),
         duration: initialState.config.promptTimerSeconds,
         isRunning: true,
-        timeoutId: expect.any(Object)
+        timeoutId: expect.any(Object),
+        timerId: 'timer-0-0'
       }
     });
   });
@@ -390,7 +391,8 @@ describe('farsketchedReducer', () => {
 
           // Send timer expired to move to next image or round
           const timerExpiredMessage = createMessage<GameMessage>(MessageType.TIMER_EXPIRED, {
-            stage: GameStage.SCORING
+            stage: GameStage.SCORING,
+            timerId: `timer-${round}-${imageIndex}`
           });
           state = farsketchedReducer(state, timerExpiredMessage, sendSelfMessage);
 

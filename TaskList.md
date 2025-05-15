@@ -2,15 +2,12 @@
 
 ## On Deck
 - [ ] Add Narrator
-- [ ] Lobby game for client?
 
 ## Nits
-- [ ] does guessing stage progress via timer without clicks?
 - [ ] if no images created, what happens when time runs out? (pause screen or game over?)
 
 ## Developer Experience
 - [ ] Run the client via vite. When gh tried peerjs wouldn't connect, unlike the python server. It would be nice for hot module reloading.
-- [ ] Having a single-component workflow where we mock data would be nice. Storybook seems heavyweight, but maybe something similar. Might take care of most of the use above too. 
 
 ## Logging / Feedback
 - [ ] Add some logging which we can use to diagnose crashes? Having a host send us a stack trace as well as the set of all messages ever processed would be convenient. Also the ability to report in-game that something is wrong (and sends us a list of all the messages received).
