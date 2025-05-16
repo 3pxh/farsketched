@@ -4,6 +4,8 @@ import { PeerProvider } from '@/contexts/PeerContext';
 import { GameConfig } from '@/games/farsketched/types';
 import Host from '@/games/farsketched/host/Host';
 import { Settings } from './components/Settings';
+import { GameSelection } from './components/GameSelection';
+import { Game } from '@/types/games';
 import { ThemeProvider, createTheme, responsiveFontSizes } from '@mui/material/styles';
 import { IconButton, CssBaseline, Box } from '@mui/material';
 import SettingsIcon from '@mui/icons-material/Settings';
@@ -92,6 +94,7 @@ function HostApp() {
   const [dbInitialized, setDbInitialized] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [gameConfig, setGameConfig] = useState<GameConfig>(defaultGameConfig);
+  const [selectedGame, setSelectedGame] = useState<Game | null>(null);
 
   const theme = useMemo(() => createHostTheme(), []);
 
@@ -111,6 +114,15 @@ function HostApp() {
   const handleSaveSettings = (newConfig: GameConfig) => {
     setGameConfig(newConfig);
     // Here you might want to save the config to localStorage or your database
+  };
+
+  const renderGameComponent = (game: Game) => {
+    switch (game) {
+      case Game.FARSKETCHED:
+        return <Host gameConfig={gameConfig} />;
+      default:
+        return "That game doesn't exist yet.";
+    }
   };
 
   if (!dbInitialized) {
@@ -146,8 +158,11 @@ function HostApp() {
           >
             <SettingsIcon />
           </IconButton>
-          {/* TODO: Game choosing screen which pushes to state. */}
-          <Host gameConfig={gameConfig} />
+          {!selectedGame ? (
+            <GameSelection onGameSelect={setSelectedGame} />
+          ) : (
+            renderGameComponent(selectedGame)
+          )}
           {showSettings && (
             <Settings
               gameConfig={gameConfig}
