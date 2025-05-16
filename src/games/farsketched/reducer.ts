@@ -8,7 +8,7 @@ import {
   AchievementType,
   ActiveImage,
   GeneratedImage
-} from '@/games/farsketched/types';
+} from './types';
 import { generateImages } from '@/apis/imageGeneration';
 import { settingsManager } from '@/settings';
 
@@ -23,7 +23,7 @@ const DEFAULT_CONFIG: GameConfig = {
   scoringDisplaySeconds: 10,
   apiProvider: 'stability',
   apiKey: '',
-  roomCode: ''
+  room: ''
 };
 
 // Helper function to generate timer ID

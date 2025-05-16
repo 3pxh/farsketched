@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { PeerProvider } from '@/contexts/PeerContext';
 import { usePeer } from '@/contexts/PeerContext';
-import { Client } from '@/games/farsketched/client/Client';
+import { Client as FarsketchedClient } from '@/games/farsketched/client/Client';
 import { AudioProvider } from './contexts/AudioProvider';
 import { ThemeProvider, createTheme, responsiveFontSizes } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -46,13 +46,13 @@ function ClientContent() {
   const [hasAttemptedConnection, setHasAttemptedConnection] = useState(false);
 
   useEffect(() => {
-    // Get roomCode from URL
+    // Get room from URL
     const urlParams = new URLSearchParams(window.location.search);
-    const roomCode = urlParams.get('roomCode');
+    const room = urlParams.get('room');
     
-    if (roomCode && peerId && !isConnected && !hasAttemptedConnection) {
-      console.log('Setting host peer ID to:', roomCode);
-      setHostPeerId(roomCode);
+    if (room && peerId && !isConnected && !hasAttemptedConnection) {
+      console.log('Setting host peer ID to:', room);
+      setHostPeerId(room);
       setHasAttemptedConnection(true);
     }
   }, [setHostPeerId, isConnected, hasAttemptedConnection, peerId]);
@@ -68,7 +68,8 @@ function ClientContent() {
   return (
     <main className="container">
       {isConnected ? (
-        <Client />
+        // TODO: Choose the game based on URL params
+        <FarsketchedClient />
       ) : (
         <div className="connection-status">Connecting to host...</div>
       )}

@@ -1,10 +1,10 @@
-import { HostContent } from '@/games/farsketched/host/Host';
-import { GameState, GameStage, Player, FakePrompt, Guess, AchievementType } from '@/games/farsketched/types';
 import { PeerProvider } from '@/contexts/PeerContext';
 import { HostGameStateProvider } from '@/contexts/GameState';
-import { initialState } from '@/games/farsketched/reducer';
 import { ThemeProvider } from '@mui/material';
 import { createHostTheme } from '@/HostApp';
+import { HostContent } from '../host/Host';
+import { GameState, GameStage, Player, FakePrompt, Guess, AchievementType } from '../types';
+import { initialState } from '../reducer';
 
 function base64ToBlob(base64: string, mime = 'image/png') {
   const byteChars = atob(base64);
@@ -66,7 +66,7 @@ const gameConfig = {
   scoringDisplaySeconds: 10,
   apiProvider: 'stability',
   apiKey: 'test-key',
-  roomCode: 'TEST123'
+  room: 'TEST123'
 };
 
 const mockImage = {
@@ -102,7 +102,7 @@ export default {
       <FixtureWrapper>
         <PeerProvider isHost={true}>
           <HostGameStateProvider<GameState> initialState={emptyState} debug={true}>
-            <HostContent gameConfig={{...gameConfig, roomCode: 'EMPTY'}} />
+            <HostContent gameConfig={{...gameConfig, room: 'EMPTY'}} />
           </HostGameStateProvider>
         </PeerProvider>
       </FixtureWrapper>

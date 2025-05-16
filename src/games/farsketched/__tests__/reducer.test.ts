@@ -22,7 +22,7 @@ import {
   ActiveImage,
   AchievementType,
   GameState
-} from '@/games/farsketched/types';
+} from '../types';
 
 // Mock the image generation API
 jest.mock('@/apis/imageGeneration', () => ({
@@ -87,7 +87,7 @@ describe('farsketchedReducer', () => {
 
   it('should handle connection messages without state changes', () => {
     const connectionMessages = [
-      createMessage<ConnectionRequestMessage>(MessageType.CONNECTION_REQUEST, { playerId: 'test', roomCode: 'test' }),
+      createMessage<ConnectionRequestMessage>(MessageType.CONNECTION_REQUEST, { playerId: 'test', room: 'test' }),
       createMessage<ConnectionAcceptedMessage>(MessageType.CONNECTION_ACCEPTED, { gameState: initialState, yourPlayerId: 'test' }),
       createMessage<ConnectionRejectedMessage>(MessageType.CONNECTION_REJECTED, { reason: 'test' }),
       createMessage<PingMessage>(MessageType.PING, {}),

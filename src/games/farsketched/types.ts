@@ -76,7 +76,7 @@ export interface Player {
     scoringDisplaySeconds: number;  // Time to display scoring (default: 10)
     apiProvider: string;            // Image generation API provider
     apiKey: string;                 // API key for the provider
-    roomCode: string;               // Unique code for this game room
+    room: string;               // Unique code for this game room
   }
   
   /**
@@ -183,7 +183,7 @@ export interface Player {
   export interface ConnectionRequestMessage extends BaseMessage {
     type: MessageType.CONNECTION_REQUEST;
     playerId: string;     // UUID stored in local storage
-    roomCode: string;     // Room code from URL parameter
+    room: string;     // Room code from URL parameter
   }
   
   /**

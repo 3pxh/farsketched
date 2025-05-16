@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { usePeer } from '@/contexts/PeerContext';
-import { MessageType, GameMessage } from '@/games/farsketched/types';
+import { MessageType, GameMessage } from '../types';
 import {
   Box,
   Button,
