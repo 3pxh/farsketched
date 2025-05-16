@@ -13,6 +13,11 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
 import { UniqueEmoji } from '@/games/lobby/UniqueEmoji';
 
 // RoboHash sets - each provides a different style of avatar
@@ -33,6 +38,7 @@ export const PlayerSetup = () => {
   const [countdown, setCountdown] = useState<number | null>(null);
   const [showMiniGame, setShowMiniGame] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [scoringOpen, setScoringOpen] = useState(false);
 
   // Helper function to generate avatar URL
   const getAvatarUrl = (seed: string, set: AvatarSet) => {
@@ -220,6 +226,16 @@ export const PlayerSetup = () => {
                     Play while you wait
                   </Button>
                 )}
+                <Button
+                  variant="outlined"
+                  color="info"
+                  onClick={() => setScoringOpen(true)}
+                  fullWidth
+                  startIcon={<InfoOutlinedIcon />}
+                  sx={{ mb: 1 }}
+                >
+                  Scoring Rules
+                </Button>
               </Box>
             )}
             <Button
@@ -231,6 +247,28 @@ export const PlayerSetup = () => {
             >
               Leave Game
             </Button>
+            {/* Scoring Rules Modal */}
+            <Dialog open={scoringOpen} onClose={() => setScoringOpen(false)}>
+              <DialogTitle>Scoring Rules</DialogTitle>
+              <DialogContent>
+                <Typography variant="body1" gutterBottom>
+                  <b>How do you earn points?</b>
+                </Typography>
+                <ul style={{ marginLeft: 16, marginBottom: 0 }}>
+                  <li><b>+5 points</b> for each correct guess on your real prompt (as image creator)</li>
+                  <li><b>+3 points</b> for each player who guesses your fake prompt</li>
+                  <li><b>+5 points</b> if you guess the real prompt correctly</li>
+                </ul>
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                  Try to fool others with your fake prompts, but also spot the real one to maximize your score!
+                </Typography>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={() => setScoringOpen(false)} color="primary" autoFocus>
+                  Close
+                </Button>
+              </DialogActions>
+            </Dialog>
           </Paper>
         </Container>
 
