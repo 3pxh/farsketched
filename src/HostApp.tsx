@@ -3,6 +3,7 @@ import { initializeDatabase } from './apis/database';
 import { PeerProvider } from '@/contexts/PeerContext';
 import { GameConfig } from '@/games/farsketched/types';
 import Host from '@/games/farsketched/host/Host';
+import FlibbertigibbetHost from '@/games/flibbertigibbet/host/Host';
 import { Settings } from './components/Settings';
 import { GameSelection } from './components/GameSelection';
 import { Game } from '@/types/games';
@@ -120,6 +121,8 @@ function HostApp() {
     switch (game) {
       case Game.FARSKETCHED:
         return <Host gameConfig={gameConfig} />;
+      case Game.FLIBBERTIGIBBET:
+        return <FlibbertigibbetHost gameConfig={gameConfig} />;
       default:
         return "That game doesn't exist yet.";
     }

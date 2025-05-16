@@ -105,7 +105,7 @@ export function HostContent({ gameConfig }: HostProps) {
   );
 }
 
-export default function Host({ gameConfig }: HostProps) {
+export default function FlibbertigibbetHost({ gameConfig }: HostProps) {
   const theme = useMemo(() => createHostTheme(), []);
   
   return (
