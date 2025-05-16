@@ -57,7 +57,7 @@ const gameConfig = {
   scoringDisplaySeconds: 10,
   apiProvider: 'stability',
   apiKey: 'test-key',
-  roomCode: 'TEST123'
+  room: 'TEST123'
 };
 
 const mockImage = {

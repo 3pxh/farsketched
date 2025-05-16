@@ -66,7 +66,7 @@ const gameConfig = {
   scoringDisplaySeconds: 10,
   apiProvider: 'stability',
   apiKey: 'test-key',
-  roomCode: 'TEST123'
+  room: 'TEST123'
 };
 
 const mockImage = {
@@ -102,7 +102,7 @@ export default {
       <FixtureWrapper>
         <PeerProvider isHost={true}>
           <HostGameStateProvider<GameState> initialState={emptyState} debug={true}>
-            <HostContent gameConfig={{...gameConfig, roomCode: 'EMPTY'}} />
+            <HostContent gameConfig={{...gameConfig, room: 'EMPTY'}} />
           </HostGameStateProvider>
         </PeerProvider>
       </FixtureWrapper>

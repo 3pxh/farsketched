@@ -23,7 +23,7 @@ const DEFAULT_CONFIG: GameConfig = {
   scoringDisplaySeconds: 10,
   apiProvider: 'stability',
   apiKey: '',
-  roomCode: ''
+  room: ''
 };
 
 // Helper function to generate timer ID

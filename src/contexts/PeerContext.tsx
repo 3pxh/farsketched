@@ -48,7 +48,7 @@ export const PeerProvider = <T,>({ children, isHost, peerId: providedPeerId }: P
   useEffect(() => {
     console.log(`Initializing peer...${providedPeerId ? ` with ID: ${providedPeerId}` : ''}`);
     const urlParams = new URLSearchParams(window.location.search);
-    const roomId = urlParams.get('roomCode');
+    const roomId = urlParams.get('room');
     const storedPeerId = localStorage.getItem(`peer_${roomId}`);
     console.log(`Stored peer ID for room ${roomId}: ${storedPeerId}`);
     const newPeer = providedPeerId ? new Peer(providedPeerId) : (storedPeerId && !isHost) ? new Peer(storedPeerId) : new Peer();

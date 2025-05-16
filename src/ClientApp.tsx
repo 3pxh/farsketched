@@ -46,13 +46,13 @@ function ClientContent() {
   const [hasAttemptedConnection, setHasAttemptedConnection] = useState(false);
 
   useEffect(() => {
-    // Get roomCode from URL
+    // Get room from URL
     const urlParams = new URLSearchParams(window.location.search);
-    const roomCode = urlParams.get('roomCode');
+    const room = urlParams.get('room');
     
-    if (roomCode && peerId && !isConnected && !hasAttemptedConnection) {
-      console.log('Setting host peer ID to:', roomCode);
-      setHostPeerId(roomCode);
+    if (room && peerId && !isConnected && !hasAttemptedConnection) {
+      console.log('Setting host peer ID to:', room);
+      setHostPeerId(room);
       setHasAttemptedConnection(true);
     }
   }, [setHostPeerId, isConnected, hasAttemptedConnection, peerId]);
@@ -68,6 +68,7 @@ function ClientContent() {
   return (
     <main className="container">
       {isConnected ? (
+        // TODO: Choose the game based on URL params
         <Client />
       ) : (
         <div className="connection-status">Connecting to host...</div>

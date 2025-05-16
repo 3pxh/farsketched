@@ -22,7 +22,7 @@ const defaultGameConfig: GameConfig = {
   scoringDisplaySeconds: 10,
   apiProvider: 'openai',
   apiKey: '',
-  roomCode: ''
+  room: ''
 };
 
 export const createHostTheme = () => {
@@ -146,6 +146,7 @@ function HostApp() {
           >
             <SettingsIcon />
           </IconButton>
+          {/* TODO: Game choosing screen which pushes to state. */}
           <Host gameConfig={gameConfig} />
           {showSettings && (
             <Settings
