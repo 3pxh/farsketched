@@ -19,16 +19,18 @@ import {
   SubmitGuessMessage,
   ErrorMessage,
   PromptErrorMessage,
-  ActiveImage,
   AchievementType,
-  GameState
+  GameState,
+  ActiveText,
+  GeneratedText
 } from '../types';
 
-// Mock the image generation API
-jest.mock('@/apis/imageGeneration', () => ({
-  generateImages: jest.fn().mockResolvedValue([{
-    blob: new Blob(['test'], { type: 'image/png' })
-  }])
+// Mock the text generation API
+jest.mock('@/apis/textGeneration', () => ({
+  generateText: jest.fn().mockResolvedValue({
+    text: 'Generated text for testing',
+    usage: { prompt_tokens: 10, completion_tokens: 20, total_tokens: 30 }
+  })
 }));
 
 // Mock the settings manager
@@ -101,7 +103,6 @@ describe('farsketchedReducer', () => {
     });
   });
 
-
   it('should handle start game', () => {
     const lobbyMessages = [
       createMessage<PlayerJoinedMessage>(MessageType.PLAYER_JOINED, { player: { id: 'test', name: 'test', avatarUrl: 'test', connected: true, points: 0, lastSeen: Date.now() } }),
@@ -136,28 +137,28 @@ describe('farsketchedReducer', () => {
     
     // First test SUBMIT_PROMPT
     let result = farsketchedReducer(initialState, submitPromptMessage, sendSelfMessage);
-    expect(result.images).not.toEqual(initialState.images);
-    expect(result.roundImages).not.toEqual(initialState.roundImages);
+    expect(result.texts).not.toEqual(initialState.texts);
+    expect(result.roundTexts).not.toEqual(initialState.roundTexts);
     
-    // Get the generated image ID
-    const imageId = Object.keys(result.images)[0];
-    expect(imageId).toBeDefined();
+    // Get the generated text ID
+    const textId = Object.keys(result.texts)[0];
+    expect(textId).toBeDefined();
 
-    // Then test PROMPT_RESULT with the actual image ID
+    // Then test PROMPT_RESULT with the actual text ID
     const promptResultMessage = createMessage<PromptResultMessage>(MessageType.PROMPT_RESULT, { 
       success: true, 
-      imageId, 
-      imageBlob: new Blob(['test'], { type: 'image/png' }) 
+      textId, 
+      generatedText: 'Generated text for testing'
     });
     result = farsketchedReducer(result, promptResultMessage, sendSelfMessage);
-    expect(result.images[imageId].status).toBe('complete');
+    expect(result.texts[textId].status).toBe('complete');
 
     // Setup state for fake prompt and guess tests
-    const stateWithActiveImage = {
+    const stateWithActiveText = {
       ...result,
       stage: GameStage.FOOLING,
-      activeImage: {
-        imageId,
+      activeText: {
+        textId,
         fakePrompts: [],
         guesses: []
       }
@@ -166,20 +167,20 @@ describe('farsketchedReducer', () => {
     // Test SUBMIT_FAKE_PROMPT
     const fakePromptMessage = createMessage<SubmitFakePromptMessage>(MessageType.SUBMIT_FAKE_PROMPT, { 
       playerId: 'test', 
-      imageId, 
+      textId, 
       fakePrompt: 'test' 
     });
-    result = farsketchedReducer(stateWithActiveImage, fakePromptMessage, sendSelfMessage);
-    expect(result.activeImage?.fakePrompts.length).toBe(1);
+    result = farsketchedReducer(stateWithActiveText, fakePromptMessage, sendSelfMessage);
+    expect(result.activeText?.fakePrompts.length).toBe(1);
 
     // Test SUBMIT_GUESS
     const guessMessage = createMessage<SubmitGuessMessage>(MessageType.SUBMIT_GUESS, { 
       playerId: 'test', 
-      imageId, 
+      textId, 
       promptId: 'test' 
     });
     result = farsketchedReducer(result, guessMessage, sendSelfMessage);
-    expect(result.activeImage?.guesses.length).toBe(1);
+    expect(result.activeText?.guesses.length).toBe(1);
 
     // Test messages that should not change state
     const nonStateChangingMessages = [
@@ -230,27 +231,27 @@ describe('farsketchedReducer', () => {
       }
     };
     
-    // Create a test image
-    const image = { 
-      id: 'testImage', 
+    // Create a test text
+    const text = { 
+      id: 'testText', 
       creatorId: 'player1', 
       prompt: 'Test prompt',
+      text: 'Generated text for testing',
       status: 'complete' as const,
-      imageBlob: new Blob(['test'], { type: 'image/png' }),
       roundIndex: 0,
       timestamp: Date.now()
     };
     
-    // Set up initial state in guessing stage with an active image
+    // Set up initial state in guessing stage with an active text
     const initialTestState: GameState = {
       ...initialState,
       players,
-      images: { 'testImage': image },
+      texts: { 'testText': text },
       stage: GameStage.GUESSING,
-      activeImage: {
-        imageId: 'testImage',
+      activeText: {
+        textId: 'testText',
         fakePrompts: [
-          { id: 'fake1', imageId: 'testImage', authorId: 'player2', text: 'Fake prompt' }
+          { id: 'fake1', textId: 'testText', authorId: 'player2', text: 'Fake prompt' }
         ],
         guesses: []
       }
@@ -259,30 +260,30 @@ describe('farsketchedReducer', () => {
     // Player 2 submits their first guess
     const firstGuessMessage = createMessage<SubmitGuessMessage>(MessageType.SUBMIT_GUESS, { 
       playerId: 'player2', 
-      imageId: 'testImage', 
+      textId: 'testText', 
       promptId: 'real' // Guessing the real prompt
     });
     
     const stateAfterFirstGuess = farsketchedReducer(initialTestState, firstGuessMessage, sendSelfMessage);
     
     // Verify the first guess was saved
-    expect(stateAfterFirstGuess.activeImage?.guesses.length).toBe(1);
-    expect(stateAfterFirstGuess.activeImage?.guesses[0].playerId).toBe('player2');
-    expect(stateAfterFirstGuess.activeImage?.guesses[0].promptId).toBe('real');
+    expect(stateAfterFirstGuess.activeText?.guesses.length).toBe(1);
+    expect(stateAfterFirstGuess.activeText?.guesses[0].playerId).toBe('player2');
+    expect(stateAfterFirstGuess.activeText?.guesses[0].promptId).toBe('real');
     
     // Player 2 tries to submit a second guess
     const secondGuessMessage = createMessage<SubmitGuessMessage>(MessageType.SUBMIT_GUESS, { 
       playerId: 'player2', 
-      imageId: 'testImage', 
+      textId: 'testText', 
       promptId: 'fake1' // Changing their mind to the fake prompt
     });
     
     const stateAfterSecondGuess = farsketchedReducer(stateAfterFirstGuess, secondGuessMessage, sendSelfMessage);
     
     // Verify that the second guess was ignored
-    expect(stateAfterSecondGuess.activeImage?.guesses.length).toBe(1);
-    expect(stateAfterSecondGuess.activeImage?.guesses[0].playerId).toBe('player2');
-    expect(stateAfterSecondGuess.activeImage?.guesses[0].promptId).toBe('real');
+    expect(stateAfterSecondGuess.activeText?.guesses.length).toBe(1);
+    expect(stateAfterSecondGuess.activeText?.guesses[0].playerId).toBe('player2');
+    expect(stateAfterSecondGuess.activeText?.guesses[0].promptId).toBe('real');
   });
 
   describe('Full game flow', () => {
@@ -332,51 +333,51 @@ describe('farsketchedReducer', () => {
         }
 
         // Verify prompts were submitted
-        expect(state.roundImages[round]).toHaveLength(players.length);
+        expect(state.roundTexts[round]).toHaveLength(players.length);
 
-        // Mock successful image generation for all prompts
-        for (const imageId of state.roundImages[round]) {
+        // Mock successful text generation for all prompts
+        for (const textId of state.roundTexts[round]) {
           const resultMessage = createMessage<PromptResultMessage>(MessageType.PROMPT_RESULT, {
             success: true,
-            imageId,
-            imageBlob: new Blob([`image-${imageId}`], { type: 'image/png' })
+            textId,
+            generatedText: `Generated text for ${textId}`
           });
           state = farsketchedReducer(state, resultMessage, sendSelfMessage);
         }
 
-        // For each image in the round
-        for (let imageIndex = 0; imageIndex < players.length; imageIndex++) {
-          const currentImageId = state.roundImages[round][imageIndex];
+        // For each text in the round
+        for (let textIndex = 0; textIndex < players.length; textIndex++) {
+          const currentTextId = state.roundTexts[round][textIndex];
 
-          // Verify we're in fooling stage with the correct image
+          // Verify we're in fooling stage with the correct text
           expect(state.stage).toBe(GameStage.FOOLING);
-          expect(state.activeImage?.imageId).toBe(currentImageId);
-          expect(state.activeImageIndex).toBe(imageIndex);
+          expect(state.activeText?.textId).toBe(currentTextId);
+          expect(state.activeTextIndex).toBe(textIndex);
 
           // All players submit fake prompts
           for (const playerId of players) {
-            // Skip the image creator
-            if (state.images[currentImageId].creatorId !== playerId) {
+            // Skip the text creator
+            if (state.texts[currentTextId].creatorId !== playerId) {
               const fakePromptMessage = createMessage<SubmitFakePromptMessage>(MessageType.SUBMIT_FAKE_PROMPT, {
                 playerId,
-                imageId: currentImageId,
-                fakePrompt: `Fake prompt for image ${imageIndex} by ${playerId}`
+                textId: currentTextId,
+                fakePrompt: `Fake prompt for text ${textIndex} by ${playerId}`
               });
               state = farsketchedReducer(state, fakePromptMessage, sendSelfMessage);
             }
           }
 
           // Verify fake prompts were submitted
-          expect(state.activeImage?.fakePrompts.length).toBe(players.length - 1);
+          expect(state.activeText?.fakePrompts.length).toBe(players.length - 1);
           expect(state.stage).toBe(GameStage.GUESSING);
 
           // All non-creator players submit guesses
           for (const playerId of players) {
-            // Skip the image creator
-            if (state.images[currentImageId].creatorId !== playerId) {
+            // Skip the text creator
+            if (state.texts[currentTextId].creatorId !== playerId) {
               const guessMessage = createMessage<SubmitGuessMessage>(MessageType.SUBMIT_GUESS, {
                 playerId,
-                imageId: currentImageId,
+                textId: currentTextId,
                 promptId: 'real' // Everyone guesses the real prompt for simplicity
               });
               state = farsketchedReducer(state, guessMessage, sendSelfMessage);
@@ -384,20 +385,20 @@ describe('farsketchedReducer', () => {
           }
 
           // Verify guesses were submitted (should be one less than total players)
-          expect(state.activeImage?.guesses.length).toBe(players.length - 1);
+          expect(state.activeText?.guesses.length).toBe(players.length - 1);
 
           // Move to scoring
           expect(state.stage).toBe(GameStage.SCORING);
 
-          // Send timer expired to move to next image or round
+          // Send timer expired to move to next text or round
           const timerExpiredMessage = createMessage<GameMessage>(MessageType.TIMER_EXPIRED, {
             stage: GameStage.SCORING,
-            timerId: `timer-${round}-${imageIndex}`
+            timerId: `timer-${round}-${textIndex}`
           });
           state = farsketchedReducer(state, timerExpiredMessage, sendSelfMessage);
 
-          // If this is the last image of the round
-          if (imageIndex === players.length - 1) {
+          // If this is the last text of the round
+          if (textIndex === players.length - 1) {
             // If this is the last round, we should move to game over
             if (round === roundCount - 1) {
               expect(state.stage).toBe(GameStage.GAME_OVER);
@@ -407,9 +408,9 @@ describe('farsketchedReducer', () => {
               expect(state.currentRound).toBe(round + 1);
             }
           } else {
-            // If not the last image, we should move to fooling for the next image
+            // If not the last text, we should move to fooling for the next text
             expect(state.stage).toBe(GameStage.FOOLING);
-            expect(state.activeImageIndex).toBe(imageIndex + 1);
+            expect(state.activeTextIndex).toBe(textIndex + 1);
           }
         }
       }
@@ -445,14 +446,14 @@ describe('farsketchedReducer', () => {
       });
       state = farsketchedReducer(state, promptMessage, sendSelfMessage);
 
-      // Get the image ID
-      const imageId = Object.keys(state.images)[0];
+      // Get the text ID
+      const textId = Object.keys(state.texts)[0];
 
-      // Mock successful image generation
+      // Mock successful text generation
       const resultMessage = createMessage<PromptResultMessage>(MessageType.PROMPT_RESULT, {
         success: true,
-        imageId,
-        imageBlob: new Blob(['test'], { type: 'image/png' })
+        textId,
+        generatedText: 'Generated text for testing'
       });
       state = farsketchedReducer(state, resultMessage, sendSelfMessage);
 
@@ -460,8 +461,8 @@ describe('farsketchedReducer', () => {
       state = {
         ...state,
         stage: GameStage.FOOLING,
-        activeImage: {
-          imageId,
+        activeText: {
+          textId,
           fakePrompts: [],
           guesses: []
         }
@@ -471,7 +472,7 @@ describe('farsketchedReducer', () => {
       for (const playerId of players.slice(1)) { // Skip player1 (the creator)
         const fakePromptMessage = createMessage<SubmitFakePromptMessage>(MessageType.SUBMIT_FAKE_PROMPT, {
           playerId,
-          imageId,
+          textId,
           fakePrompt: `Fake prompt from ${playerId}`
         });
         state = farsketchedReducer(state, fakePromptMessage, sendSelfMessage);
@@ -479,11 +480,10 @@ describe('farsketchedReducer', () => {
 
       // Verify we moved to guessing stage
       expect(state.stage).toBe(GameStage.GUESSING);
-      expect(state.activeImage?.fakePrompts.length).toBe(players.length - 1);
+      expect(state.activeText?.fakePrompts.length).toBe(players.length - 1);
     });
 
     it('should transition to scoring when all non-creator players have guessed', () => {
-      // This test would fail with the old logic (before the reducer fix)
       const players = ['player1', 'player2', 'player3'];
       let state = initialState;
 
@@ -509,14 +509,14 @@ describe('farsketchedReducer', () => {
       });
       state = farsketchedReducer(state, promptMessage, sendSelfMessage);
 
-      // Get the image ID
-      const imageId = Object.keys(state.images)[0];
+      // Get the text ID
+      const textId = Object.keys(state.texts)[0];
 
-      // Mock successful image generation
+      // Mock successful text generation
       const resultMessage = createMessage<PromptResultMessage>(MessageType.PROMPT_RESULT, {
         success: true,
-        imageId,
-        imageBlob: new Blob(['test'], { type: 'image/png' })
+        textId,
+        generatedText: 'Generated text for testing'
       });
       state = farsketchedReducer(state, resultMessage, sendSelfMessage);
 
@@ -524,11 +524,11 @@ describe('farsketchedReducer', () => {
       state = {
         ...state,
         stage: GameStage.GUESSING,
-        activeImage: {
-          imageId,
+        activeText: {
+          textId,
           fakePrompts: [
-            { id: 'fake1', imageId, authorId: players[1], text: 'Fake 1' },
-            { id: 'fake2', imageId, authorId: players[2], text: 'Fake 2' }
+            { id: 'fake1', textId, authorId: players[1], text: 'Fake 1' },
+            { id: 'fake2', textId, authorId: players[2], text: 'Fake 2' }
           ],
           guesses: []
         }
@@ -538,7 +538,7 @@ describe('farsketchedReducer', () => {
       for (const playerId of players.slice(1)) {
         const guessMessage = createMessage<SubmitGuessMessage>(MessageType.SUBMIT_GUESS, {
           playerId,
-          imageId,
+          textId,
           promptId: 'real'
         });
         state = farsketchedReducer(state, guessMessage, sendSelfMessage);
@@ -546,7 +546,7 @@ describe('farsketchedReducer', () => {
 
       // Should now be in scoring stage
       expect(state.stage).toBe(GameStage.SCORING);
-      expect(state.activeImage?.guesses.length).toBe(2);
+      expect(state.activeText?.guesses.length).toBe(2);
     });
 
     it('should calculate scores correctly when transitioning to scoring stage', () => {
@@ -575,14 +575,14 @@ describe('farsketchedReducer', () => {
       });
       state = farsketchedReducer(state, promptMessage, sendSelfMessage);
 
-      // Get the image ID
-      const imageId = Object.keys(state.images)[0];
+      // Get the text ID
+      const textId = Object.keys(state.texts)[0];
 
-      // Mock successful image generation
+      // Mock successful text generation
       const resultMessage = createMessage<PromptResultMessage>(MessageType.PROMPT_RESULT, {
         success: true,
-        imageId,
-        imageBlob: new Blob(['test'], { type: 'image/png' })
+        textId,
+        generatedText: 'Generated text for testing'
       });
       state = farsketchedReducer(state, resultMessage, sendSelfMessage);
 
@@ -590,11 +590,11 @@ describe('farsketchedReducer', () => {
       state = {
         ...state,
         stage: GameStage.GUESSING,
-        activeImage: {
-          imageId,
+        activeText: {
+          textId,
           fakePrompts: [
-            { id: 'fake1', imageId, authorId: players[1], text: 'Fake 1' },
-            { id: 'fake2', imageId, authorId: players[2], text: 'Fake 2' }
+            { id: 'fake1', textId, authorId: players[1], text: 'Fake 1' },
+            { id: 'fake2', textId, authorId: players[2], text: 'Fake 2' }
           ],
           guesses: []
         }
@@ -605,14 +605,14 @@ describe('farsketchedReducer', () => {
       // - player3 guesses player2's fake prompt
       const guess1 = createMessage<SubmitGuessMessage>(MessageType.SUBMIT_GUESS, {
         playerId: players[1],
-        imageId,
+        textId,
         promptId: 'real'
       });
       state = farsketchedReducer(state, guess1, sendSelfMessage);
 
       const guess2 = createMessage<SubmitGuessMessage>(MessageType.SUBMIT_GUESS, {
         playerId: players[2],
-        imageId,
+        textId,
         promptId: 'fake1'
       });
       state = farsketchedReducer(state, guess2, sendSelfMessage);
@@ -653,23 +653,23 @@ describe('farsketchedReducer', () => {
       });
       state = farsketchedReducer(state, promptMessage1, sendSelfMessage);
 
-      const imageId1 = Object.keys(state.images)[0];
+      const textId1 = Object.keys(state.texts)[0];
 
       const resultMessage1 = createMessage<PromptResultMessage>(MessageType.PROMPT_RESULT, {
         success: true,
-        imageId: imageId1,
-        imageBlob: new Blob(['test'], { type: 'image/png' })
+        textId: textId1,
+        generatedText: 'Generated text for testing 1'
       });
       state = farsketchedReducer(state, resultMessage1, sendSelfMessage);
 
       state = {
         ...state,
         stage: GameStage.GUESSING,
-        activeImage: {
-          imageId: imageId1,
+        activeText: {
+          textId: textId1,
           fakePrompts: [
-            { id: 'fake1', imageId: imageId1, authorId: players[1], text: 'Fake 1' },
-            { id: 'fake2', imageId: imageId1, authorId: players[2], text: 'Fake 2' }
+            { id: 'fake1', textId: textId1, authorId: players[1], text: 'Fake 1' },
+            { id: 'fake2', textId: textId1, authorId: players[2], text: 'Fake 2' }
           ],
           guesses: []
         }
@@ -678,14 +678,14 @@ describe('farsketchedReducer', () => {
       // All players guess correctly in first round
       const guess1 = createMessage<SubmitGuessMessage>(MessageType.SUBMIT_GUESS, {
         playerId: players[1],
-        imageId: imageId1,
+        textId: textId1,
         promptId: 'real'
       });
       state = farsketchedReducer(state, guess1, sendSelfMessage);
 
       const guess2 = createMessage<SubmitGuessMessage>(MessageType.SUBMIT_GUESS, {
         playerId: players[2],
-        imageId: imageId1,
+        textId: textId1,
         promptId: 'real'
       });
       state = farsketchedReducer(state, guess2, sendSelfMessage);
@@ -703,23 +703,23 @@ describe('farsketchedReducer', () => {
       });
       state = farsketchedReducer(state, promptMessage2, sendSelfMessage);
 
-      const imageId2 = Object.keys(state.images)[1];
+      const textId2 = Object.keys(state.texts)[1];
 
       const resultMessage2 = createMessage<PromptResultMessage>(MessageType.PROMPT_RESULT, {
         success: true,
-        imageId: imageId2,
-        imageBlob: new Blob(['test'], { type: 'image/png' })
+        textId: textId2,
+        generatedText: 'Generated text for testing 2'
       });
       state = farsketchedReducer(state, resultMessage2, sendSelfMessage);
 
       state = {
         ...state,
         stage: GameStage.GUESSING,
-        activeImage: {
-          imageId: imageId2,
+        activeText: {
+          textId: textId2,
           fakePrompts: [
-            { id: 'fake3', imageId: imageId2, authorId: players[0], text: 'Fake 3' },
-            { id: 'fake4', imageId: imageId2, authorId: players[2], text: 'Fake 4' }
+            { id: 'fake3', textId: textId2, authorId: players[0], text: 'Fake 3' },
+            { id: 'fake4', textId: textId2, authorId: players[2], text: 'Fake 4' }
           ],
           guesses: []
         }
@@ -728,14 +728,14 @@ describe('farsketchedReducer', () => {
       // All players guess correctly in second round
       const guess3 = createMessage<SubmitGuessMessage>(MessageType.SUBMIT_GUESS, {
         playerId: players[0],
-        imageId: imageId2,
+        textId: textId2,
         promptId: 'real'
       });
       state = farsketchedReducer(state, guess3, sendSelfMessage);
 
       const guess4 = createMessage<SubmitGuessMessage>(MessageType.SUBMIT_GUESS, {
         playerId: players[2],
-        imageId: imageId2,
+        textId: textId2,
         promptId: 'real'
       });
       state = farsketchedReducer(state, guess4, sendSelfMessage);
@@ -778,203 +778,203 @@ describe('farsketchedReducer', () => {
         }
       };
 
-      // Create test images
-      const images = {
-        'imgA1': { 
-          id: 'imgA1', 
+      // Create test texts
+      const texts: Record<string, GeneratedText> = {
+        'textA1': { 
+          id: 'textA1', 
           creatorId: 'playerA', 
-          prompt: 'A1 prompt', 
+          prompt: 'A1 prompt',
+          text: 'Generated text A1',
           status: 'complete' as const,
-          imageBlob: new Blob(['test'], { type: 'image/png' }),
           roundIndex: 0,
           timestamp: Date.now()
         },
-        'imgA2': { 
-          id: 'imgA2', 
+        'textA2': { 
+          id: 'textA2', 
           creatorId: 'playerA', 
-          prompt: 'A2 prompt', 
+          prompt: 'A2 prompt',
+          text: 'Generated text A2',
           status: 'complete' as const,
-          imageBlob: new Blob(['test'], { type: 'image/png' }),
           roundIndex: 0,
           timestamp: Date.now()
         },
-        'imgA3': { 
-          id: 'imgA3', 
+        'textA3': { 
+          id: 'textA3', 
           creatorId: 'playerA', 
-          prompt: 'A3 prompt', 
+          prompt: 'A3 prompt',
+          text: 'Generated text A3',
           status: 'complete' as const,
-          imageBlob: new Blob(['test'], { type: 'image/png' }),
           roundIndex: 0,
           timestamp: Date.now()
         },
-        'imgB1': { 
-          id: 'imgB1', 
+        'textB1': { 
+          id: 'textB1', 
           creatorId: 'playerB', 
-          prompt: 'B1 prompt', 
+          prompt: 'B1 prompt',
+          text: 'Generated text B1',
           status: 'complete' as const,
-          imageBlob: new Blob(['test'], { type: 'image/png' }),
           roundIndex: 0,
           timestamp: Date.now()
         },
-        'imgB2': { 
-          id: 'imgB2', 
+        'textB2': { 
+          id: 'textB2', 
           creatorId: 'playerB', 
-          prompt: 'B2 prompt', 
+          prompt: 'B2 prompt',
+          text: 'Generated text B2',
           status: 'complete' as const,
-          imageBlob: new Blob(['test'], { type: 'image/png' }),
           roundIndex: 0,
           timestamp: Date.now()
         },
-        'imgB3': { 
-          id: 'imgB3', 
+        'textB3': { 
+          id: 'textB3', 
           creatorId: 'playerB', 
-          prompt: 'B3 prompt', 
+          prompt: 'B3 prompt',
+          text: 'Generated text B3',
           status: 'complete' as const,
-          imageBlob: new Blob(['test'], { type: 'image/png' }),
           roundIndex: 0,
           timestamp: Date.now()
         },
-        'imgC1': { 
-          id: 'imgC1', 
+        'textC1': { 
+          id: 'textC1', 
           creatorId: 'playerC', 
-          prompt: 'C1 prompt', 
+          prompt: 'C1 prompt',
+          text: 'Generated text C1',
           status: 'complete' as const,
-          imageBlob: new Blob(['test'], { type: 'image/png' }),
           roundIndex: 0,
           timestamp: Date.now()
         },
-        'imgC2': { 
-          id: 'imgC2', 
+        'textC2': { 
+          id: 'textC2', 
           creatorId: 'playerC', 
-          prompt: 'C2 prompt', 
+          prompt: 'C2 prompt',
+          text: 'Generated text C2',
           status: 'complete' as const,
-          imageBlob: new Blob(['test'], { type: 'image/png' }),
           roundIndex: 0,
           timestamp: Date.now()
         },
-        'imgC3': { 
-          id: 'imgC3', 
+        'textC3': { 
+          id: 'textC3', 
           creatorId: 'playerC', 
-          prompt: 'C3 prompt', 
+          prompt: 'C3 prompt',
+          text: 'Generated text C3',
           status: 'complete' as const,
-          imageBlob: new Blob(['test'], { type: 'image/png' }),
           roundIndex: 0,
           timestamp: Date.now()
         }
       };
 
-      // Create history with active images
-      const history: ActiveImage[] = [
-        // Player A's images
+      // Create history with active texts
+      const history: ActiveText[] = [
+        // Player A's texts
         {
-          imageId: 'imgA1',
+          textId: 'textA1',
           fakePrompts: [
-            { id: 'fakeA1B', imageId: 'imgA1', authorId: 'playerB', text: 'Fake A1 by B' },
-            { id: 'fakeA1C', imageId: 'imgA1', authorId: 'playerC', text: 'Fake A1 by C' }
+            { id: 'fakeA1B', textId: 'textA1', authorId: 'playerB', text: 'Fake A1 by B' },
+            { id: 'fakeA1C', textId: 'textA1', authorId: 'playerC', text: 'Fake A1 by C' }
           ],
           guesses: [
-            { playerId: 'playerB', imageId: 'imgA1', promptId: 'fakeA1B', isCorrect: false },
-            { playerId: 'playerC', imageId: 'imgA1', promptId: 'fakeA1C', isCorrect: false }
+            { playerId: 'playerB', textId: 'textA1', promptId: 'fakeA1B', isCorrect: false },
+            { playerId: 'playerC', textId: 'textA1', promptId: 'fakeA1C', isCorrect: false }
           ]
         },
         {
-          imageId: 'imgA2',
+          textId: 'textA2',
           fakePrompts: [
-            { id: 'fakeA2B', imageId: 'imgA2', authorId: 'playerB', text: 'Fake A2 by B' },
-            { id: 'fakeA2C', imageId: 'imgA2', authorId: 'playerC', text: 'Fake A2 by C' }
+            { id: 'fakeA2B', textId: 'textA2', authorId: 'playerB', text: 'Fake A2 by B' },
+            { id: 'fakeA2C', textId: 'textA2', authorId: 'playerC', text: 'Fake A2 by C' }
           ],
           guesses: [
-            { playerId: 'playerB', imageId: 'imgA2', promptId: 'fakeA2B', isCorrect: false },
-            { playerId: 'playerC', imageId: 'imgA2', promptId: 'fakeA2C', isCorrect: false }
+            { playerId: 'playerB', textId: 'textA2', promptId: 'fakeA2B', isCorrect: false },
+            { playerId: 'playerC', textId: 'textA2', promptId: 'fakeA2C', isCorrect: false }
           ]
         },
         {
-          imageId: 'imgA3',
+          textId: 'textA3',
           fakePrompts: [
-            { id: 'fakeA3B', imageId: 'imgA3', authorId: 'playerB', text: 'Fake A3 by B' },
-            { id: 'fakeA3C', imageId: 'imgA3', authorId: 'playerC', text: 'Fake A3 by C' }
+            { id: 'fakeA3B', textId: 'textA3', authorId: 'playerB', text: 'Fake A3 by B' },
+            { id: 'fakeA3C', textId: 'textA3', authorId: 'playerC', text: 'Fake A3 by C' }
           ],
           guesses: [
-            { playerId: 'playerB', imageId: 'imgA3', promptId: 'fakeA3B', isCorrect: false },
-            { playerId: 'playerC', imageId: 'imgA3', promptId: 'fakeA3C', isCorrect: false }
+            { playerId: 'playerB', textId: 'textA3', promptId: 'fakeA3B', isCorrect: false },
+            { playerId: 'playerC', textId: 'textA3', promptId: 'fakeA3C', isCorrect: false }
           ]
         },
-        // Player B's images
+        // Player B's texts
         {
-          imageId: 'imgB1',
+          textId: 'textB1',
           fakePrompts: [
-            { id: 'fakeB1A', imageId: 'imgB1', authorId: 'playerA', text: 'Fake B1 by A' },
-            { id: 'fakeB1C', imageId: 'imgB1', authorId: 'playerC', text: 'Fake B1 by C' }
+            { id: 'fakeB1A', textId: 'textB1', authorId: 'playerA', text: 'Fake B1 by A' },
+            { id: 'fakeB1C', textId: 'textB1', authorId: 'playerC', text: 'Fake B1 by C' }
           ],
           guesses: [
-            { playerId: 'playerA', imageId: 'imgB1', promptId: 'real', isCorrect: true },
-            { playerId: 'playerC', imageId: 'imgB1', promptId: 'fakeB1A', isCorrect: false }
-          ]
-        },
-        {
-          imageId: 'imgB2',
-          fakePrompts: [
-            { id: 'fakeB2A', imageId: 'imgB2', authorId: 'playerA', text: 'Fake B2 by A' },
-            { id: 'fakeB2C', imageId: 'imgB2', authorId: 'playerC', text: 'Fake B2 by C' }
-          ],
-          guesses: [
-            { playerId: 'playerA', imageId: 'imgB2', promptId: 'real', isCorrect: true },
-            { playerId: 'playerC', imageId: 'imgB2', promptId: 'fakeB2A', isCorrect: false }
+            { playerId: 'playerA', textId: 'textB1', promptId: 'real', isCorrect: true },
+            { playerId: 'playerC', textId: 'textB1', promptId: 'fakeB1A', isCorrect: false }
           ]
         },
         {
-          imageId: 'imgB3',
+          textId: 'textB2',
           fakePrompts: [
-            { id: 'fakeB3A', imageId: 'imgB3', authorId: 'playerA', text: 'Fake B3 by A' },
-            { id: 'fakeB3C', imageId: 'imgB3', authorId: 'playerC', text: 'Fake B3 by C' }
+            { id: 'fakeB2A', textId: 'textB2', authorId: 'playerA', text: 'Fake B2 by A' },
+            { id: 'fakeB2C', textId: 'textB2', authorId: 'playerC', text: 'Fake B2 by C' }
           ],
           guesses: [
-            { playerId: 'playerA', imageId: 'imgB3', promptId: 'real', isCorrect: true },
-            { playerId: 'playerC', imageId: 'imgB3', promptId: 'fakeB3A', isCorrect: false }
-          ]
-        },
-        // Player C's images
-        {
-          imageId: 'imgC1',
-          fakePrompts: [
-            { id: 'fakeC1A', imageId: 'imgC1', authorId: 'playerA', text: 'Fake C1 by A' },
-            { id: 'fakeC1B', imageId: 'imgC1', authorId: 'playerB', text: 'Fake C1 by B' }
-          ],
-          guesses: [
-            { playerId: 'playerA', imageId: 'imgC1', promptId: 'real', isCorrect: true },
-            { playerId: 'playerB', imageId: 'imgC1', promptId: 'fakeC1A', isCorrect: false }
+            { playerId: 'playerA', textId: 'textB2', promptId: 'real', isCorrect: true },
+            { playerId: 'playerC', textId: 'textB2', promptId: 'fakeB2A', isCorrect: false }
           ]
         },
         {
-          imageId: 'imgC2',
+          textId: 'textB3',
           fakePrompts: [
-            { id: 'fakeC2A', imageId: 'imgC2', authorId: 'playerA', text: 'Fake C2 by A' },
-            { id: 'fakeC2B', imageId: 'imgC2', authorId: 'playerB', text: 'Fake C2 by B' }
+            { id: 'fakeB3A', textId: 'textB3', authorId: 'playerA', text: 'Fake B3 by A' },
+            { id: 'fakeB3C', textId: 'textB3', authorId: 'playerC', text: 'Fake B3 by C' }
           ],
           guesses: [
-            { playerId: 'playerA', imageId: 'imgC2', promptId: 'fakeC2B', isCorrect: false },
-            { playerId: 'playerB', imageId: 'imgC2', promptId: 'fakeC2A', isCorrect: false }
+            { playerId: 'playerA', textId: 'textB3', promptId: 'real', isCorrect: true },
+            { playerId: 'playerC', textId: 'textB3', promptId: 'fakeB3A', isCorrect: false }
+          ]
+        },
+        // Player C's texts
+        {
+          textId: 'textC1',
+          fakePrompts: [
+            { id: 'fakeC1A', textId: 'textC1', authorId: 'playerA', text: 'Fake C1 by A' },
+            { id: 'fakeC1B', textId: 'textC1', authorId: 'playerB', text: 'Fake C1 by B' }
+          ],
+          guesses: [
+            { playerId: 'playerA', textId: 'textC1', promptId: 'real', isCorrect: true },
+            { playerId: 'playerB', textId: 'textC1', promptId: 'fakeC1A', isCorrect: false }
           ]
         },
         {
-          imageId: 'imgC3',
+          textId: 'textC2',
           fakePrompts: [
-            { id: 'fakeC3A', imageId: 'imgC3', authorId: 'playerA', text: 'Fake C3 by A' },
-            { id: 'fakeC3B', imageId: 'imgC3', authorId: 'playerB', text: 'Fake C3 by B' }
+            { id: 'fakeC2A', textId: 'textC2', authorId: 'playerA', text: 'Fake C2 by A' },
+            { id: 'fakeC2B', textId: 'textC2', authorId: 'playerB', text: 'Fake C2 by B' }
           ],
           guesses: [
-            { playerId: 'playerA', imageId: 'imgC3', promptId: 'fakeC3B', isCorrect: false },
-            { playerId: 'playerB', imageId: 'imgC3', promptId: 'fakeC3A', isCorrect: false }
+            { playerId: 'playerA', textId: 'textC2', promptId: 'fakeC2B', isCorrect: false },
+            { playerId: 'playerB', textId: 'textC2', promptId: 'fakeC2A', isCorrect: false }
+          ]
+        },
+        {
+          textId: 'textC3',
+          fakePrompts: [
+            { id: 'fakeC3A', textId: 'textC3', authorId: 'playerA', text: 'Fake C3 by A' },
+            { id: 'fakeC3B', textId: 'textC3', authorId: 'playerB', text: 'Fake C3 by B' }
+          ],
+          guesses: [
+            { playerId: 'playerA', textId: 'textC3', promptId: 'fakeC3B', isCorrect: false },
+            { playerId: 'playerB', textId: 'textC3', promptId: 'fakeC3A', isCorrect: false }
           ]
         }
       ];
 
-      const achievementMap = calculateAchievements(history, players, images);
+      const achievementMap = calculateAchievements(history, players, texts);
 
       // Verify achievements
       expect(achievementMap.get(AchievementType.MOST_ACCURATE)).toEqual(['playerA']); // A always guesses correctly
       expect(achievementMap.get(AchievementType.BEST_BULLSHITTER)).toEqual(['playerA']); // A fools C consistently
-      expect(achievementMap.get(AchievementType.THE_PAINTER)).toEqual(['playerB']); // B's prompts get guessed correctly
+      expect(achievementMap.get(AchievementType.THE_WRITER)).toEqual(['playerB']); // B's prompts get guessed correctly
       expect(achievementMap.get(AchievementType.THE_CHAOTICIAN)).toEqual(['playerC']); // C's fake prompts get varied votes
     });
   });

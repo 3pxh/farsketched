@@ -15,14 +15,14 @@ const ACHIEVEMENT_TITLES: Record<AchievementType, string> = {
   [AchievementType.MOST_ACCURATE]: 'Realist',
   [AchievementType.BEST_BULLSHITTER]: 'Bullshitter',
   [AchievementType.THE_CHAOTICIAN]: 'Chaotician',
-  [AchievementType.THE_PAINTER]: 'Painter'
+  [AchievementType.THE_WRITER]: 'Writer'
 };
 
 const ACHIEVEMENT_DESCRIPTIONS: Record<AchievementType, string> = {
   [AchievementType.MOST_ACCURATE]: 'Guessed the truth the most times',
   [AchievementType.BEST_BULLSHITTER]: 'Fooled the most people with lies',
   [AchievementType.THE_CHAOTICIAN]: 'Created chaotic voting patterns',
-  [AchievementType.THE_PAINTER]: 'Your images were guessed correctly'
+  [AchievementType.THE_WRITER]: 'Your texts were guessed correctly'
 };
 
 export function GameOverStage({ gameState }: GameOverStageProps) {

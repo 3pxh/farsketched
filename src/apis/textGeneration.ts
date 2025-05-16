@@ -3,6 +3,8 @@
  * This module handles all text generation related functionality using OpenAI's API
  */
 
+import OpenAI from 'openai';
+
 interface TextGenerationOptions {
   prompt: string;
   maxTokens?: number;
@@ -26,44 +28,31 @@ interface GeneratedText {
  * @returns Promise resolving to the generated text and usage information
  */
 export async function generateText(options: TextGenerationOptions): Promise<GeneratedText> {
-  const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
-  
   try {
     if (!options.apiKey) {
       throw new Error('OpenAI API key not found. Please set it in the settings.');
     }
 
-    const response = await fetch(OPENAI_API_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${options.apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: options.model || 'gpt-4',
-        messages: [
-          {
-            role: 'user',
-            content: options.prompt
-          }
-        ],
-        max_tokens: options.maxTokens || 1000,
-        temperature: options.temperature || 0.7,
-      }),
+    const client = new OpenAI({
+      apiKey: options.apiKey,
+      dangerouslyAllowBrowser: true,
     });
 
-    if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.statusText}`);
-    }
+    const response = await client.responses.create({
+      model: options.model || 'o4-mini',
+      input: options.prompt,
+    });
+    
+    console.log('OpenAI Response:', response);
 
-    const data = await response.json();
+    const generatedText = response.output_text;
     
     return {
-      text: data.choices[0].message.content,
+      text: generatedText,
       usage: {
-        promptTokens: data.usage.prompt_tokens,
-        completionTokens: data.usage.completion_tokens,
-        totalTokens: data.usage.total_tokens,
+        promptTokens: 0,
+        completionTokens: 0,
+        totalTokens: 0,
       }
     };
   } catch (error) {

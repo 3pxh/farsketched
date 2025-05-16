@@ -1,15 +1,15 @@
 import { Box, CircularProgress } from '@mui/material';
 import { useMemo } from 'react';
 
-interface PlaceholderImageProps {
+interface TextDisplayProps {
   text: string;
   showSpinner?: boolean;
 }
 
-const EMOJIS = ['🎨', '🖼️', '🌈', '🎭', '✨', '💫', '🌟', '⭐', '🎪', '🎯', '🎲', '🎸', '🎺', '🎭', '🎪', '🎨', '🖼️', '🌈'];
+const DECORATIONS = ['📝', '✍️', '📚', '📖', '📜', '📄', '📋', '📓', '📔', '📒', '📑', '🔖', '📌', '📍', '✏️', '✒️', '🖋️', '🖊️'];
 
-interface EmojiPosition {
-  emoji: string;
+interface DecorationPosition {
+  decoration: string;
   x: number;
   y: number;
   rotation: number;
@@ -17,13 +17,13 @@ interface EmojiPosition {
   opacity: number;
 }
 
-export function PlaceholderImage({ text, showSpinner = false }: PlaceholderImageProps) {
-  // Generate random emoji positions
-  const emojiPositions = useMemo(() => {
-    const positions: EmojiPosition[] = [];
-    for (let i = 0; i < 12; i++) {
+export function TextDisplay({ text, showSpinner = false }: TextDisplayProps) {
+  // Generate random decoration positions
+  const decorationPositions = useMemo(() => {
+    const positions: DecorationPosition[] = [];
+    for (let i = 0; i < 8; i++) {
       positions.push({
-        emoji: EMOJIS[Math.floor(Math.random() * EMOJIS.length)],
+        decoration: DECORATIONS[Math.floor(Math.random() * DECORATIONS.length)],
         x: Math.random() * 100,
         y: Math.random() * 100,
         rotation: Math.random() * 360,
@@ -37,7 +37,8 @@ export function PlaceholderImage({ text, showSpinner = false }: PlaceholderImage
   return (
     <Box
       sx={{
-        aspectRatio: '1',
+        width: '100%',
+        minHeight: '200px',
         bgcolor: 'rgba(0,0,0,0.05)',
         borderRadius: 2,
         display: 'flex',
@@ -47,13 +48,15 @@ export function PlaceholderImage({ text, showSpinner = false }: PlaceholderImage
         p: 3,
         color: 'text.secondary',
         textAlign: 'center',
-        fontSize: '0.9rem',
+        fontSize: '1.1rem',
         position: 'relative',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        whiteSpace: 'pre-wrap',
+        wordBreak: 'break-word'
       }}
     >
-      {/* Background emojis */}
-      {emojiPositions.map((pos, index) => (
+      {/* Background decorations */}
+      {decorationPositions.map((pos, index) => (
         <Box
           key={index}
           sx={{
@@ -67,7 +70,7 @@ export function PlaceholderImage({ text, showSpinner = false }: PlaceholderImage
             userSelect: 'none'
           }}
         >
-          {pos.emoji}
+          {pos.decoration}
         </Box>
       ))}
       
@@ -79,7 +82,9 @@ export function PlaceholderImage({ text, showSpinner = false }: PlaceholderImage
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          justifyContent: 'center'
+          justifyContent: 'center',
+          width: '100%',
+          maxWidth: '800px'
         }}
       >
         {showSpinner && <CircularProgress size={24} sx={{ mb: 2 }} />}

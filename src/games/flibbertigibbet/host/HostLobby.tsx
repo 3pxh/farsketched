@@ -7,6 +7,7 @@ import {
   Avatar,
 } from '@mui/material';
 import { JoinGameQR } from '@/components/JoinGameQR';
+import { Game } from '@/types/games';
 
 interface HostLobbyProps {
   gameConfig: GameConfig;
@@ -18,7 +19,7 @@ export const HostLobby = ({ gameConfig, players }: HostLobbyProps) => {
 
   return (
     <Box sx={{ p: 3, height: '100%', maxWidth: '100vw', overflowX: 'auto' }}>
-      <h1>Farsketched</h1>
+      <h1>Flibbertigibbet</h1>
       <Box sx={{ 
         display: 'grid', 
         gridTemplateColumns: { xs: '1fr', md: '2fr 1fr' },
@@ -92,7 +93,7 @@ export const HostLobby = ({ gameConfig, players }: HostLobbyProps) => {
         </Paper>
 
         {/* QR Section */}
-        {peerId && <JoinGameQR peerId={peerId} gameName="farsketched" />}
+        {peerId && <JoinGameQR peerId={peerId} gameName={Game.FLIBBERTIGIBBET} />}
       </Box>
     </Box>
   );

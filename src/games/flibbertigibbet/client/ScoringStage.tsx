@@ -11,23 +11,23 @@ export function ScoringStage() {
   // Calculate round score breakdown for the current player
   let promptScore = 0;
   let guessScore = 0;
-  if (gameState.activeImage) {
-    // Points for image creator (real prompt)
-    if (gameState.images[gameState.activeImage.imageId]?.creatorId === peerId) {
-      const correctGuesses = gameState.activeImage.guesses.filter(g => g.isCorrect).length;
+  if (gameState.activeText) {
+    // Points for text creator (real prompt)
+    if (gameState.texts[gameState.activeText.textId]?.creatorId === peerId) {
+      const correctGuesses = gameState.activeText.guesses.filter(g => g.isCorrect).length;
       promptScore += correctGuesses * 5;
     }
     // Points for fake prompt authors
-    for (const fakePrompt of gameState.activeImage.fakePrompts) {
+    for (const fakePrompt of gameState.activeText.fakePrompts) {
       if (fakePrompt.authorId === peerId) {
-        const guessesForThisFake = gameState.activeImage.guesses.filter(
+        const guessesForThisFake = gameState.activeText.guesses.filter(
           guess => guess.promptId === fakePrompt.id
         ).length;
         promptScore += guessesForThisFake * 3;
       }
     }
     // Points for guessing correctly
-    const playerGuess = gameState.activeImage.guesses.find(
+    const playerGuess = gameState.activeText.guesses.find(
       guess => guess.playerId === peerId
     );
     if (playerGuess && playerGuess.isCorrect) {

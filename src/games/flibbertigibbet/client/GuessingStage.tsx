@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { GameState, MessageType, GameMessage } from '../types';
 import { useClientGameState } from '@/contexts/GameState';
 import { usePeer } from '@/contexts/PeerContext';
@@ -7,47 +7,34 @@ import {
   Typography,
   Button,
   Paper,
-  CircularProgress,
   Tooltip,
 } from '@mui/material';
+import { TextDisplay } from './TextDisplay';
 
 export function GuessingStage() {
   const [hasGuessed, setHasGuessed] = useState(false);
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
   const gameStateContext = useClientGameState<GameState>();
   const gameState = gameStateContext.state;
   const { peerId, sendMessage } = usePeer<GameMessage>();
 
-  if (!gameState.activeImage) return <Typography>No active image to guess for</Typography>;
+  if (!gameState.activeText) return <Typography>No active text to guess for</Typography>;
 
-  const image = gameState.images[gameState.activeImage.imageId];
-  if (!image) return <Typography>Image not found</Typography>;
+  const text = gameState.texts[gameState.activeText.textId];
+  if (!text) return <Typography>Text not found</Typography>;
 
-  // Determine if the current player is the creator of this image
-  const isImageCreator = image.creatorId === peerId;
-
-  // Convert blob to data URL when image is available
-  useEffect(() => {
-    if (image.imageBlob) {
-      const blob = new Blob([image.imageBlob], { type: 'image/webp' });
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImageUrl(reader.result as string);
-      };
-      reader.readAsDataURL(blob);
-    }
-  }, [image.imageBlob]);
+  // Determine if the current player is the creator of this text
+  const isTextCreator = text.creatorId === peerId;
 
   // Check if this player has already submitted a guess
-  const hasSubmitted = gameState.activeImage.guesses.some(
+  const hasSubmitted = gameState.activeText.guesses.some(
     guess => guess.playerId === peerId
   );
 
   // Create array of all prompts (real + fake) and mark the one written by this player
   const allPrompts = useMemo(() => {
     const prompts = [
-      { id: 'real', text: image.prompt, isReal: true, isPlayersOwn: false },
-      ...gameState.activeImage!.fakePrompts.map(fp => ({
+      { id: 'real', text: text.prompt, isReal: true, isPlayersOwn: false },
+      ...gameState.activeText!.fakePrompts.map(fp => ({
         id: fp.id,
         text: fp.text,
         isReal: false,
@@ -56,13 +43,13 @@ export function GuessingStage() {
     ];
     // Shuffle the prompts
     return prompts.sort(() => Math.random() - 0.5);
-  }, [image.prompt, gameState.activeImage!.fakePrompts, peerId]);
+  }, [text.prompt, gameState.activeText!.fakePrompts, peerId]);
 
   const handleGuess = (promptId: string) => {
     const message: GameMessage = {
       type: MessageType.SUBMIT_GUESS,
       playerId: peerId,
-      imageId: gameState.activeImage!.imageId,
+      textId: gameState.activeText!.textId,
       promptId,
       timestamp: Date.now(),
       messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
@@ -72,35 +59,17 @@ export function GuessingStage() {
     setHasGuessed(true);
   };
 
-  // Display a different message if the player is the creator of the image
-  if (isImageCreator) {
+  // Display a different message if the player is the creator of the text
+  if (isTextCreator) {
     return (
       <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="100vh" px={2}>
-        <Paper elevation={3} sx={{ p: 3, width: '100%', maxWidth: 420, textAlign: 'center', bgcolor: 'rgba(255,255,255,0.8)' }}>
+        <Paper elevation={3} sx={{ p: 3, width: '100%', maxWidth: 600, textAlign: 'center', bgcolor: 'rgba(255,255,255,0.8)' }}>
           <Typography variant="h5" fontWeight={600} gutterBottom>Guessing Stage</Typography>
           <Box mt={2} mb={2} display="flex" flexDirection="column" alignItems="center">
-            {imageUrl ? (
-              <Box
-                component="img"
-                src={imageUrl}
-                alt="Your created image"
-                sx={{
-                  width: '100%',
-                  maxWidth: 320,
-                  borderRadius: 2,
-                  boxShadow: 2,
-                  mb: 2,
-                }}
-              />
-            ) : (
-              <Box display="flex" flexDirection="column" alignItems="center" gap={2}>
-                <CircularProgress />
-                <Typography variant="body2">Loading image...</Typography>
-              </Box>
-            )}
+            <TextDisplay text={text.text} />
           </Box>
-          <Typography variant="h6" gutterBottom>This is your image!</Typography>
-          <Typography variant="body1">Since you created this image, you don't need to guess the prompt.</Typography>
+          <Typography variant="h6" gutterBottom>This is your text!</Typography>
+          <Typography variant="body1">Since you created this text, you don't need to guess the prompt.</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>Waiting for other players to make their guesses...</Typography>
         </Paper>
       </Box>
@@ -110,28 +79,10 @@ export function GuessingStage() {
   if (hasGuessed || hasSubmitted) {
     return (
       <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="100vh" px={2}>
-        <Paper elevation={3} sx={{ p: 3, width: '100%', maxWidth: 420, textAlign: 'center', bgcolor: 'rgba(255,255,255,0.8)' }}>
+        <Paper elevation={3} sx={{ p: 3, width: '100%', maxWidth: 600, textAlign: 'center', bgcolor: 'rgba(255,255,255,0.8)' }}>
           <Typography variant="h5" fontWeight={600} gutterBottom>Guessing Stage</Typography>
           <Box mt={2} mb={2} display="flex" flexDirection="column" alignItems="center">
-            {imageUrl ? (
-              <Box
-                component="img"
-                src={imageUrl}
-                alt="Image to guess for"
-                sx={{
-                  width: '100%',
-                  maxWidth: 320,
-                  borderRadius: 2,
-                  boxShadow: 2,
-                  mb: 2,
-                }}
-              />
-            ) : (
-              <Box display="flex" flexDirection="column" alignItems="center" gap={2}>
-                <CircularProgress />
-                <Typography variant="body2">Loading image...</Typography>
-              </Box>
-            )}
+            <TextDisplay text={text.text} />
           </Box>
           <Typography variant="body1">Your guess has been submitted!</Typography>
           <Typography variant="body2" color="text.secondary">Waiting for other players...</Typography>
@@ -142,31 +93,13 @@ export function GuessingStage() {
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="100vh" px={2}>
-      <Paper elevation={3} sx={{ p: 3, width: '100%', maxWidth: 420, textAlign: 'center', bgcolor: 'rgba(255,255,255,0.8)' }}>
+      <Paper elevation={3} sx={{ p: 3, width: '100%', maxWidth: 600, textAlign: 'center', bgcolor: 'rgba(255,255,255,0.8)' }}>
         <Typography variant="h5" fontWeight={600} gutterBottom>Guessing Stage</Typography>
         <Box mt={2} mb={2} display="flex" flexDirection="column" alignItems="center">
-          {imageUrl ? (
-            <Box
-              component="img"
-              src={imageUrl}
-              alt="Image to guess for"
-              sx={{
-                width: '100%',
-                maxWidth: 320,
-                borderRadius: 2,
-                boxShadow: 2,
-                mb: 2,
-              }}
-            />
-          ) : (
-            <Box display="flex" flexDirection="column" alignItems="center" gap={2}>
-              <CircularProgress />
-              <Typography variant="body2">Loading image...</Typography>
-            </Box>
-          )}
+          <TextDisplay text={text.text} />
         </Box>
         <Box mt={2}>
-          <Typography variant="subtitle1" gutterBottom>Which prompt do you think generated this image?</Typography>
+          <Typography variant="subtitle1" gutterBottom>Which prompt do you think generated this text?</Typography>
           <Box display="flex" flexDirection="column" gap={2}>
             {allPrompts.map(prompt => (
               prompt.isPlayersOwn ? (

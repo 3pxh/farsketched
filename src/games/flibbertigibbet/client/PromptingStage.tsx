@@ -9,48 +9,34 @@ import {
   TextField,
   Paper,
 } from '@mui/material';
-import { PlaceholderImage } from './PlaceholderImage';
+import { TextDisplay } from './TextDisplay';
 import { PlayersSubmitted } from './PlayersSubmitted';
 
 export function PromptingStage() {
   const [prompt, setPrompt] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
   const gameStateContext = useClientGameState<GameState>();
   const gameState = gameStateContext.state;
   const { peerId, sendMessage } = usePeer<GameMessage>();
   const player = gameState.players[peerId];
   const avatarUrl = player?.avatarUrl;
 
-  // Find the player's image in the current round
-  const playerImage = useMemo(() => {
-    const currentRoundImages = gameState.roundImages[gameState.currentRound] || [];
-    for (const imageId of currentRoundImages) {
-      const image = gameState.images[imageId];
-      if (image && image.creatorId === peerId) {
-        return image;
+  // Find the player's text in the current round
+  const playerText = useMemo(() => {
+    const currentRoundTexts = gameState.roundTexts[gameState.currentRound] || [];
+    for (const textId of currentRoundTexts) {
+      const text = gameState.texts[textId];
+      if (text && text.creatorId === peerId) {
+        return text;
       }
     }
     return null;
-  }, [gameState.roundImages, gameState.currentRound, gameState.images, peerId]);
+  }, [gameState.roundTexts, gameState.currentRound, gameState.texts, peerId]);
 
   // Reset isSubmitted when a new round starts
   useEffect(() => {
     setIsSubmitted(false);
   }, [gameState.currentRound]);
-
-  // Convert blob to data URL when image is complete
-  useEffect(() => {
-    if (playerImage?.status === 'complete' && playerImage.imageBlob) {
-      // Convert Uint8Array to Blob
-      const blob = new Blob([playerImage.imageBlob], { type: 'image/webp' });
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImageUrl(reader.result as string);
-      };
-      reader.readAsDataURL(blob);
-    }
-  }, [playerImage]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,40 +54,33 @@ export function PromptingStage() {
     setIsSubmitted(true);
   };
 
-  if (isSubmitted || playerImage) {
-    const currentRoundImageIds = gameState.roundImages[gameState.currentRound] || [];
-    const submittedCount = currentRoundImageIds
-      .map(id => gameState.images[id])
-      .filter(img => !!img && !!img.prompt)
+  if (isSubmitted || playerText) {
+    const currentRoundTextIds = gameState.roundTexts[gameState.currentRound] || [];
+    const submittedCount = currentRoundTextIds
+      .map(id => gameState.texts[id])
+      .filter(text => !!text && !!text.prompt)
       .length;
     return (
       <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="100vh" px={2}>
-        <Paper elevation={3} sx={{ p: 3, width: '100%', maxWidth: 420, textAlign: 'center', bgcolor: 'rgba(255,255,255,0.8)' }}>
+        <Paper elevation={3} sx={{ p: 3, width: '100%', maxWidth: 600, textAlign: 'center', bgcolor: 'rgba(255,255,255,0.8)' }}>
           <Typography variant="h5" fontWeight={600} gutterBottom>
-            {!playerImage ? 'Your prompt was sent!' : 'Here is your masterpiece!'}
+            {!playerText ? 'Your prompt was sent!' : 'Here is your generated text!'}
           </Typography>
           <Box mt={2}>
-            {!playerImage ? (
-              <PlaceholderImage text="waiting for server confirmation..." showSpinner/>
-            ) : playerImage.status === 'pending' ? (
-              <PlaceholderImage text="generating image..." showSpinner/>
-            ) : playerImage.status === 'complete' && imageUrl ? (
-              <Box className="image-container" mt={2}>
-                <Box
-                  component="img"
-                  src={imageUrl}
-                  alt={playerImage.prompt}
-                  sx={{
-                    width: '100%',
-                    maxWidth: 320,
-                    borderRadius: 2,
-                    boxShadow: 2,
-                  }}
-                />
+            {!playerText ? (
+              <TextDisplay text="waiting for server confirmation..." showSpinner/>
+            ) : playerText.status === 'pending' ? (
+              <TextDisplay text="generating text..." showSpinner/>
+            ) : playerText.status === 'complete' ? (
+              <Box mt={2}>
+                <TextDisplay text={playerText.text} />
+                <Typography variant="body2" color="text.secondary" mt={1}>
+                  Prompt: "{playerText.prompt}"
+                </Typography>
               </Box>
             ) : (
               <Box color="error.main" mt={2}>
-                <Typography variant="body2">Error generating image. Please try again.</Typography>
+                <Typography variant="body2">Error generating text. Please try again.</Typography>
               </Box>
             )}
           </Box>
@@ -113,17 +92,17 @@ export function PromptingStage() {
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="100vh" px={2}>
-      <Paper elevation={3} sx={{ p: 3, width: '100%', maxWidth: 420, textAlign: 'center', bgcolor: 'rgba(255,255,255,0.8)' }}>
+      <Paper elevation={3} sx={{ p: 3, width: '100%', maxWidth: 600, textAlign: 'center', bgcolor: 'rgba(255,255,255,0.8)' }}>
         <Typography variant="h5" fontWeight={600} gutterBottom>Enter your prompt</Typography>
         
-        <PlaceholderImage text="future masterpiece here"/>
+        <TextDisplay text="future text here"/>
 
         <Box component="form" onSubmit={handleSubmit} mt={2}>
           <TextField
             fullWidth
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Describe the image you want to generate..."
+            placeholder="Describe the text you want to generate..."
             autoComplete="off"
             variant="outlined"
             size="medium"
@@ -141,7 +120,7 @@ export function PromptingStage() {
             disabled={!prompt.trim()}
             sx={{ fontWeight: 700, py: 1.5 }}
           >
-            Generate Image
+            Generate Text
           </Button>
         </Box>
       </Paper>

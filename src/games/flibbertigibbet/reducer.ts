@@ -298,12 +298,61 @@ export function farsketchedReducer(
         sendSelfMessage(errorMessage);
       });
 
+      // Check if this is the last prompt submission
+      const updatedTexts = {
+        ...state.texts,
+        [textId]: pendingText
+      };
+
+      const allPlayersSubmitted = Object.keys(state.players).length === updatedRoundTexts[state.currentRound].length;
+
+      if (allPlayersSubmitted) {
+        const now = Date.now();
+        const timerId = generateTimerId(state.currentRound, 0);
+        const timeoutId = setTimeout(() => {
+          const timerExpiredMessage: GameMessage = {
+            type: MessageType.TIMER_EXPIRED,
+            stage: GameStage.FOOLING,
+            timestamp: Date.now(),
+            messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
+            timerId
+          };
+          sendSelfMessage(timerExpiredMessage);
+        }, state.config.foolingTimerSeconds * 1000);
+
+        // Find a successful text or fall back to the earliest one
+        const currentRoundTextIds = updatedRoundTexts[state.currentRound];
+        const successfulText = currentRoundTextIds.find(textId => {
+          const text = updatedTexts[textId];
+          return text && text.status === 'complete' && text.text.length > 0;
+        });
+
+        const selectedTextId = successfulText || currentRoundTextIds[0]; // Fall back to earliest if no successful text
+
+        return {
+          ...state,
+          texts: updatedTexts,
+          roundTexts: updatedRoundTexts,
+          stage: GameStage.FOOLING,
+          activeText: {
+            textId: selectedTextId,
+            fakePrompts: [],
+            guesses: []
+          },
+          activeTextIndex: currentRoundTextIds.indexOf(selectedTextId),
+          timer: {
+            startTime: now,
+            duration: state.config.foolingTimerSeconds,
+            isRunning: true,
+            timeoutId,
+            timerId
+          }
+        };
+      }
+
       return {
         ...state,
-        texts: {
-          ...state.texts,
-          [textId]: pendingText
-        },
+        texts: updatedTexts,
         roundTexts: updatedRoundTexts
       };
     }

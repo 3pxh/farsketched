@@ -6,7 +6,6 @@ import {
   Typography,
   Card,
   CardContent,
-  CardMedia,
   IconButton,
   Snackbar,
   Collapse,
@@ -19,6 +18,7 @@ import ShareIcon from '@mui/icons-material/Share';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import { TextDisplay } from './TextDisplay';
 
 // Platform detection
 const getPlatform = () => {
@@ -31,28 +31,19 @@ const getPlatform = () => {
   return 'desktop';
 };
 
-interface ImageCardProps {
-  image: GameState['images'][string];
+interface TextCardProps {
+  text: GameState['texts'][string];
   creator: GameState['players'][string];
   onShare: () => void;
 }
 
-function ImageCard({ image, creator, onShare }: ImageCardProps) {
+function TextCard({ text, creator, onShare }: TextCardProps) {
   const [expanded, setExpanded] = useState(false);
-  let imageUrl = '';
-  if (image.imageBlob instanceof Blob) {
-    imageUrl = URL.createObjectURL(image.imageBlob);
-  } else if (ArrayBuffer.isView(image.imageBlob)) {
-    const blob = new Blob([image.imageBlob], { type: 'image/webp' });
-    imageUrl = URL.createObjectURL(blob);
-  } else {
-    imageUrl = '';
-  }
   const gameStateContext = useClientGameState<GameState>();
   const gameState = gameStateContext.state;
 
-  // Find the history entry for this image
-  const historyEntry = gameState.history.find(entry => entry.imageId === image.id);
+  // Find the history entry for this text
+  const historyEntry = gameState.history.find(entry => entry.textId === text.id);
   const fakePrompts = historyEntry?.fakePrompts || [];
 
   // Determine which share icon to use based on platform
@@ -61,15 +52,15 @@ function ImageCard({ image, creator, onShare }: ImageCardProps) {
     const canShare = navigator.share !== undefined;
 
     let Icon = FileDownloadIcon;
-    let tooltipText = 'Download image';
+    let tooltipText = 'Download text';
 
     if (canShare) {
       if (platform === 'ios') {
         Icon = IosShareIcon;
-        tooltipText = 'Share image';
+        tooltipText = 'Share text';
       } else if (platform === 'android') {
         Icon = ShareIcon;
-        tooltipText = 'Share image';
+        tooltipText = 'Share text';
       }
     }
 
@@ -96,31 +87,9 @@ function ImageCard({ image, creator, onShare }: ImageCardProps) {
 
   return (
     <Card>
-      <>
-        {!expanded ? (
-          <CardMedia
-            component="img"
-            height="200"
-            image={imageUrl}
-            alt={image.prompt}
-            sx={{ objectFit: 'cover' }}
-          />
-        ) : (
-          <Box
-            component="img"
-            src={imageUrl}
-            alt={image.prompt}
-            sx={{
-              width: '100%',
-              height: 'auto',
-              maxHeight: '70vh',
-              objectFit: 'contain',
-              display: 'block',
-              background: '#eee',
-            }}
-          />
-        )}
-      </>
+      <CardContent>
+        <TextDisplay text={text.text} />
+      </CardContent>
       <CardActions sx={{ justifyContent: 'space-between', px: 2, py: 1 }}>
         <Box sx={{ 
           display: 'flex', 
@@ -152,7 +121,7 @@ function ImageCard({ image, creator, onShare }: ImageCardProps) {
                 whiteSpace: 'nowrap'
               }}
             >
-              {image.prompt}
+              {text.prompt}
             </Typography>
           </Box>
         </Box>
@@ -226,38 +195,38 @@ export function GameOverStage() {
   const gameState = gameStateContext.state;
   const [snackbarOpen, setSnackbarOpen] = useState(false);
 
-  // Convert all images to an array and sort by round index
-  const allImages = Object.values(gameState.images)
+  // Convert all texts to an array and sort by round index
+  const allTexts = Object.values(gameState.texts)
     .sort((a, b) => a.roundIndex - b.roundIndex);
 
-  // Function to share a specific image
-  const shareImage = async (imageId: string) => {
-    const image = gameState.images[imageId];
-    if (!image) return;
-    const sanitizedPrompt = image.prompt
+  // Function to share a specific text
+  const shareText = async (textId: string) => {
+    const text = gameState.texts[textId];
+    if (!text) return;
+    const sanitizedPrompt = text.prompt
       .replace(/[^a-z0-9]/gi, '-') // Replace non-alphanumeric chars with hyphens
       .toLowerCase()
       .substring(0, 50); // Limit length to avoid too long filenames
-    const imageName = `${sanitizedPrompt}.webp`;
+    const textName = `${sanitizedPrompt}.txt`;
     try {
-      // Convert Blob to File for sharing
-      const imageFile = new File([image.imageBlob], imageName, {
-        type: 'image/webp',
+      // Create a text file for sharing
+      const textFile = new File([text.text], textName, {
+        type: 'text/plain',
       });
 
       // Check if the Web Share API is available
       if (navigator.share) {
         await navigator.share({
-          title: 'Farsketched Image',
-          text: `Check out this AI-generated image from Farsketched! The prompt was: "${image.prompt}"`,
-          files: [imageFile],
+          files: [textFile],
+          title: 'Generated Text',
+          text: `Check out this text generated from the prompt: "${text.prompt}"`,
         });
       } else {
-        // Fallback for browsers that don't support Web Share API
-        const url = URL.createObjectURL(image.imageBlob);
+        // Fallback to download
+        const url = URL.createObjectURL(textFile);
         const a = document.createElement('a');
         a.href = url;
-        a.download = imageName;
+        a.download = textName;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -265,50 +234,30 @@ export function GameOverStage() {
         setSnackbarOpen(true);
       }
     } catch (error) {
-      console.error('Error sharing:', error);
-      setSnackbarOpen(true);
+      console.error('Error sharing text:', error);
     }
   };
 
   return (
-    <Box sx={{ p: 2 }}>
-      <Typography variant="h4" gutterBottom align="center">
+    <Box sx={{ p: 2, width: '100%', maxWidth: 600, mx: 'auto' }}>
+      <Typography variant="h4" gutterBottom align="center" sx={{ mb: 4 }}>
         Game Over!
       </Typography>
-      
-      <Typography variant="h6" gutterBottom align="center" sx={{ mb: 4 }}>
-        Gallery of All Images
-      </Typography>
-
-      <Box 
-        sx={{ 
-          display: 'grid',
-          gridTemplateColumns: {
-            xs: '1fr',
-            sm: 'repeat(2, 1fr)',
-            md: 'repeat(3, 1fr)'
-          },
-          gap: 3
-        }}
-      >
-        {allImages.map((image) => {
-          const creator = gameState.players[image.creatorId];
-          return (
-            <ImageCard
-              key={image.id}
-              image={image}
-              creator={creator}
-              onShare={() => shareImage(image.id)}
-            />
-          );
-        })}
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+        {allTexts.map(text => (
+          <TextCard
+            key={text.id}
+            text={text}
+            creator={gameState.players[text.creatorId]}
+            onShare={() => shareText(text.id)}
+          />
+        ))}
       </Box>
-
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={3000}
         onClose={() => setSnackbarOpen(false)}
-        message="Image downloaded successfully!"
+        message="Text downloaded successfully"
       />
     </Box>
   );

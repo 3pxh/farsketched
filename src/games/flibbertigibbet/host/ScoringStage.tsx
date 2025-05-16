@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { GameState } from '../types';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   Box,
   Typography,
@@ -8,6 +8,7 @@ import {
   Paper,
   Stack,
 } from '@mui/material';
+import { TextDisplay } from '../client/TextDisplay';
 
 // Define prompt types
 interface BasePrompt {
@@ -15,10 +16,7 @@ interface BasePrompt {
   text: string;
   isReal: boolean;
   authorId: string;
-}
-
-interface DisplayPrompt extends BasePrompt {
-  roundScore: number;
+  roundScore?: number;
   noSubmission?: boolean;
 }
 
@@ -30,7 +28,7 @@ function CreatorAvatarWithScore({
   showRealFake,
   guessersShown
 }: {
-  prompt: DisplayPrompt;
+  prompt: BasePrompt;
   creator: any;
   points: number;
   showRealFake: boolean;
@@ -72,15 +70,13 @@ function CreatorAvatarWithScore({
 }
 
 export function ScoringStage({ gameState }: { gameState: GameState }) {
-  if (!gameState.activeImage) return <Typography>No active image to score</Typography>;
+  if (!gameState.activeText) return <Typography>No active text to score</Typography>;
 
-  const image = gameState.images[gameState.activeImage.imageId];
-  if (!image) return <Typography>Image not found</Typography>;
-
-  const imageUrl = useMemo(() => URL.createObjectURL(image.imageBlob), [image.imageBlob]);
+  const text = gameState.texts[gameState.activeText.textId];
+  if (!text) return <Typography>Text not found</Typography>;
 
   // Group guesses by promptId
-  const guessesByPrompt = gameState.activeImage.guesses.reduce((acc, guess) => {
+  const guessesByPrompt = gameState.activeText.guesses.reduce((acc, guess) => {
     if (!acc[guess.promptId]) {
       acc[guess.promptId] = [];
     }
@@ -90,8 +86,8 @@ export function ScoringStage({ gameState }: { gameState: GameState }) {
 
   // Get all prompts (real + fake)
   const allPrompts: BasePrompt[] = [
-    { id: 'real', text: image.prompt, isReal: true, authorId: image.creatorId },
-    ...gameState.activeImage.fakePrompts.map(fp => ({
+    { id: 'real', text: text.prompt, isReal: true, authorId: text.creatorId },
+    ...gameState.activeText.fakePrompts.map(fp => ({
       id: fp.id,
       text: fp.text,
       isReal: false,
@@ -99,7 +95,7 @@ export function ScoringStage({ gameState }: { gameState: GameState }) {
     }))
   ];
 
-  // Find all connected players who didn't submit a fake prompt and aren't the image creator
+  // Find all connected players who didn't submit a fake prompt and aren't the text creator
   const missingPromptPlayers = useMemo((): BasePrompt[] => {
     const promptAuthorIds = new Set(allPrompts.map(p => p.authorId));
     const connectedPlayers = Object.values(gameState.players).filter(
@@ -169,7 +165,7 @@ export function ScoringStage({ gameState }: { gameState: GameState }) {
       topPrompt.id === sortedPrompts[sortedPrompts.length - 1].id &&
       !showRealFake
     ) {
-      // Wait for image collapse animation (0.3s) plus an additional delay
+      // Wait for text collapse animation (0.3s) plus an additional delay
       const t = setTimeout(() => setShowRealFake(true), 800);
       return () => clearTimeout(t);
     }
@@ -189,13 +185,13 @@ export function ScoringStage({ gameState }: { gameState: GameState }) {
   // Calculate current round points
   const roundPoints: Record<string, number> = {};
   
-  // Points for image creator (5 points per correct guess)
-  const correctGuesses = gameState.activeImage.guesses.filter(guess => guess.isCorrect).length;
-  roundPoints[image.creatorId] = correctGuesses * 5;
+  // Points for text creator (5 points per correct guess)
+  const correctGuesses = gameState.activeText.guesses.filter(guess => guess.isCorrect).length;
+  roundPoints[text.creatorId] = correctGuesses * 5;
 
   // Points for fake prompt authors
-  for (const fakePrompt of gameState.activeImage.fakePrompts) {
-    const guessesForThisFake = gameState.activeImage.guesses.filter(
+  for (const fakePrompt of gameState.activeText.fakePrompts) {
+    const guessesForThisFake = gameState.activeText.guesses.filter(
       guess => guess.promptId === fakePrompt.id
     ).length;
     
@@ -203,7 +199,7 @@ export function ScoringStage({ gameState }: { gameState: GameState }) {
     roundPoints[fakePrompt.authorId] = (roundPoints[fakePrompt.authorId] || 0) + (guessesForThisFake * 3);
 
     // 5 points if they guessed correctly
-    const authorGuessedCorrectly = gameState.activeImage.guesses.some(
+    const authorGuessedCorrectly = gameState.activeText.guesses.some(
       guess => guess.playerId === fakePrompt.authorId && guess.isCorrect
     );
     if (authorGuessedCorrectly) {
@@ -250,167 +246,75 @@ export function ScoringStage({ gameState }: { gameState: GameState }) {
       return bPoints - aPoints;
     });
   } else {
-    // Show most recently revealed at the top
     sortedRevealedPrompts = finalPrompts;
   }
 
-  const revealedPromptsWithScores: DisplayPrompt[] = sortedRevealedPrompts.map(prompt => ({
-    ...prompt,
-    roundScore: roundPoints[prompt.authorId] || 0,
-  }));
-
   return (
-    <Box sx={{ 
-      width: '100%', 
-      maxWidth: 1200, 
-      mx: 'auto', 
-      mt: 3, 
-      mb: 3,
-      display: 'flex',
-      gap: 3,
-      flexDirection: { xs: 'column', md: 'row' },
-      minHeight: 'calc(100vh - 48px)', // Account for the top and bottom margins
-      alignItems: 'center',
-      justifyContent: 'center'
-    }}>
-      <AnimatePresence>
-        {!showRealFake && (
-          <Box
-            component={motion.div}
-            initial={{ height: 512, opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ type: 'tween', duration: 0.3 }}
-            sx={{
-              width: { xs: '100%', md: '50%' },
-              minWidth: { md: 512 },
-              backgroundColor: 'rgba(255, 255, 255, 0.1)',
-              borderRadius: 2,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              overflow: 'hidden',
-              mb: { xs: 3, md: 0 },
-            }}
-          >
-            <Box
-              component="img"
-              src={imageUrl}
-              alt="Generated image"
-              sx={{
-                maxWidth: '100%',
-                maxHeight: '100%',
-                objectFit: 'contain',
-              }}
-            />
-          </Box>
-        )}
-      </AnimatePresence>
-      <Paper 
-        elevation={3} 
-        sx={{ 
-          p: { xs: 2, md: 3 }, 
-          bgcolor: 'rgba(255,255,255,0.8)',
-          width: { xs: '100%', md: '50%' },
-          minWidth: { md: 512 },
-        }}
-      >
-        <Box sx={{ minHeight: 90 }}>
-          <AnimatePresence>
-            {revealedPromptsWithScores.map((prompt, idx) => {
-              const guessers = guessesByPrompt[prompt.id] || [];
-              const isTop = idx === 0 && !prompt.noSubmission;
-              const creator = gameState.players[prompt.authorId];
-              let points = prompt.roundScore;
-              const guessersShown = isTop ? topGuessersShown : guessers.length;
-              return (
-                <Box
-                  key={prompt.id}
-                  component={motion.div}
-                  layout
-                  initial={{ x: 100, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  exit={{ x: -100, opacity: 0 }}
-                  transition={{ type: 'tween', stiffness: 400, damping: 30, duration: shouldResortByScore ? 1.5 : 0.3 }}
-                  sx={{ mb: 2 }}
-                >
-                  <Box
+    <Box sx={{ p: 2, width: '100%', maxWidth: 600, mx: 'auto' }}>
+      <Paper elevation={3} sx={{ p: 3, bgcolor: 'rgba(255,255,255,0.8)' }}>
+        <Box display="flex" flexDirection="column" alignItems="center" sx={{ mb: 2 }}>
+          <Typography variant="h5" gutterBottom>Generated Text</Typography>
+          <TextDisplay text={text.text} />
+        </Box>
+        <Typography variant="h5" gutterBottom align="center" sx={{ mb: 3 }}>
+          Prompts
+        </Typography>
+        <Stack spacing={2}>
+          {sortedRevealedPrompts.map((prompt) => {
+            const creator = gameState.players[prompt.authorId];
+            const points = roundPoints[prompt.authorId] || 0;
+            const guessers = guessesByPrompt[prompt.id] || [];
+            const guessersShown = topPrompt.id === prompt.id ? topGuessersShown : guessers.length;
+            const showAuthor = topPrompt.id === prompt.id ? topShowAuthor : true;
+
+            return (
+              <Box
+                key={prompt.id}
+                component={motion.div}
+                layout
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 2,
+                  p: 2,
+                  borderRadius: 2,
+                  bgcolor: 'rgba(255,255,255,0.6)',
+                  position: 'relative',
+                }}
+              >
+                <CreatorAvatarWithScore
+                  prompt={prompt}
+                  creator={creator}
+                  points={points}
+                  showRealFake={showRealFake}
+                  guessersShown={guessersShown}
+                />
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Typography
+                    variant="body1"
                     sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      bgcolor: prompt.noSubmission
-                        ? 'rgba(0, 0, 0, 0.04)' // very light gray for no submission
-                        : showRealFake
-                          ? (prompt.isReal
-                              ? 'rgba(76, 175, 80, 0.08)' // very light green
-                              : 'rgba(255, 152, 0, 0.08)') // very light orange
-                          : 'grey.100',
-                      border: prompt.noSubmission
-                        ? '2px solid rgba(0, 0, 0, 0.12)'
-                        : showRealFake
-                          ? (prompt.isReal
-                              ? '2px solid'
-                              : '2px solid')
-                          : '2px solid transparent',
-                      borderColor: prompt.noSubmission
-                        ? 'transparent'
-                        : showRealFake
-                          ? (prompt.isReal
-                              ? 'success.main'
-                              : 'warning.main')
-                          : 'transparent',
-                      borderRadius: 2,
-                      boxShadow: 1,
-                      p: { xs: 1, md: 1.25 },
-                      mb: 1,
-                      opacity: prompt.noSubmission ? 0.7 : 1,
+                      fontWeight: 500,
+                      color: showRealFake ? (prompt.isReal ? 'success.main' : 'error.main') : 'inherit',
+                      whiteSpace: 'pre-wrap',
+                      wordBreak: 'break-word',
                     }}
                   >
-                    <CreatorAvatarWithScore
-                      prompt={prompt}
-                      creator={creator}
-                      points={points}
-                      showRealFake={showRealFake}
-                      guessersShown={guessersShown}
-                    />
-                    <Typography 
-                      sx={{ 
-                        flex: 1, 
-                        mx: 2, 
-                        fontWeight: prompt.noSubmission ? 400 : 500, 
-                        fontSize: { xs: '1.2rem', md: '1.5rem' },
-                        fontStyle: prompt.noSubmission ? 'italic' : 'normal',
-                        color: prompt.noSubmission ? 'text.secondary' : 'text.primary'
-                      }}
-                    >
-                      {prompt.text}
+                    {prompt.text}
+                  </Typography>
+                  {showAuthor && !prompt.noSubmission && (
+                    <Typography variant="caption" color="text.secondary">
+                      by {creator.name}
                     </Typography>
-                    <Stack direction="row" spacing={-1} alignItems="center" sx={{ minWidth: 48 }}>
-                      {guessers.length ? (
-                        guessers.map((playerId, i) =>
-                          (!isTop || i < topGuessersShown) ? (
-                            <Box
-                              key={playerId}
-                              component={motion.img}
-                              src={gameState.players[playerId].avatarUrl}
-                              alt={gameState.players[playerId].name}
-                              title={gameState.players[playerId].name}
-                              initial={{ scale: 0.7, opacity: 0 }}
-                              animate={{ scale: 1, opacity: 1 }}
-                              transition={{ delay: isTop ? i * 0.15 : 0, type: 'spring', stiffness: 300, damping: 20 }}
-                              sx={{ width: 32, height: 32, borderRadius: '50%', border: '2px solid #fff', boxShadow: 1, ml: -1 }}
-                            />
-                          ) : null
-                        )
-                      ) : (
-                        <Typography variant="body2" color="text.secondary" sx={{ ml: 1, fontSize: '32px', lineHeight: 1, display: 'flex', alignItems: 'center', height: 32 }}>😪</Typography>
-                      )}
-                    </Stack>
-                  </Box>
+                  )}
                 </Box>
-              );
-            })}
-          </AnimatePresence>
-        </Box>
+              </Box>
+            );
+          })}
+        </Stack>
       </Paper>
     </Box>
   );
