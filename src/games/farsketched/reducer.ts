@@ -8,7 +8,7 @@ import {
   AchievementType,
   ActiveImage,
   GeneratedImage
-} from '@/games/farsketched/types';
+} from './types';
 import { generateImages } from '@/apis/imageGeneration';
 import { settingsManager } from '@/settings';
 

@@ -1,10 +1,10 @@
-import { ClientContent } from '@/games/farsketched/client/ClientContent';
-import { GameState, GameStage, Player, FakePrompt, Guess, AchievementType } from '@/games/farsketched/types';
 import { PeerProvider } from '@/contexts/PeerContext';
 import { ClientGameStateProvider } from '@/contexts/GameState';
-import { initialState } from '@/games/farsketched/reducer';
 import { ThemeProvider } from '@mui/material';
 import { clientTheme } from '@/ClientApp';
+import { initialState } from '../reducer';
+import { GameState, GameStage, Player, FakePrompt, Guess, AchievementType } from '../types';
+import { ClientContent } from '../client/ClientContent';
 
 
 function base64ToBlob(base64: string, mime = 'image/png') {

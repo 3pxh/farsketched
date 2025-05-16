@@ -22,7 +22,7 @@ import {
   ActiveImage,
   AchievementType,
   GameState
-} from '@/games/farsketched/types';
+} from '../types';
 
 // Mock the image generation API
 jest.mock('@/apis/imageGeneration', () => ({

@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { Player, GameConfig } from '@/games/farsketched/types';
+import { Player, GameConfig } from '../types';
 import { usePeer } from '@/contexts/PeerContext';
 import {
   Box,

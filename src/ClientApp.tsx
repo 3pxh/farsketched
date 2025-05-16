@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { PeerProvider } from '@/contexts/PeerContext';
 import { usePeer } from '@/contexts/PeerContext';
-import { Client } from '@/games/farsketched/client/Client';
+import { Client as FarsketchedClient } from '@/games/farsketched/client/Client';
 import { AudioProvider } from './contexts/AudioProvider';
 import { ThemeProvider, createTheme, responsiveFontSizes } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -69,7 +69,7 @@ function ClientContent() {
     <main className="container">
       {isConnected ? (
         // TODO: Choose the game based on URL params
-        <Client />
+        <FarsketchedClient />
       ) : (
         <div className="connection-status">Connecting to host...</div>
       )}
