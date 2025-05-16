@@ -5,7 +5,7 @@
 - [ ] Add Narrator
 - [ ] remove vertical scroll on client
 - [ ] change the peer context to allow subscribers to message routes, e.g. 'farsketched' -> farsketchedReducer as a callback (have 'game.xxx', 'global.gamestate', )
-
+.
 ### Narrator notes
 - once we have arbitrary subscribers to peer context, we'll make a narrator provider
 - NarratorProvider knows if it's a host or not, exposes narrate(text)
