@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { initializeDatabase } from './database';
+import { initializeDatabase } from './apis/database';
 import { PeerProvider } from '@/contexts/PeerContext';
 import { GameConfig } from '@/games/farsketched/types';
 import Host from '@/games/farsketched/host/Host';

@@ -1,4 +1,4 @@
-import { getSetting, setSetting } from './database';
+import { getSetting, setSetting } from './apis/database';
 
 export enum SettingsKey {
   OPENAI_API_KEY = 'openai_api_key',
