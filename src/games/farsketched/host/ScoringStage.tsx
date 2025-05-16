@@ -260,7 +260,19 @@ export function ScoringStage({ gameState }: { gameState: GameState }) {
   }));
 
   return (
-    <Box sx={{ width: '100%', maxWidth: 850, mx: 'auto', mt: 3, mb: 3 }}>
+    <Box sx={{ 
+      width: '100%', 
+      maxWidth: 1200, 
+      mx: 'auto', 
+      mt: 3, 
+      mb: 3,
+      display: 'flex',
+      gap: 3,
+      flexDirection: { xs: 'column', md: 'row' },
+      minHeight: 'calc(100vh - 48px)', // Account for the top and bottom margins
+      alignItems: 'center',
+      justifyContent: 'center'
+    }}>
       <AnimatePresence>
         {!showRealFake && (
           <Box
@@ -269,16 +281,15 @@ export function ScoringStage({ gameState }: { gameState: GameState }) {
             exit={{ height: 0, opacity: 0 }}
             transition={{ type: 'tween', duration: 0.3 }}
             sx={{
-              width: 512,
-              maxWidth: '100%',
+              width: { xs: '100%', md: '50%' },
+              minWidth: { md: 512 },
               backgroundColor: 'rgba(255, 255, 255, 0.1)',
               borderRadius: 2,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               overflow: 'hidden',
-              mx: 'auto',
-              mb: 3,
+              mb: { xs: 3, md: 0 },
             }}
           >
             <Box
@@ -294,8 +305,15 @@ export function ScoringStage({ gameState }: { gameState: GameState }) {
           </Box>
         )}
       </AnimatePresence>
-      <Paper elevation={3} sx={{ p: { xs: 2, md: 3 }, bgcolor: 'rgba(255,255,255,0.8)' }}>
-        <Typography variant="h5" fontWeight={700} mb={2}>Results:</Typography>
+      <Paper 
+        elevation={3} 
+        sx={{ 
+          p: { xs: 2, md: 3 }, 
+          bgcolor: 'rgba(255,255,255,0.8)',
+          width: { xs: '100%', md: '50%' },
+          minWidth: { md: 512 },
+        }}
+      >
         <Box sx={{ minHeight: 90 }}>
           <AnimatePresence>
             {revealedPromptsWithScores.map((prompt, idx) => {

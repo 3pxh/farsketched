@@ -77,7 +77,9 @@ export function PromptingStage() {
     return (
       <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="100vh" px={2}>
         <Paper elevation={3} sx={{ p: 3, width: '100%', maxWidth: 420, textAlign: 'center', bgcolor: 'rgba(255,255,255,0.8)' }}>
-          <Typography variant="h5" fontWeight={600} gutterBottom>Your prompt was sent!</Typography>
+          <Typography variant="h5" fontWeight={600} gutterBottom>
+            {!playerImage ? 'Your prompt was sent!' : 'Here is your masterpiece!'}
+          </Typography>
           <Box mt={2}>
             {!playerImage ? (
               <PlaceholderImage text="waiting for server confirmation..." showSpinner/>

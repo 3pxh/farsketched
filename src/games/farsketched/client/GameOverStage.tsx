@@ -234,10 +234,14 @@ export function GameOverStage() {
   const shareImage = async (imageId: string) => {
     const image = gameState.images[imageId];
     if (!image) return;
-
+    const sanitizedPrompt = image.prompt
+      .replace(/[^a-z0-9]/gi, '-') // Replace non-alphanumeric chars with hyphens
+      .toLowerCase()
+      .substring(0, 50); // Limit length to avoid too long filenames
+    const imageName = `${sanitizedPrompt}.webp`;
     try {
       // Convert Blob to File for sharing
-      const imageFile = new File([image.imageBlob], 'farsketched-image.webp', {
+      const imageFile = new File([image.imageBlob], imageName, {
         type: 'image/webp',
       });
 
@@ -253,7 +257,7 @@ export function GameOverStage() {
         const url = URL.createObjectURL(image.imageBlob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'farsketched-image.webp';
+        a.download = imageName;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);

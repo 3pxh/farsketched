@@ -1,6 +1,5 @@
 import { FoolingStage } from '../FoolingStage';
 import { GameState, GameStage } from '../../types';
-import '../../../../HostApp.css';
 
 const players = [
   { id: 'player1', name: 'Alice', avatarUrl: 'https://i.pravatar.cc/150?img=1' },
