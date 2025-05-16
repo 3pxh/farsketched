@@ -334,7 +334,7 @@ export const UniqueEmoji = () => {
 
     intervals.current.add(interval);
 
-    emoji.addEventListener("click", () => {
+    const handleEmojiInteraction = () => {
       if (collected.current.has(emoji.textContent || '')) {
         playSound('whoosh');
         endGame();
@@ -362,7 +362,10 @@ export const UniqueEmoji = () => {
         clearInterval(interval);
         intervals.current.delete(interval);
       }
-    });
+    };
+
+    emoji.addEventListener("click", handleEmojiInteraction);
+    emoji.addEventListener("touchstart", handleEmojiInteraction);
   };
 
   const endGame = () => {

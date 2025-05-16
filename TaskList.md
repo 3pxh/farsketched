@@ -1,10 +1,9 @@
 # Farsketched Implementation Task List
 
 ## On Deck
+- [ ] send client crashes to host? (how?) for diagnosing
 - [ ] Add Narrator
-- [ ] Make unique event listeners work on ios
 - [ ] remove vertical scroll on client
-- [ ] no "fooling stage", make panel take up full width (timer is close to top, make absolute)
 - [ ] change the peer context to allow subscribers to message routes, e.g. 'farsketched' -> farsketchedReducer as a callback (have 'game.xxx', 'global.gamestate', )
 
 ### Narrator notes

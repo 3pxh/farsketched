@@ -2,7 +2,6 @@ import { ScoringStage } from '../ScoringStage';
 import { GameState, GameStage } from '../../types';
 import { ClientGameStateProvider } from '@/contexts/GameState';
 import { PeerProvider } from '@/contexts/PeerContext';
-import '../../../../HostApp.css';
 
 const mockGameState: GameState = {
   config: {

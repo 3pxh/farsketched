@@ -5,7 +5,6 @@ import { HostGameStateProvider } from '@/contexts/GameState';
 import { initialState } from '../../reducer';
 import { ThemeProvider } from '@mui/material';
 import { createHostTheme } from '@/HostApp';
-import '../../../../HostApp.css';
 
 // Create a theme instance for fixtures
 const fixtureTheme = createHostTheme();
