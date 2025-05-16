@@ -9,12 +9,4 @@ export default {
       </AudioProvider>
     </div>
   ),
-
-  'Small Container': (
-    <div style={{ width: '400px', height: '600px', background: '#000' }}>
-      <AudioProvider>
-        <UniqueEmoji />
-      </AudioProvider>
-    </div>
-  ),
 }; 
