@@ -39,7 +39,15 @@ interface ImageCardProps {
 
 function ImageCard({ image, creator, onShare }: ImageCardProps) {
   const [expanded, setExpanded] = useState(false);
-  const imageUrl = URL.createObjectURL(image.imageBlob);
+  let imageUrl = '';
+  if (image.imageBlob instanceof Blob) {
+    imageUrl = URL.createObjectURL(image.imageBlob);
+  } else if (ArrayBuffer.isView(image.imageBlob)) {
+    const blob = new Blob([image.imageBlob], { type: 'image/webp' });
+    imageUrl = URL.createObjectURL(blob);
+  } else {
+    imageUrl = '';
+  }
   const gameStateContext = useClientGameState<GameState>();
   const gameState = gameStateContext.state;
 
@@ -88,13 +96,31 @@ function ImageCard({ image, creator, onShare }: ImageCardProps) {
 
   return (
     <Card>
-      <CardMedia
-        component="img"
-        height="200"
-        image={imageUrl}
-        alt={image.prompt}
-        sx={{ objectFit: 'cover' }}
-      />
+      <>
+        {!expanded ? (
+          <CardMedia
+            component="img"
+            height="200"
+            image={imageUrl}
+            alt={image.prompt}
+            sx={{ objectFit: 'cover' }}
+          />
+        ) : (
+          <Box
+            component="img"
+            src={imageUrl}
+            alt={image.prompt}
+            sx={{
+              width: '100%',
+              height: 'auto',
+              maxHeight: '70vh',
+              objectFit: 'contain',
+              display: 'block',
+              background: '#eee',
+            }}
+          />
+        )}
+      </>
       <CardActions sx={{ justifyContent: 'space-between', px: 2, py: 1 }}>
         <Box sx={{ 
           display: 'flex', 

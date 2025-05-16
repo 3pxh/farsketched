@@ -1,10 +1,41 @@
 import { useClientGameState } from '@/contexts/GameState';
 import { GameState } from '../types';
 import { Box, Paper, Avatar, Typography, Stack } from '@mui/material';
+import { usePeer } from '@/contexts/PeerContext';
 
 export function ScoringStage() {
   const { state: gameState } = useClientGameState<GameState>();
+  const { peerId } = usePeer();
+  const player = gameState.players[peerId];
   
+  // Calculate round score breakdown for the current player
+  let promptScore = 0;
+  let guessScore = 0;
+  if (gameState.activeImage) {
+    // Points for image creator (real prompt)
+    if (gameState.images[gameState.activeImage.imageId]?.creatorId === peerId) {
+      const correctGuesses = gameState.activeImage.guesses.filter(g => g.isCorrect).length;
+      promptScore += correctGuesses * 5;
+    }
+    // Points for fake prompt authors
+    for (const fakePrompt of gameState.activeImage.fakePrompts) {
+      if (fakePrompt.authorId === peerId) {
+        const guessesForThisFake = gameState.activeImage.guesses.filter(
+          guess => guess.promptId === fakePrompt.id
+        ).length;
+        promptScore += guessesForThisFake * 3;
+      }
+    }
+    // Points for guessing correctly
+    const playerGuess = gameState.activeImage.guesses.find(
+      guess => guess.playerId === peerId
+    );
+    if (playerGuess && playerGuess.isCorrect) {
+      guessScore += 5;
+    }
+  }
+  const roundScore = promptScore + guessScore;
+
   // Sort players by points in descending order
   const sortedPlayers = Object.values(gameState.players)
     .sort((a, b) => b.points - a.points);
@@ -12,6 +43,23 @@ export function ScoringStage() {
   return (
     <Box sx={{ p: 2, width: '100%', maxWidth: 600, mx: 'auto' }}>
       <Paper elevation={3} sx={{ p: 3, bgcolor: 'rgba(255,255,255,0.8)' }}>
+        <Box display="flex" flexDirection="column" alignItems="center" sx={{ mb: 2 }}>
+          <Avatar
+            src={player?.avatarUrl}
+            alt={player?.name}
+            sx={{ width: 64, height: 64, mb: 1 }}
+          />
+          <Typography variant="h6" sx={{ fontWeight: 700 }}>
+            {player?.name}
+          </Typography>
+          <Typography variant="subtitle1" align="center">
+            Your score this round: <b>{roundScore}</b>
+          </Typography>
+          <Typography variant="body2" align="center" color="text.secondary">
+            • Prompt score: <b>{promptScore}</b><br />
+            • Guess score: <b>{guessScore}</b>
+          </Typography>
+        </Box>
         <Typography variant="h5" gutterBottom align="center" sx={{ mb: 3 }}>
           Current Standings
         </Typography>
