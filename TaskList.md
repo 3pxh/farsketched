@@ -1,6 +1,7 @@
 # Farsketched Implementation Task List
 
 ## On Deck
+- [ ] allow host to continue from game over stage (or maybe roll credits?)
 - [ ] send client crashes to host? (how?) for diagnosing
 - [ ] Add Narrator
 - [ ] remove vertical scroll on client

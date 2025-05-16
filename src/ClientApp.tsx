@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import { PeerProvider } from '@/contexts/PeerContext';
 import { usePeer } from '@/contexts/PeerContext';
 import { Client as FarsketchedClient } from '@/games/farsketched/client/Client';
+import { Client as FlibbertigibbetClient } from '@/games/flibbertigibbet/client/Client';
 import { AudioProvider } from './contexts/AudioProvider';
 import { ThemeProvider, createTheme, responsiveFontSizes } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
+import { Game } from '@/types/games';
 
 export const clientTheme = responsiveFontSizes(createTheme({
   typography: {
@@ -44,16 +46,19 @@ export const clientTheme = responsiveFontSizes(createTheme({
 function ClientContent() {
   const { isConnected, setHostPeerId, connectToHost, peerId } = usePeer();
   const [hasAttemptedConnection, setHasAttemptedConnection] = useState(false);
+  const [selectedGame, setSelectedGame] = useState<Game | null>(null);
 
   useEffect(() => {
-    // Get room from URL
+    // Get room and game from URL
     const urlParams = new URLSearchParams(window.location.search);
     const room = urlParams.get('room');
+    const game = urlParams.get('game') as Game | null;
     
     if (room && peerId && !isConnected && !hasAttemptedConnection) {
       console.log('Setting host peer ID to:', room);
       setHostPeerId(room);
       setHasAttemptedConnection(true);
+      setSelectedGame(game);
     }
   }, [setHostPeerId, isConnected, hasAttemptedConnection, peerId]);
 
@@ -65,11 +70,25 @@ function ClientContent() {
     }
   }, [hasAttemptedConnection, isConnected, connectToHost]);
 
+  const renderGameComponent = (game: Game) => {
+    switch (game) {
+      case Game.FARSKETCHED:
+        return <FarsketchedClient />;
+      case Game.FLIBBERTIGIBBET:
+        return <FlibbertigibbetClient />;
+      default:
+        return <div>Invalid game selected</div>;
+    }
+  };
+
   return (
     <main className="container">
       {isConnected ? (
-        // TODO: Choose the game based on URL params
-        <FarsketchedClient />
+        selectedGame ? (
+          renderGameComponent(selectedGame)
+        ) : (
+          <div>No game selected</div>
+        )
       ) : (
         <div className="connection-status">Connecting to host...</div>
       )}

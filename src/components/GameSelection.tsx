@@ -34,7 +34,7 @@ export const GameSelection = ({ onGameSelect }: GameSelectionProps) => {
       <Button
         variant="contained"
         size="large"
-        onClick={() => onGameSelect(Game.FLIBBERTIGIBBET)}
+        onClick={() => {onGameSelect(Game.FLIBBERTIGIBBET)}}
         sx={{
           minWidth: 200,
           py: 2,

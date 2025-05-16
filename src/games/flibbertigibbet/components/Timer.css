@@ -1,0 +1,67 @@
+.timer-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.timer-progress-container {
+  width: 12rem;
+  height: 1rem;
+  background-color: #e5e7eb;
+  border-radius: 9999px;
+  overflow: visible;
+  position: relative;
+}
+
+.timer-progress-bar {
+  height: 100%;
+  transition: width 0.1s ease-out;
+  border-radius: 9999px;
+}
+
+.timer-emoji {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  transition: left 0.1s ease-out;
+}
+
+.timer-message {
+  color: #4b5563;
+}
+
+.emoji-burst {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  pointer-events: none;
+  width: 0;
+  height: 0;
+  z-index: 2;
+}
+
+.burst-emoji {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-size: 1.5rem;
+  opacity: 0;
+  animation: burst-emoji-fly var(--burst-duration, 1400ms) cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  transform: translate(-50%, -50%) rotate(var(--burst-angle));
+}
+
+@keyframes burst-emoji-fly {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1) rotate(var(--burst-angle));
+  }
+  80% {
+    opacity: .5;
+    transform: translate(-50%, -50%) scale(1.2) rotate(var(--burst-angle)) translateY(-60px);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8) rotate(var(--burst-angle)) translateY(-80px);
+  }
+} 
