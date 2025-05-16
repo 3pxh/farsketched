@@ -141,7 +141,7 @@ function ImageCard({ image, creator, onShare }: ImageCardProps) {
             minWidth: 0 // Enables text truncation
           }}>
             <Typography variant="body2" sx={{ fontWeight: 500 }}>
-              {creator?.name || 'Unknown'}
+            {image.prompt}
             </Typography>
             <Typography 
               variant="caption" 
@@ -152,12 +152,11 @@ function ImageCard({ image, creator, onShare }: ImageCardProps) {
                 whiteSpace: 'nowrap'
               }}
             >
-              {image.prompt}
+              {creator?.name || 'Unknown'}
             </Typography>
           </Box>
         </Box>
         <Box sx={{ flexShrink: 0 }}>
-          <Tooltip title="Show details">
             <IconButton 
               onClick={() => setExpanded(!expanded)}
               aria-expanded={expanded}
@@ -166,7 +165,6 @@ function ImageCard({ image, creator, onShare }: ImageCardProps) {
             >
               {expanded ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
             </IconButton>
-          </Tooltip>
           {ShareButton}
         </Box>
       </CardActions>
@@ -198,13 +196,13 @@ function ImageCard({ image, creator, onShare }: ImageCardProps) {
                   minWidth: 0 // Enables text truncation
                 }}>
                   <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                    {fakeAuthor?.name || 'Unknown'}
+                  {fake.text}
                   </Typography>
                   <Typography 
                     variant="caption" 
                     color="text.secondary"
                   >
-                    {fake.text}
+                    {fakeAuthor?.name || 'Unknown'}
                   </Typography>
                 </Box>
               </Box>
