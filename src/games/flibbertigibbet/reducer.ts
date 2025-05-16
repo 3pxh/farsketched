@@ -6,10 +6,10 @@ import {
   GameConfig,
   Player,
   AchievementType,
-  ActiveImage,
-  GeneratedImage
+  ActiveText,
+  GeneratedText
 } from './types';
-import { generateImages } from '@/apis/imageGeneration';
+import { generateText } from '@/apis/textGeneration';
 import { settingsManager } from '@/settings';
 
 // Default game configuration
@@ -21,24 +21,24 @@ const DEFAULT_CONFIG: GameConfig = {
   foolingTimerSeconds: 45,
   guessingTimerSeconds: 20,
   scoringDisplaySeconds: 10,
-  apiProvider: 'stability',
+  apiProvider: 'openai',
   apiKey: '',
   room: ''
 };
 
 // Helper function to generate timer ID
-const generateTimerId = (round: number, imageIndex: number) => `timer-${round}-${imageIndex}`;
+const generateTimerId = (round: number, textIndex: number) => `timer-${round}-${textIndex}`;
 
 // Initial game state
 export const initialState: GameState = {
   config: DEFAULT_CONFIG,
   stage: GameStage.LOBBY,
   players: {},
-  images: {},
+  texts: {},
   currentRound: 0,
-  roundImages: [],
-  activeImageIndex: 0,
-  activeImage: null,
+  roundTexts: [],
+  activeTextIndex: 0,
+  activeText: null,
   history: [],
   timer: {
     startTime: 0,
@@ -52,13 +52,13 @@ export const initialState: GameState = {
  * Calculates which players earned which achievements based on game history
  * @param history Array of completed game rounds
  * @param players Map of all players in the game
- * @param images Map of all generated images
+ * @param texts Map of all generated texts
  * @returns Map of achievement type to array of player IDs who earned it
  */
 export function calculateAchievements(
-  history: ActiveImage[],
+  history: ActiveText[],
   players: Record<string, Player>,
-  images: Record<string, GeneratedImage>
+  texts: Record<string, GeneratedText>
 ): Map<AchievementType, string[]> {
   const achievementMap = new Map<AchievementType, string[]>();
   
@@ -67,7 +67,7 @@ export function calculateAchievements(
     correctGuesses: number,      // For MOST_ACCURATE
     peopleFooled: number,        // For BEST_BULLSHITTER
     voteSpread: number,          // For THE_CHAOTICIAN
-    ownPromptsGuessed: number    // For THE_PAINTER
+    ownPromptsGuessed: number    // For THE_WRITER
   }>();
 
   // Initialize stats for all players
@@ -82,10 +82,10 @@ export function calculateAchievements(
 
   // Analyze each round
   history.forEach(round => {
-    const image = images[round.imageId];
-    if (!image) return; // Skip if image not found
+    const text = texts[round.textId];
+    if (!text) return; // Skip if text not found
     
-    const imageCreatorId = image.creatorId;
+    const textCreatorId = text.creatorId;
     
     // Count votes for each prompt
     const promptVotes = new Map<string, number>();
@@ -117,8 +117,8 @@ export function calculateAchievements(
       stats.voteSpread += variance;
     });
 
-    // Update image creator's stats
-    const creatorStats = playerStats.get(imageCreatorId)!;
+    // Update text creator's stats
+    const creatorStats = playerStats.get(textCreatorId)!;
     const correctGuessesForCreator = round.guesses.filter(g => g.isCorrect).length;
     creatorStats.ownPromptsGuessed += correctGuessesForCreator;
   });
@@ -153,7 +153,7 @@ export function calculateAchievements(
   );
 
   achievementMap.set(
-    AchievementType.THE_PAINTER,
+    AchievementType.THE_WRITER,
     findWinners(stats => stats.ownPromptsGuessed)
   );
 
@@ -234,56 +234,51 @@ export function farsketchedReducer(
 
     // Game flow messages
     case MessageType.SUBMIT_PROMPT: {
-      // Generate a unique ID for the image
-      const imageId = `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+      // Generate a unique ID for the text
+      const textId = `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
       
-      // Create a new pending image
-      const pendingImage = {
-        id: imageId,
+      // Create a new pending text
+      const pendingText = {
+        id: textId,
         creatorId: message.playerId,
         prompt: message.prompt,
-        imageBlob: new Blob(), // Empty blob for pending state
+        text: '', // Empty text for pending state
         roundIndex: state.currentRound,
         timestamp: Date.now(),
         status: 'pending' as const
       };
 
-      // Add the image to the current round's images
-      const currentRoundImages = state.roundImages[state.currentRound] || [];
-      const updatedRoundImages = [...state.roundImages];
-      updatedRoundImages[state.currentRound] = [...currentRoundImages, imageId];
+      // Add the text to the current round's texts
+      const currentRoundTexts = state.roundTexts[state.currentRound] || [];
+      const updatedRoundTexts = [...state.roundTexts];
+      updatedRoundTexts[state.currentRound] = [...currentRoundTexts, textId];
       
       // Get the appropriate API key based on provider
       const getApiKey = async () => {
-        if (state.config.apiProvider === 'stability') {
-          return await settingsManager.getStabilityApiKey();
-        } else if (state.config.apiProvider === 'openai') {
+        if (state.config.apiProvider === 'openai') {
           return await settingsManager.getOpenaiApiKey();
         }
         return null;
       };
 
-      // Call the image generation API
+      // Call the text generation API
       getApiKey().then(async (apiKey) => {
         if (!apiKey) {
           throw new Error('API key not found. Please set it in the settings.');
         }
 
-        const images = await generateImages({
+        const generatedText = await generateText({
           prompt: message.prompt,
-          provider: state.config.apiProvider as 'openai' | 'stability',
-          width: 512,
-          height: 512,
           apiKey
         });
 
-        if (images.length > 0) {
-          // Send success message with the generated image
+        if (generatedText) {
+          // Send success message with the generated text
           const successMessage: GameMessage = {
             type: MessageType.PROMPT_RESULT,
             success: true,
-            imageId,
-            imageBlob: images[0].blob,
+            textId,
+            generatedText: generatedText.text,
             timestamp: Date.now(),
             messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
           };
@@ -305,26 +300,26 @@ export function farsketchedReducer(
 
       return {
         ...state,
-        images: {
-          ...state.images,
-          [imageId]: pendingImage
+        texts: {
+          ...state.texts,
+          [textId]: pendingText
         },
-        roundImages: updatedRoundImages
+        roundTexts: updatedRoundTexts
       };
     }
 
     case MessageType.PROMPT_RESULT: {
-      if (message.success && message.imageId && message.imageBlob) {
-        // Update the existing image with the generated blob and mark as complete
-        const existingImage = state.images[message.imageId];
-        if (existingImage) {
+      if (message.success && message.textId && message.generatedText) {
+        // Update the existing text with the generated text and mark as complete
+        const existingText = state.texts[message.textId];
+        if (existingText) {
           const updatedState = {
             ...state,
-            images: {
-              ...state.images,
-              [message.imageId]: {
-                ...existingImage,
-                imageBlob: message.imageBlob,
+            texts: {
+              ...state.texts,
+              [message.textId]: {
+                ...existingText,
+                text: message.generatedText,
                 status: 'complete' as const
               }
             }
@@ -332,17 +327,17 @@ export function farsketchedReducer(
 
           // Check if we should transition to fooling stage
           if (state.stage === GameStage.PROMPTING) {
-            const currentRoundImageIds = updatedState.roundImages[updatedState.currentRound] || [];
-            const successfulImages = currentRoundImageIds.filter(imageId => {
-              const image = updatedState.images[imageId];
-              return image && image.status === 'complete' && image.imageBlob.size > 0;
+            const currentRoundTextIds = updatedState.roundTexts[updatedState.currentRound] || [];
+            const successfulTexts = currentRoundTextIds.filter(textId => {
+              const text = updatedState.texts[textId];
+              return text && text.status === 'complete' && text.text.length > 0;
             });
 
-            // Check if all players have submitted image requests
-            const allPlayersSubmitted = Object.keys(updatedState.players).length === currentRoundImageIds.length;
+            // Check if all players have submitted text requests
+            const allPlayersSubmitted = Object.keys(updatedState.players).length === currentRoundTextIds.length;
 
-            // If all players have submitted and we have at least one successful image, move to fooling
-            if (allPlayersSubmitted && successfulImages.length > 0) {
+            // If all players have submitted and we have at least one successful text, move to fooling
+            if (allPlayersSubmitted && successfulTexts.length > 0) {
               const now = Date.now();
               const timerId = generateTimerId(state.currentRound, 0);
               const timeoutId = setTimeout(() => {
@@ -356,9 +351,9 @@ export function farsketchedReducer(
                 sendSelfMessage(timerExpiredMessage);
               }, updatedState.config.foolingTimerSeconds * 1000);
 
-              // Set the first successful image as active
-              const activeImage = {
-                imageId: successfulImages[0],
+              // Set the first successful text as active
+              const activeText = {
+                textId: successfulTexts[0],
                 fakePrompts: [],
                 guesses: []
               };
@@ -366,8 +361,8 @@ export function farsketchedReducer(
               return {
                 ...updatedState,
                 stage: GameStage.FOOLING,
-                activeImage,
-                activeImageIndex: currentRoundImageIds.indexOf(successfulImages[0]),
+                activeText,
+                activeTextIndex: currentRoundTextIds.indexOf(successfulTexts[0]),
                 timer: {
                   startTime: now,
                   duration: updatedState.config.foolingTimerSeconds,
@@ -386,10 +381,10 @@ export function farsketchedReducer(
     }
 
     case MessageType.SUBMIT_FAKE_PROMPT: {
-      if (!state.activeImage) return state;
+      if (!state.activeText) return state;
 
       // Check if this player has already submitted a fake prompt
-      const hasSubmitted = state.activeImage.fakePrompts.some(
+      const hasSubmitted = state.activeText.fakePrompts.some(
         prompt => prompt.authorId === message.playerId
       );
       if (hasSubmitted) return state;
@@ -397,24 +392,24 @@ export function farsketchedReducer(
       // Create new fake prompt
       const fakePrompt = {
         id: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
-        imageId: state.activeImage.imageId,
+        textId: state.activeText.textId,
         authorId: message.playerId,
         text: message.fakePrompt
       };
 
-      const updatedActiveImage = {
-        ...state.activeImage,
-        fakePrompts: [...state.activeImage.fakePrompts, fakePrompt]
+      const updatedActiveText = {
+        ...state.activeText,
+        fakePrompts: [...state.activeText.fakePrompts, fakePrompt]
       };
 
       // Check if all non-creator players have submitted fake prompts
-      const imageCreatorId = state.images[state.activeImage.imageId].creatorId;
-      const nonCreatorPlayers = Object.keys(state.players).filter(id => id !== imageCreatorId);
-      const allPlayersSubmitted = nonCreatorPlayers.length === updatedActiveImage.fakePrompts.length;
+      const textCreatorId = state.texts[state.activeText.textId].creatorId;
+      const nonCreatorPlayers = Object.keys(state.players).filter(id => id !== textCreatorId);
+      const allPlayersSubmitted = nonCreatorPlayers.length === updatedActiveText.fakePrompts.length;
 
       if (allPlayersSubmitted) {
         const now = Date.now();
-        const timerId = generateTimerId(state.currentRound, state.activeImageIndex);
+        const timerId = generateTimerId(state.currentRound, state.activeTextIndex);
         const timeoutId = setTimeout(() => {
           const timerExpiredMessage: GameMessage = {
             type: MessageType.TIMER_EXPIRED,
@@ -429,7 +424,7 @@ export function farsketchedReducer(
         return {
           ...state,
           stage: GameStage.GUESSING,
-          activeImage: updatedActiveImage,
+          activeText: updatedActiveText,
           timer: {
             startTime: now,
             duration: state.config.guessingTimerSeconds,
@@ -442,15 +437,15 @@ export function farsketchedReducer(
 
       return {
         ...state,
-        activeImage: updatedActiveImage
+        activeText: updatedActiveText
       };
     }
 
     case MessageType.SUBMIT_GUESS: {
-      if (!state.activeImage) return state;
+      if (!state.activeText) return state;
 
       // Check if this player has already submitted a guess
-      const hasSubmitted = state.activeImage.guesses.some(
+      const hasSubmitted = state.activeText.guesses.some(
         guess => guess.playerId === message.playerId
       );
       if (hasSubmitted) return state;
@@ -458,42 +453,42 @@ export function farsketchedReducer(
       // Create new guess
       const guess = {
         playerId: message.playerId,
-        imageId: state.activeImage.imageId,
+        textId: state.activeText.textId,
         promptId: message.promptId,
         isCorrect: message.promptId === 'real'
       };
 
-      const updatedActiveImage = {
-        ...state.activeImage,
-        guesses: [...state.activeImage.guesses, guess]
+      const updatedActiveText = {
+        ...state.activeText,
+        guesses: [...state.activeText.guesses, guess]
       };
 
-      // Get the image creator's ID
-      const imageCreatorId = state.images[state.activeImage.imageId].creatorId;
+      // Get the text creator's ID
+      const textCreatorId = state.texts[state.activeText.textId].creatorId;
       
       // Check if all non-creator players have submitted guesses
-      const nonCreatorPlayers = Object.keys(state.players).filter(id => id !== imageCreatorId);
-      const allPlayersGuessed = nonCreatorPlayers.length === updatedActiveImage.guesses.length;
+      const nonCreatorPlayers = Object.keys(state.players).filter(id => id !== textCreatorId);
+      const allPlayersGuessed = nonCreatorPlayers.length === updatedActiveText.guesses.length;
 
       if (allPlayersGuessed) {
         // Calculate scores before moving to scoring stage
         const updatedPlayers = { ...state.players };
         
         // Count correct guesses for the real prompt
-        const correctGuesses = updatedActiveImage.guesses.filter(guess => guess.isCorrect).length;
+        const correctGuesses = updatedActiveText.guesses.filter(guess => guess.isCorrect).length;
         
-        // Award points to image creator for each correct guess
-        updatedPlayers[imageCreatorId] = {
-          ...updatedPlayers[imageCreatorId],
-          points: (updatedPlayers[imageCreatorId].points || 0) + (correctGuesses * 5)
+        // Award points to text creator for each correct guess
+        updatedPlayers[textCreatorId] = {
+          ...updatedPlayers[textCreatorId],
+          points: (updatedPlayers[textCreatorId].points || 0) + (correctGuesses * 5)
         };
 
         // Award points to players who wrote fake prompts
-        for (const fakePrompt of updatedActiveImage.fakePrompts) {
+        for (const fakePrompt of updatedActiveText.fakePrompts) {
           const fakePromptAuthor = fakePrompt.authorId;
           
           // Count how many players guessed this fake prompt
-          const guessesForThisFake = updatedActiveImage.guesses.filter(
+          const guessesForThisFake = updatedActiveText.guesses.filter(
             guess => guess.promptId === fakePrompt.id
           ).length;
 
@@ -504,7 +499,7 @@ export function farsketchedReducer(
           };
 
           // If they guessed correctly, award additional points
-          const authorGuessedCorrectly = updatedActiveImage.guesses.some(
+          const authorGuessedCorrectly = updatedActiveText.guesses.some(
             guess => guess.playerId === fakePromptAuthor && guess.isCorrect
           );
           if (authorGuessedCorrectly) {
@@ -516,7 +511,7 @@ export function farsketchedReducer(
         }
 
         const now = Date.now();
-        const timerId = generateTimerId(state.currentRound, state.activeImageIndex);
+        const timerId = generateTimerId(state.currentRound, state.activeTextIndex);
         const timeoutId = setTimeout(() => {
           const timerExpiredMessage: GameMessage = {
             type: MessageType.TIMER_EXPIRED,
@@ -531,8 +526,8 @@ export function farsketchedReducer(
         return {
           ...state,
           stage: GameStage.SCORING,
-          activeImage: updatedActiveImage,
-          history: [...state.history, updatedActiveImage],
+          activeText: updatedActiveText,
+          history: [...state.history, updatedActiveText],
           players: updatedPlayers,
           timer: {
             startTime: now,
@@ -546,7 +541,7 @@ export function farsketchedReducer(
 
       return {
         ...state,
-        activeImage: updatedActiveImage
+        activeText: updatedActiveText
       };
     }
 
@@ -559,7 +554,7 @@ export function farsketchedReducer(
       // Handle transition from prompting to fooling
       if (state.stage === GameStage.PROMPTING && message.stage === GameStage.PROMPTING) {
         const now = Date.now();
-        const timerId = generateTimerId(state.currentRound, state.activeImageIndex);
+        const timerId = generateTimerId(state.currentRound, state.activeTextIndex);
         const timeoutId = setTimeout(() => {
           const timerExpiredMessage: GameMessage = {
             type: MessageType.TIMER_EXPIRED,
@@ -571,16 +566,16 @@ export function farsketchedReducer(
           sendSelfMessage(timerExpiredMessage);
         }, state.config.foolingTimerSeconds * 1000);
 
-        // Find a completed image from the current round
-        const currentRoundImageIds = state.roundImages[state.currentRound] || [];
-        const completedImage = currentRoundImageIds.find(imageId => {
-          const image = state.images[imageId];
-          return image && image.status === 'complete';
+        // Find a completed text from the current round
+        const currentRoundTextIds = state.roundTexts[state.currentRound] || [];
+        const completedText = currentRoundTextIds.find(textId => {
+          const text = state.texts[textId];
+          return text && text.status === 'complete';
         });
 
-        // If we found a completed image, set it as active
-        const activeImage = completedImage ? {
-          imageId: completedImage,
+        // If we found a completed text, set it as active
+        const activeText = completedText ? {
+          textId: completedText,
           fakePrompts: [],
           guesses: []
         } : null;
@@ -588,8 +583,8 @@ export function farsketchedReducer(
         return {
           ...state,
           stage: GameStage.FOOLING,
-          activeImage,
-          activeImageIndex: completedImage ? currentRoundImageIds.indexOf(completedImage) : 0,
+          activeText,
+          activeTextIndex: completedText ? currentRoundTextIds.indexOf(completedText) : 0,
           timer: {
             startTime: now,
             duration: state.config.foolingTimerSeconds,
@@ -603,7 +598,7 @@ export function farsketchedReducer(
       // Handle transition from fooling to guessing
       if (state.stage === GameStage.FOOLING && message.stage === GameStage.FOOLING) {
         const now = Date.now();
-        const timerId = generateTimerId(state.currentRound, state.activeImageIndex);
+        const timerId = generateTimerId(state.currentRound, state.activeTextIndex);
         const timeoutId = setTimeout(() => {
           const timerExpiredMessage: GameMessage = {
             type: MessageType.TIMER_EXPIRED,
@@ -631,7 +626,7 @@ export function farsketchedReducer(
       // Handle transition from guessing to scoring
       if (state.stage === GameStage.GUESSING && message.stage === GameStage.GUESSING) {
         const now = Date.now();
-        const timerId = generateTimerId(state.currentRound, state.activeImageIndex);
+        const timerId = generateTimerId(state.currentRound, state.activeTextIndex);
         const timeoutId = setTimeout(() => {
           const timerExpiredMessage: GameMessage = {
             type: MessageType.TIMER_EXPIRED,
@@ -645,24 +640,24 @@ export function farsketchedReducer(
 
         // Calculate scores for the guesses we have
         const updatedPlayers = { ...state.players };
-        if (state.activeImage) {
-          const imageCreatorId = state.images[state.activeImage.imageId].creatorId;
+        if (state.activeText) {
+          const textCreatorId = state.texts[state.activeText.textId].creatorId;
           
           // Count correct guesses for the real prompt
-          const correctGuesses = state.activeImage.guesses.filter(guess => guess.isCorrect).length;
+          const correctGuesses = state.activeText.guesses.filter(guess => guess.isCorrect).length;
           
-          // Award points to image creator for each correct guess
-          updatedPlayers[imageCreatorId] = {
-            ...updatedPlayers[imageCreatorId],
-            points: (updatedPlayers[imageCreatorId].points || 0) + (correctGuesses * 5)
+          // Award points to text creator for each correct guess
+          updatedPlayers[textCreatorId] = {
+            ...updatedPlayers[textCreatorId],
+            points: (updatedPlayers[textCreatorId].points || 0) + (correctGuesses * 5)
           };
 
           // Award points to players who wrote fake prompts
-          for (const fakePrompt of state.activeImage.fakePrompts) {
+          for (const fakePrompt of state.activeText.fakePrompts) {
             const fakePromptAuthor = fakePrompt.authorId;
             
             // Count how many players guessed this fake prompt
-            const guessesForThisFake = state.activeImage.guesses.filter(
+            const guessesForThisFake = state.activeText.guesses.filter(
               guess => guess.promptId === fakePrompt.id
             ).length;
 
@@ -673,7 +668,7 @@ export function farsketchedReducer(
             };
 
             // If they guessed correctly, award additional points
-            const authorGuessedCorrectly = state.activeImage.guesses.some(
+            const authorGuessedCorrectly = state.activeText.guesses.some(
               guess => guess.playerId === fakePromptAuthor && guess.isCorrect
             );
             if (authorGuessedCorrectly) {
@@ -688,7 +683,7 @@ export function farsketchedReducer(
         return {
           ...state,
           stage: GameStage.SCORING,
-          history: state.activeImage ? [...state.history, state.activeImage] : state.history,
+          history: state.activeText ? [...state.history, state.activeText] : state.history,
           players: updatedPlayers,
           timer: {
             startTime: now,
@@ -702,16 +697,16 @@ export function farsketchedReducer(
 
       // Handle transition from scoring stage
       if (state.stage === GameStage.SCORING && message.stage === GameStage.SCORING) {
-        const currentRoundImageIds = state.roundImages[state.currentRound] || [];
-        const nextImageIndex = state.activeImageIndex + 1;
-        const isLastImageInRound = nextImageIndex >= currentRoundImageIds.length;
+        const currentRoundTextIds = state.roundTexts[state.currentRound] || [];
+        const nextTextIndex = state.activeTextIndex + 1;
+        const isLastTextInRound = nextTextIndex >= currentRoundTextIds.length;
         const isLastRound = state.currentRound + 1 >= state.config.roundCount;
 
-        // If there are more images in the current round, move to fooling stage
-        if (!isLastImageInRound) {
-          const nextImageId = currentRoundImageIds[nextImageIndex];
+        // If there are more texts in the current round, move to fooling stage
+        if (!isLastTextInRound) {
+          const nextTextId = currentRoundTextIds[nextTextIndex];
           const now = Date.now();
-          const timerId = generateTimerId(state.currentRound, nextImageIndex);
+          const timerId = generateTimerId(state.currentRound, nextTextIndex);
           const timeoutId = setTimeout(() => {
             const timerExpiredMessage: GameMessage = {
               type: MessageType.TIMER_EXPIRED,
@@ -726,12 +721,12 @@ export function farsketchedReducer(
           return {
             ...state,
             stage: GameStage.FOOLING,
-            activeImage: {
-              imageId: nextImageId,
+            activeText: {
+              textId: nextTextId,
               fakePrompts: [],
               guesses: []
             },
-            activeImageIndex: nextImageIndex,
+            activeTextIndex: nextTextIndex,
             timer: {
               startTime: now,
               duration: state.config.foolingTimerSeconds,
@@ -761,8 +756,8 @@ export function farsketchedReducer(
             ...state,
             stage: GameStage.PROMPTING,
             currentRound: state.currentRound + 1,
-            activeImage: null,
-            activeImageIndex: 0,
+            activeText: null,
+            activeTextIndex: 0,
             timer: {
               startTime: now,
               duration: state.config.promptTimerSeconds,
@@ -773,8 +768,8 @@ export function farsketchedReducer(
           };
         }
 
-        // If this is the last round and last image, move to game over
-        const achievementMap = calculateAchievements(state.history, state.players, state.images);
+        // If this is the last round and last text, move to game over
+        const achievementMap = calculateAchievements(state.history, state.players, state.texts);
         const achievements = Array.from(achievementMap.entries()).map(([type, playerIds]) => ({
           type,
           playerIds,

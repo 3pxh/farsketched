@@ -2,7 +2,7 @@
  * Core types for Farsketched
  */
 
-// ==================== Player & Image Types ====================
+// ==================== Player & Text Types ====================
 
 /**
  * Represents a player in the game
@@ -17,16 +17,16 @@ export interface Player {
   }
   
   /**
-   * Represents a generated image
+   * Represents a generated text
    */
-  export interface GeneratedImage {
-    id: string;           // Unique ID for the image
-    creatorId: string;    // Player ID who created the image
-    prompt: string;       // The real prompt used to generate the image
-    imageBlob: Blob;      // The actual image data as a Blob
-    roundIndex: number;   // Which round this image belongs to
-    timestamp: number;    // When the image was generated
-    status: 'pending' | 'complete' | 'error'; // Status of the image generation
+  export interface GeneratedText {
+    id: string;           // Unique ID for the text
+    creatorId: string;    // Player ID who created the text
+    prompt: string;       // The real prompt used to generate the text
+    text: string;         // The actual generated text
+    roundIndex: number;   // Which round this text belongs to
+    timestamp: number;    // When the text was generated
+    status: 'pending' | 'complete' | 'error'; // Status of the text generation
   }
   
   /**
@@ -34,17 +34,17 @@ export interface Player {
    */
   export interface FakePrompt {
     id: string;           // Unique ID for this fake prompt
-    imageId: string;      // ID of the image this fake prompt is for
+    textId: string;       // ID of the text this fake prompt is for
     authorId: string;     // Player ID who wrote this fake prompt
     text: string;         // The fake prompt text
   }
   
   /**
-   * Represents a player's guess for an image
+   * Represents a player's guess for a text
    */
   export interface Guess {
     playerId: string;     // Player who made the guess
-    imageId: string;      // Image being guessed for
+    textId: string;       // Text being guessed for
     promptId: string;     // ID of the prompt they chose (can be real or fake)
     isCorrect: boolean;   // Whether this guess was correct
   }
@@ -59,7 +59,7 @@ export interface Player {
     PROMPTING = 'prompting',        // Players submitting initial prompts
     FOOLING = 'fooling',            // Players creating fake prompts
     GUESSING = 'guessing',          // Players guessing the real prompt
-    SCORING = 'scoring',            // Showing scores for the current image
+    SCORING = 'scoring',            // Showing scores for the current text
     GAME_OVER = 'game_over'         // Final scores and achievements
   }
   
@@ -74,9 +74,9 @@ export interface Player {
     foolingTimerSeconds: number;    // Time for fooling stage (default: 45)
     guessingTimerSeconds: number;   // Time for guessing stage (default: 20)
     scoringDisplaySeconds: number;  // Time to display scoring (default: 10)
-    apiProvider: string;            // Image generation API provider
+    apiProvider: string;            // Text generation API provider
     apiKey: string;                 // API key for the provider
-    room: string;               // Unique code for this game room
+    room: string;                   // Unique code for this game room
   }
   
   /**
@@ -86,7 +86,7 @@ export interface Player {
     MOST_ACCURATE = 'most_accurate',   // Most correct guesses
     BEST_BULLSHITTER = 'best_bullshitter', // Most people fooled by fake prompts
     THE_CHAOTICIAN = 'the_chaotician', // Biggest spread of votes across prompts
-    THE_PAINTER = 'the_painter'        // Most real prompts guessed of their images
+    THE_WRITER = 'the_writer'          // Most real prompts guessed of their texts
   }
   
   /**
@@ -99,10 +99,10 @@ export interface Player {
   }
   
   /**
-   * Current active image being processed
+   * Current active text being processed
    */
-  export interface ActiveImage {
-    imageId: string;      // The current image being shown
+  export interface ActiveText {
+    textId: string;       // The current text being shown
     fakePrompts: FakePrompt[]; // All fake prompts submitted
     guesses: Guess[];     // All guesses made
   }
@@ -114,12 +114,12 @@ export interface Player {
     config: GameConfig;
     stage: GameStage;
     players: Record<string, Player>;
-    images: Record<string, GeneratedImage>;
+    texts: Record<string, GeneratedText>;
     currentRound: number; // 0-indexed
-    roundImages: string[][]; // Array of image IDs per round
-    activeImageIndex: number; // Index within current round
-    activeImage: ActiveImage | null;
-    history: ActiveImage[]; // Array of completed ActiveImage instances
+    roundTexts: string[][]; // Array of text IDs per round
+    activeTextIndex: number; // Index within current round
+    activeText: ActiveText | null;
+    history: ActiveText[]; // Array of completed ActiveText instances
     timer: {
       startTime: number;  // When the current timer started
       duration: number;   // Duration in seconds
@@ -281,7 +281,7 @@ export interface Player {
   }
   
   /**
-   * Client submits a prompt to generate an image
+   * Client submits a prompt to generate text
    */
   export interface SubmitPromptMessage extends BaseMessage {
     type: MessageType.SUBMIT_PROMPT;
@@ -295,8 +295,8 @@ export interface Player {
   export interface PromptResultMessage extends BaseMessage {
     type: MessageType.PROMPT_RESULT;
     success: boolean;
-    imageId?: string;
-    imageBlob?: Blob;
+    textId?: string;
+    generatedText?: string;
     errorMessage?: string;
   }
   
@@ -306,7 +306,7 @@ export interface Player {
   export interface SubmitFakePromptMessage extends BaseMessage {
     type: MessageType.SUBMIT_FAKE_PROMPT;
     playerId: string;
-    imageId: string;
+    textId: string;
     fakePrompt: string;
   }
   
@@ -316,7 +316,7 @@ export interface Player {
   export interface SubmitGuessMessage extends BaseMessage {
     type: MessageType.SUBMIT_GUESS;
     playerId: string;
-    imageId: string;
+    textId: string;
     promptId: string;
   }
 
@@ -341,7 +341,7 @@ export interface Player {
   }
   
   /**
-   * Error specific to image prompt generation
+   * Error specific to text prompt generation
    */
   export interface PromptErrorMessage extends BaseMessage {
     type: MessageType.PROMPT_ERROR;
