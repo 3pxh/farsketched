@@ -52,7 +52,7 @@ export const PeerProvider = <T,>({ children, isHost, peerId: providedPeerId }: P
     const storedPeerId = localStorage.getItem(`peer_${roomId}`);
     console.log(`Stored peer ID for room ${roomId}: ${storedPeerId}`);
     const newPeer = providedPeerId ? new Peer(providedPeerId) : (storedPeerId && !isHost) ? new Peer(storedPeerId) : new Peer();
-    
+    console.log("new peer", {id: newPeer.id, isHost, providedPeerId});
     newPeer.on('open', (id) => {
       setPeerId(id);
       if(!isHost && !storedPeerId) {

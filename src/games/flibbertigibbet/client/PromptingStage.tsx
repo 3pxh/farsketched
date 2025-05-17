@@ -61,7 +61,7 @@ export function PromptingStage() {
       .filter(text => !!text && !!text.prompt)
       .length;
     return (
-      <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="100vh" px={2}>
+      <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" height="100%" px={2}>
         <Paper elevation={3} sx={{ p: 3, width: '100%', maxWidth: 600, textAlign: 'center', bgcolor: 'rgba(255,255,255,0.8)' }}>
           <Typography variant="h5" fontWeight={600} gutterBottom>
             {!playerText ? 'Your prompt was sent!' : 'Here is your generated text!'}
@@ -91,7 +91,7 @@ export function PromptingStage() {
   }
 
   return (
-    <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="100vh" px={2}>
+    <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" height="100%" px={2}>
       <Paper elevation={3} sx={{ p: 3, width: '100%', maxWidth: 600, textAlign: 'center', bgcolor: 'rgba(255,255,255,0.8)' }}>
         <Typography variant="h5" fontWeight={600} gutterBottom>Enter your prompt</Typography>
         

@@ -9,6 +9,7 @@ import { settingsManager } from '@/settings';
 export type TextProvider = 'openai';
 
 interface TextGenerationOptions {
+  instructions?: string;
   prompt: string;
 }
 
@@ -47,6 +48,7 @@ export async function generateText(options: TextGenerationOptions): Promise<Gene
     const response = await client.responses.create({
       model: 'o4-mini',
       input: options.prompt,
+      instructions: options.instructions,
     });
     
     console.log('OpenAI Response:', response);

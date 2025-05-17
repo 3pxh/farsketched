@@ -1,9 +1,7 @@
 # Farsketched Implementation Task List
 
 ## On Deck
-- [ ] add "instructions" to game config for Flibbertigibbet and insert them in the openai call. Then have some presets which are configurable in the host lobby.
-  - [ ] rethink where the game config sits. api keys should be stored via settings, but aother aspects of the config might get set from host lobby
-  - [ ] gameconfig will sit at the game level (not at the App level) - the API call layer will be the purview of both Settings/settings as well as the generation api functions. 
+- [ ] do we want to put the gameconfig on gamestate? (mutating it outside the reducer feels wrong, but we may want the config on the client e.g. for showing the instructions to players in flibbertigibbet)
 - [ ] allow host to continue from game over stage (or maybe roll credits?)
 - [ ] send client crashes to host? (how?) for diagnosing
 - [ ] Add Narrator
