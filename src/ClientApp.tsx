@@ -54,7 +54,7 @@ function ClientContent() {
     const room = urlParams.get('room');
     const game = urlParams.get('game') as Game | null;
     
-    if (room && peerId && !isConnected && !hasAttemptedConnection) {
+    if (room && peerId && isConnected && !hasAttemptedConnection) {
       console.log('Setting host peer ID to:', room);
       setHostPeerId(room);
       setHasAttemptedConnection(true);
