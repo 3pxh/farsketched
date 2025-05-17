@@ -19,7 +19,7 @@ const PRESET_INSTRUCTIONS = [
   {
     title: "Flibbertigibbet",
     summary: "A dictionary for made up words",
-    ai: "Provide dictionary definitions for silly sounding made up words. Provide the part of speech, definition, and example sentence. Except in the example sentence do not include the word but use underscores to indicate a blank.",
+    ai: "Provide dictionary definitions for silly sounding made up words, but make the definition not reference the sound of the word directly. Provide the part of speech, definition, and example sentence. Do not include the word in any of your output, use underscores to indicate a blank in the example sentence.",
     human: "Write a silly sounding made-up word",
   },
   {
