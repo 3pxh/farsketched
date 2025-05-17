@@ -8,7 +8,6 @@
 - [ ] send client crashes to host? (how?) for diagnosing
 - [ ] Add Narrator
 - [ ] change the peer context to allow subscribers to message routes, e.g. 'farsketched' -> farsketchedReducer as a callback (have 'game.xxx', 'global.gamestate', )? (we might want this if we begin sending narration messages to the client. no one but the peer context should be removing the messages, and it should only do it after furnishing them to all consumers)
-- [ ] There's a bug when two players join at the same time and the host doesn't make player objects for both of them. Not sure why this happens (do they have the same id?), if it could be a race condition, a peerjs thing, ... -- the extra unfortunate thing is this can actually lead to the peer id being "taken" on the player who doesn't get a player id when they try to refresh -- come to think of it I wonder if this could be from the peerjs requests happening at the same time and getting the same id. This might have only been the case on the airplane... presumably real people on phones will be less likely to hit this (also maybe their different IPs will get them distinct id's, idk how assignment works by the stun server -- at worst maybe we have them roll their own id)
 
 ### Narrator notes
 - once we have arbitrary subscribers to peer context, we'll make a narrator provider
