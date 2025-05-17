@@ -18,6 +18,12 @@ interface DecorationPosition {
 }
 
 export function TextDisplay({ text, showSpinner = false }: TextDisplayProps) {
+  // Calculate font size based on text length
+  const fontSize = useMemo(() => {
+    return `${Math.max(1, 3-(text.length/50))}rem`
+
+  }, [text.length]);
+
   // Generate random decoration positions
   const decorationPositions = useMemo(() => {
     const positions: DecorationPosition[] = [];
@@ -48,7 +54,7 @@ export function TextDisplay({ text, showSpinner = false }: TextDisplayProps) {
         p: 3,
         color: 'text.secondary',
         textAlign: 'center',
-        fontSize: '1.1rem',
+        fontSize,
         position: 'relative',
         overflow: 'hidden',
         whiteSpace: 'pre-wrap',
