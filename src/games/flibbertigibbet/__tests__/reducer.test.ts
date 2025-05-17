@@ -45,7 +45,7 @@ jest.mock('@/settings', () => ({
 const DEFAULT_CONFIG: GameConfig = {
   maxPlayers: 10,
   minPlayers: 3,
-  roundCount: 3,
+  roundCount: 2,
   promptTimerSeconds: 45,
   foolingTimerSeconds: 45,
   guessingTimerSeconds: 20,
