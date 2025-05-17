@@ -203,7 +203,7 @@ export const PlayerSetup = () => {
             ) : (
               <Box sx={{ width: '100%'}}>
                 <Typography variant="body1" sx={{ mb: 2 }}>
-                  Waiting for the host to start the game...
+                  Check that you're in the lobby on the host, otherwise refresh and join.
                 </Typography>
                 <Button
                   variant="contained"
