@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { GameStage, GameConfig, GameMessage, GameState } from '../types';
-import { farsketchedReducer, initialState } from '../reducer';
+import { flibbertigibbetReducer, initialState } from '../reducer';
 import { HostLobby } from './HostLobby';
 import { usePeer } from '@/contexts/PeerContext';
 import { HostGameStateProvider, useHostGameState } from '@/contexts/GameState';
@@ -10,11 +10,18 @@ import { FoolingStage, PromptingStage, GuessingStage, GameOverStage } from './in
 import { Paper, Box, ThemeProvider } from '@mui/material';
 import { createHostTheme } from '@/HostApp';
 
-interface HostProps {
-  gameConfig: GameConfig;
-}
+const gameConfig: GameConfig = {
+  maxPlayers: 10,
+  minPlayers: 3,
+  roundCount: 3,
+  promptTimerSeconds: 45,
+  foolingTimerSeconds: 45,
+  guessingTimerSeconds: 20,
+  scoringDisplaySeconds: 10,
+  room: ''
+};
 
-export function HostContent({ gameConfig }: HostProps) {
+export function HostContent() {
   // Get synchronized game state from the context
   const { state: gameState, updateState } = useHostGameState<GameState>();
   const { messages, markRead, sendSelfMessage } = usePeer<GameMessage>();
@@ -31,7 +38,10 @@ export function HostContent({ gameConfig }: HostProps) {
   useEffect(() => {
     messages.forEach(msg => {
       try {
-        updateState(currentState => farsketchedReducer(currentState, msg, sendSelfMessage));
+        console.log("HOST pre-reducer", msg, gameState)
+        const newState = flibbertigibbetReducer(gameState, msg, sendSelfMessage);
+        updateState(newState);
+        console.log("HOST post-reducer", newState)
         markRead(msg);
       } catch (error) {
         console.error('Error processing game message:', error);
@@ -105,7 +115,7 @@ export function HostContent({ gameConfig }: HostProps) {
   );
 }
 
-export default function FlibbertigibbetHost({ gameConfig }: HostProps) {
+export default function FlibbertigibbetHost() {
   const theme = useMemo(() => createHostTheme(), []);
   
   return (
@@ -115,7 +125,7 @@ export default function FlibbertigibbetHost({ gameConfig }: HostProps) {
         debug={true}
         syncInterval={100}
       >
-        <HostContent gameConfig={gameConfig} />
+        <HostContent />
       </HostGameStateProvider>
     </ThemeProvider>
   );

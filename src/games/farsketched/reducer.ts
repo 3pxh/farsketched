@@ -10,7 +10,6 @@ import {
   GeneratedImage
 } from './types';
 import { generateImages } from '@/apis/imageGeneration';
-import { settingsManager } from '@/settings';
 
 // Default game configuration
 const DEFAULT_CONFIG: GameConfig = {
@@ -21,8 +20,6 @@ const DEFAULT_CONFIG: GameConfig = {
   foolingTimerSeconds: 45,
   guessingTimerSeconds: 20,
   scoringDisplaySeconds: 10,
-  apiProvider: 'stability',
-  apiKey: '',
   room: ''
 };
 
@@ -252,31 +249,13 @@ export function farsketchedReducer(
       const currentRoundImages = state.roundImages[state.currentRound] || [];
       const updatedRoundImages = [...state.roundImages];
       updatedRoundImages[state.currentRound] = [...currentRoundImages, imageId];
-      
-      // Get the appropriate API key based on provider
-      const getApiKey = async () => {
-        if (state.config.apiProvider === 'stability') {
-          return await settingsManager.getStabilityApiKey();
-        } else if (state.config.apiProvider === 'openai') {
-          return await settingsManager.getOpenaiApiKey();
-        }
-        return null;
-      };
 
       // Call the image generation API
-      getApiKey().then(async (apiKey) => {
-        if (!apiKey) {
-          throw new Error('API key not found. Please set it in the settings.');
-        }
-
-        const images = await generateImages({
-          prompt: message.prompt,
-          provider: state.config.apiProvider as 'openai' | 'stability',
-          width: 512,
-          height: 512,
-          apiKey
-        });
-
+      generateImages({
+        prompt: message.prompt,
+        width: 512,
+        height: 512
+      }).then(images => {
         if (images.length > 0) {
           // Send success message with the generated image
           const successMessage: GameMessage = {

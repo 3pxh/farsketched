@@ -3,6 +3,8 @@
  * This module handles all image generation related functionality
  */
 
+import { settingsManager } from '@/settings';
+
 export type ImageProvider = 'openai' | 'stability';
 
 interface ImageGenerationOptions {
@@ -10,9 +12,7 @@ interface ImageGenerationOptions {
   width?: number;
   height?: number;
   numImages?: number;
-  provider: ImageProvider;
   outputFormat?: 'webp' | 'png' | 'jpeg';
-  apiKey: string;
 }
 
 interface GeneratedImage {
@@ -25,11 +25,11 @@ interface GeneratedImage {
  * @param options - Configuration options for image generation
  * @returns Promise resolving to an array of generated images
  */
-async function generateWithStabilityAI(options: ImageGenerationOptions): Promise<GeneratedImage[]> {
+async function generateWithStabilityAI(options: ImageGenerationOptions, apiKey: string): Promise<GeneratedImage[]> {
   const STABILITY_API_URL = 'https://api.stability.ai/v2beta/stable-image/generate/core';
   
   try {
-    if (!options.apiKey) {
+    if (!apiKey) {
       throw new Error('Stability AI API key not found. Please set it in the settings.');
     }
 
@@ -43,7 +43,7 @@ async function generateWithStabilityAI(options: ImageGenerationOptions): Promise
     const response = await fetch(STABILITY_API_URL, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${options.apiKey}`,
+        'Authorization': `Bearer ${apiKey}`,
         'Accept': 'image/*',
       },
       body: formData,
@@ -73,14 +73,21 @@ async function generateWithStabilityAI(options: ImageGenerationOptions): Promise
  */
 export async function generateImages(options: ImageGenerationOptions): Promise<GeneratedImage[]> {
   try {
-    switch (options.provider) {
+    const provider = await settingsManager.getImageGenerationProvider();
+    const apiKey = await settingsManager.getImageGenerationApiKey();
+
+    if (!apiKey) {
+      throw new Error('API key not found. Please set it in the settings.');
+    }
+
+    switch (provider) {
       case 'stability':
-        return await generateWithStabilityAI(options);
+        return await generateWithStabilityAI(options, apiKey);
       case 'openai':
         // TODO: Implement OpenAI DALL-E integration
         throw new Error('OpenAI integration not implemented yet');
       default:
-        throw new Error(`Unsupported provider: ${options.provider}`);
+        throw new Error(`Unsupported provider: ${provider}`);
     }
   } catch (error) {
     console.error('Error generating images:', error);

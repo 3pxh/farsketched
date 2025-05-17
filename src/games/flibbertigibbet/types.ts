@@ -74,8 +74,6 @@ export interface Player {
     foolingTimerSeconds: number;    // Time for fooling stage (default: 45)
     guessingTimerSeconds: number;   // Time for guessing stage (default: 20)
     scoringDisplaySeconds: number;  // Time to display scoring (default: 10)
-    apiProvider: string;            // Text generation API provider
-    apiKey: string;                 // API key for the provider
     room: string;                   // Unique code for this game room
   }
   

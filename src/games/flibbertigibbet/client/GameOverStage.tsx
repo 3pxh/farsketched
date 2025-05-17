@@ -250,7 +250,7 @@ export function GameOverStage() {
             text={text}
             creator={gameState.players[text.creatorId]}
             onShare={() => shareText(text.id)}
-          />
+            />
         ))}
       </Box>
       <Snackbar
