@@ -10,7 +10,6 @@ import {
   GeneratedText
 } from './types';
 import { generateText } from '@/apis/textGeneration';
-import { settingsManager } from '@/settings';
 
 // Default game configuration
 const DEFAULT_CONFIG: GameConfig = {
@@ -21,8 +20,6 @@ const DEFAULT_CONFIG: GameConfig = {
   foolingTimerSeconds: 45,
   guessingTimerSeconds: 20,
   scoringDisplaySeconds: 10,
-  apiProvider: 'openai',
-  apiKey: '',
   room: ''
 };
 
@@ -253,25 +250,10 @@ export function farsketchedReducer(
       const updatedRoundTexts = [...state.roundTexts];
       updatedRoundTexts[state.currentRound] = [...currentRoundTexts, textId];
       
-      // Get the appropriate API key based on provider
-      const getApiKey = async () => {
-        if (state.config.apiProvider === 'openai') {
-          return await settingsManager.getOpenaiApiKey();
-        }
-        return null;
-      };
-
       // Call the text generation API
-      getApiKey().then(async (apiKey) => {
-        if (!apiKey) {
-          throw new Error('API key not found. Please set it in the settings.');
-        }
-
-        const generatedText = await generateText({
-          prompt: message.prompt,
-          apiKey
-        });
-
+      generateText({
+        prompt: message.prompt,
+      }).then(generatedText => {
         if (generatedText) {
           // Send success message with the generated text
           const successMessage: GameMessage = {

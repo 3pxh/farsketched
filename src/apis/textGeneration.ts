@@ -4,13 +4,12 @@
  */
 
 import OpenAI from 'openai';
+import { settingsManager } from '@/settings';
+
+export type TextProvider = 'openai';
 
 interface TextGenerationOptions {
   prompt: string;
-  maxTokens?: number;
-  temperature?: number;
-  model?: string;
-  apiKey: string;
 }
 
 interface GeneratedText {
@@ -29,17 +28,24 @@ interface GeneratedText {
  */
 export async function generateText(options: TextGenerationOptions): Promise<GeneratedText> {
   try {
-    if (!options.apiKey) {
+    const provider = await settingsManager.getTextGenerationProvider();
+    const apiKey = await settingsManager.getOpenaiApiKey();
+
+    if (!apiKey) {
       throw new Error('OpenAI API key not found. Please set it in the settings.');
     }
 
+    if (provider !== 'openai') {
+      throw new Error(`Unsupported text generation provider: ${provider}`);
+    }
+
     const client = new OpenAI({
-      apiKey: options.apiKey,
+      apiKey,
       dangerouslyAllowBrowser: true,
     });
 
     const response = await client.responses.create({
-      model: options.model || 'o4-mini',
+      model: 'o4-mini',
       input: options.prompt,
     });
     

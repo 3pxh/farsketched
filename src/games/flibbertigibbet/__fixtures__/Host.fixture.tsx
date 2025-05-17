@@ -52,8 +52,6 @@ const gameConfig = {
   foolingTimerSeconds: 45,
   guessingTimerSeconds: 20,
   scoringDisplaySeconds: 10,
-  apiProvider: 'openai',
-  apiKey: 'test-key',
   room: 'TEST123'
 };
 

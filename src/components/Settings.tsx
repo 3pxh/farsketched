@@ -33,36 +33,38 @@ export function Settings({ gameConfig, onSave, onClose }: SettingsProps) {
   const [testMessage, setTestMessage] = useState('');
   const [openaiKey, setOpenaiKey] = useState('');
   const [stabilityKey, setStabilityKey] = useState('');
+  const [imageProvider, setImageProvider] = useState<'openai' | 'stability'>('stability');
+  const [textProvider, setTextProvider] = useState<'openai'>('openai');
 
   useEffect(() => {
-    // Load saved API keys when component mounts
-    const loadApiKeys = async () => {
+    // Load saved API keys and providers when component mounts
+    const loadSettings = async () => {
       try {
         const savedOpenaiKey = await settingsManager.getOpenaiApiKey();
         const savedStabilityKey = await settingsManager.getStabilityApiKey();
+        const savedImageProvider = await settingsManager.getImageGenerationProvider();
+        const savedTextProvider = await settingsManager.getTextGenerationProvider();
         if (savedOpenaiKey) setOpenaiKey(savedOpenaiKey);
         if (savedStabilityKey) setStabilityKey(savedStabilityKey);
+        setImageProvider(savedImageProvider);
+        setTextProvider(savedTextProvider);
       } catch (error) {
-        console.error('Error loading API keys:', error);
+        console.error('Error loading settings:', error);
       }
     };
-    loadApiKeys();
+    loadSettings();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      // Save API keys to database
+      // Save API keys and providers to database
       await settingsManager.setOpenaiApiKey(openaiKey);
       await settingsManager.setStabilityApiKey(stabilityKey);
+      await settingsManager.setImageGenerationProvider(imageProvider);
+      await settingsManager.setTextGenerationProvider(textProvider);
       
-      // Update game config with the appropriate API key based on provider
-      const updatedConfig = {
-        ...config,
-        apiKey: config.apiProvider === 'openai' ? openaiKey : stabilityKey
-      };
-      
-      onSave(updatedConfig);
+      onSave(config);
       onClose();
     } catch (error) {
       console.error('Error saving settings:', error);
@@ -81,11 +83,9 @@ export function Settings({ gameConfig, onSave, onClose }: SettingsProps) {
 
       const result = await generateImages({
         prompt: "A simple test image",
-        provider,
         width: 512,
         height: 512,
         outputFormat: 'webp',
-        apiKey
       });
       
       if (result && result.length > 0) {
@@ -129,6 +129,27 @@ export function Settings({ gameConfig, onSave, onClose }: SettingsProps) {
                 API Configuration
               </Typography>
               <Stack spacing={2}>
+                <FormControl fullWidth>
+                  <InputLabel>Image Generation Provider</InputLabel>
+                  <Select
+                    value={imageProvider}
+                    label="Image Generation Provider"
+                    onChange={(e) => setImageProvider(e.target.value as 'openai' | 'stability')}
+                  >
+                    <MenuItem value="openai">OpenAI</MenuItem>
+                    <MenuItem value="stability">Stability AI</MenuItem>
+                  </Select>
+                </FormControl>
+                <FormControl fullWidth>
+                  <InputLabel>Text Generation Provider</InputLabel>
+                  <Select
+                    value={textProvider}
+                    label="Text Generation Provider"
+                    onChange={(e) => setTextProvider(e.target.value as 'openai')}
+                  >
+                    <MenuItem value="openai">OpenAI</MenuItem>
+                  </Select>
+                </FormControl>
                 <Box>
                   <TextField
                     fullWidth
@@ -200,17 +221,6 @@ export function Settings({ gameConfig, onSave, onClose }: SettingsProps) {
                   inputProps={{ min: 1, max: 10 }}
                   fullWidth
                 />
-                <FormControl fullWidth>
-                  <InputLabel>API Provider</InputLabel>
-                  <Select
-                    value={config.apiProvider}
-                    label="API Provider"
-                    onChange={(e) => setConfig({ ...config, apiProvider: e.target.value as 'openai' | 'stability' })}
-                  >
-                    <MenuItem value="openai">OpenAI</MenuItem>
-                    <MenuItem value="stability">Stability AI</MenuItem>
-                  </Select>
-                </FormControl>
               </Stack>
             </Box>
           </Stack>

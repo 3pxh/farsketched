@@ -23,8 +23,6 @@ const defaultGameConfig: GameConfig = {
   foolingTimerSeconds: 45,
   guessingTimerSeconds: 20,
   scoringDisplaySeconds: 10,
-  apiProvider: 'openai',
-  apiKey: '',
   room: ''
 };
 
