@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { GameConfig } from '../games/farsketched/types';
 import { generateImages } from '../apis/imageGeneration';
 import { settingsManager } from '../settings';
 import {
@@ -22,13 +21,10 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 
 interface SettingsProps {
-  gameConfig: GameConfig;
-  onSave: (config: GameConfig) => void;
   onClose: () => void;
 }
 
-export function Settings({ gameConfig, onSave, onClose }: SettingsProps) {
-  const [config, setConfig] = useState<GameConfig>(gameConfig);
+export function Settings({ onClose }: SettingsProps) {
   const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
   const [testMessage, setTestMessage] = useState('');
   const [openaiKey, setOpenaiKey] = useState('');
@@ -64,7 +60,6 @@ export function Settings({ gameConfig, onSave, onClose }: SettingsProps) {
       await settingsManager.setImageGenerationProvider(imageProvider);
       await settingsManager.setTextGenerationProvider(textProvider);
       
-      onSave(config);
       onClose();
     } catch (error) {
       console.error('Error saving settings:', error);
@@ -197,30 +192,6 @@ export function Settings({ gameConfig, onSave, onClose }: SettingsProps) {
                     {testMessage}
                   </Alert>
                 )}
-              </Stack>
-            </Box>
-
-            <Box>
-              <Typography variant="h6" gutterBottom>
-                Game Settings
-              </Typography>
-              <Stack spacing={2}>
-                <TextField
-                  label="Max Players"
-                  type="number"
-                  value={config.maxPlayers}
-                  onChange={(e) => setConfig({ ...config, maxPlayers: parseInt(e.target.value) })}
-                  inputProps={{ min: 2, max: 20 }}
-                  fullWidth
-                />
-                <TextField
-                  label="Number of Rounds"
-                  type="number"
-                  value={config.roundCount}
-                  onChange={(e) => setConfig({ ...config, roundCount: parseInt(e.target.value) })}
-                  inputProps={{ min: 1, max: 10 }}
-                  fullWidth
-                />
               </Stack>
             </Box>
           </Stack>

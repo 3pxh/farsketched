@@ -157,7 +157,7 @@ export function calculateAchievements(
   return achievementMap;
 }
 
-export function farsketchedReducer(
+export function flibbertigibbetReducer(
   state: GameState = initialState,
   message: GameMessage,
   sendSelfMessage: (msg: GameMessage) => void

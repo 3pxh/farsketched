@@ -10,11 +10,18 @@ import { FoolingStage, PromptingStage, GuessingStage, GameOverStage } from './in
 import { Paper, Box, ThemeProvider } from '@mui/material';
 import { createHostTheme } from '@/HostApp';
 
-interface HostProps {
-  gameConfig: GameConfig;
-}
+const gameConfig: GameConfig = {
+  maxPlayers: 10,
+  minPlayers: 3,
+  roundCount: 3,
+  promptTimerSeconds: 45,
+  foolingTimerSeconds: 45,
+  guessingTimerSeconds: 20,
+  scoringDisplaySeconds: 10,
+  room: ''
+};
 
-export function HostContent({ gameConfig }: HostProps) {
+export function HostContent() {
   // Get synchronized game state from the context
   const { state: gameState, updateState } = useHostGameState<GameState>();
   const { messages, markRead, sendSelfMessage } = usePeer<GameMessage>();
@@ -105,7 +112,8 @@ export function HostContent({ gameConfig }: HostProps) {
   );
 }
 
-export default function Host({ gameConfig }: HostProps) {
+
+export default function Host() {
   const theme = useMemo(() => createHostTheme(), []);
   
   return (
@@ -115,7 +123,7 @@ export default function Host({ gameConfig }: HostProps) {
         debug={true}
         syncInterval={100}
       >
-        <HostContent gameConfig={gameConfig} />
+        <HostContent />
       </HostGameStateProvider>
     </ThemeProvider>
   );

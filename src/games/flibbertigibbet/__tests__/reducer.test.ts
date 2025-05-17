@@ -1,4 +1,4 @@
-import { farsketchedReducer, initialState, calculateAchievements } from '../reducer';
+import { flibbertigibbetReducer, initialState, calculateAchievements } from '../reducer';
 import { 
   MessageType, 
   GameStage, 
@@ -61,9 +61,9 @@ const sendSelfMessage = (msg: GameMessage) => {
   console.log('sendSelfMessage:', msg);
 };
 
-describe('farsketchedReducer', () => {
+describe('flibbertigibbetReducer', () => {
   it('should return initial state when no state is provided', () => {
-    const result = farsketchedReducer(undefined, createMessage<PingMessage>(MessageType.PING, {}), sendSelfMessage);
+    const result = flibbertigibbetReducer(undefined, createMessage<PingMessage>(MessageType.PING, {}), sendSelfMessage);
     expect(result).toEqual(initialState);
   });
 
@@ -74,7 +74,7 @@ describe('farsketchedReducer', () => {
       avatarUrl: 'https://example.com/avatar.png'
     });
 
-    const result = farsketchedReducer(initialState, message, sendSelfMessage);
+    const result = flibbertigibbetReducer(initialState, message, sendSelfMessage);
 
     expect(result.players).toHaveProperty('player1');
     expect(result.players['player1']).toEqual({
@@ -98,7 +98,7 @@ describe('farsketchedReducer', () => {
     ];
 
     connectionMessages.forEach(message => {
-      const result = farsketchedReducer(initialState, message, sendSelfMessage);
+      const result = flibbertigibbetReducer(initialState, message, sendSelfMessage);
       expect(result).toEqual(initialState);
     });
   });
@@ -110,7 +110,7 @@ describe('farsketchedReducer', () => {
     ];
     let result = {}
     lobbyMessages.forEach(message => {
-      result = farsketchedReducer(initialState, message, sendSelfMessage);
+      result = flibbertigibbetReducer(initialState, message, sendSelfMessage);
     });
     
     // Expect the game to be in prompting stage with a running timer
@@ -136,7 +136,7 @@ describe('farsketchedReducer', () => {
     });
     
     // First test SUBMIT_PROMPT
-    let result = farsketchedReducer(initialState, submitPromptMessage, sendSelfMessage);
+    let result = flibbertigibbetReducer(initialState, submitPromptMessage, sendSelfMessage);
     expect(result.texts).not.toEqual(initialState.texts);
     expect(result.roundTexts).not.toEqual(initialState.roundTexts);
     
@@ -150,7 +150,7 @@ describe('farsketchedReducer', () => {
       textId, 
       generatedText: 'Generated text for testing'
     });
-    result = farsketchedReducer(result, promptResultMessage, sendSelfMessage);
+    result = flibbertigibbetReducer(result, promptResultMessage, sendSelfMessage);
     expect(result.texts[textId].status).toBe('complete');
 
     // Setup state for fake prompt and guess tests
@@ -170,7 +170,7 @@ describe('farsketchedReducer', () => {
       textId, 
       fakePrompt: 'test' 
     });
-    result = farsketchedReducer(stateWithActiveText, fakePromptMessage, sendSelfMessage);
+    result = flibbertigibbetReducer(stateWithActiveText, fakePromptMessage, sendSelfMessage);
     expect(result.activeText?.fakePrompts.length).toBe(1);
 
     // Test SUBMIT_GUESS
@@ -179,7 +179,7 @@ describe('farsketchedReducer', () => {
       textId, 
       promptId: 'test' 
     });
-    result = farsketchedReducer(result, guessMessage, sendSelfMessage);
+    result = flibbertigibbetReducer(result, guessMessage, sendSelfMessage);
     expect(result.activeText?.guesses.length).toBe(1);
 
     // Test messages that should not change state
@@ -188,7 +188,7 @@ describe('farsketchedReducer', () => {
     ];
 
     nonStateChangingMessages.forEach(message => {
-      const result = farsketchedReducer(initialState, message, sendSelfMessage);
+      const result = flibbertigibbetReducer(initialState, message, sendSelfMessage);
       expect(result).toEqual(initialState);
     });
   });
@@ -200,13 +200,13 @@ describe('farsketchedReducer', () => {
     ];
 
     errorMessages.forEach(message => {
-      const result = farsketchedReducer(initialState, message, sendSelfMessage);
+      const result = flibbertigibbetReducer(initialState, message, sendSelfMessage);
       expect(result).toEqual(initialState);
     });
   });
 
   it('should handle unknown message types by returning current state', () => {
-    const result = farsketchedReducer(initialState, createMessage<PingMessage>('UNKNOWN_TYPE' as MessageType, {}), sendSelfMessage);
+    const result = flibbertigibbetReducer(initialState, createMessage<PingMessage>('UNKNOWN_TYPE' as MessageType, {}), sendSelfMessage);
     expect(result).toEqual(initialState);
   });
 
@@ -264,7 +264,7 @@ describe('farsketchedReducer', () => {
       promptId: 'real' // Guessing the real prompt
     });
     
-    const stateAfterFirstGuess = farsketchedReducer(initialTestState, firstGuessMessage, sendSelfMessage);
+    const stateAfterFirstGuess = flibbertigibbetReducer(initialTestState, firstGuessMessage, sendSelfMessage);
     
     // Verify the first guess was saved
     expect(stateAfterFirstGuess.activeText?.guesses.length).toBe(1);
@@ -278,7 +278,7 @@ describe('farsketchedReducer', () => {
       promptId: 'fake1' // Changing their mind to the fake prompt
     });
     
-    const stateAfterSecondGuess = farsketchedReducer(stateAfterFirstGuess, secondGuessMessage, sendSelfMessage);
+    const stateAfterSecondGuess = flibbertigibbetReducer(stateAfterFirstGuess, secondGuessMessage, sendSelfMessage);
     
     // Verify that the second guess was ignored
     expect(stateAfterSecondGuess.activeText?.guesses.length).toBe(1);
@@ -305,7 +305,7 @@ describe('farsketchedReducer', () => {
           name: `Player ${playerId}`,
           avatarUrl: `https://example.com/avatar-${playerId}.png`
         });
-        state = farsketchedReducer(state, playerMessage, sendSelfMessage);
+        state = flibbertigibbetReducer(state, playerMessage, sendSelfMessage);
       }
 
       // Verify players are added
@@ -315,7 +315,7 @@ describe('farsketchedReducer', () => {
       const startMessage = createMessage<RequestStartGameMessage>(MessageType.REQUEST_START_GAME, {
         playerId: players[0]
       });
-      state = farsketchedReducer(state, startMessage, sendSelfMessage);
+      state = flibbertigibbetReducer(state, startMessage, sendSelfMessage);
       expect(state.stage).toBe(GameStage.PROMPTING);
 
       // Play through each round
@@ -329,7 +329,7 @@ describe('farsketchedReducer', () => {
             playerId,
             prompt: `Round ${round} prompt from ${playerId}`
           });
-          state = farsketchedReducer(state, promptMessage, sendSelfMessage);
+          state = flibbertigibbetReducer(state, promptMessage, sendSelfMessage);
         }
 
         // Verify prompts were submitted
@@ -342,7 +342,7 @@ describe('farsketchedReducer', () => {
             textId,
             generatedText: `Generated text for ${textId}`
           });
-          state = farsketchedReducer(state, resultMessage, sendSelfMessage);
+          state = flibbertigibbetReducer(state, resultMessage, sendSelfMessage);
         }
 
         // For each text in the round
@@ -363,7 +363,7 @@ describe('farsketchedReducer', () => {
                 textId: currentTextId,
                 fakePrompt: `Fake prompt for text ${textIndex} by ${playerId}`
               });
-              state = farsketchedReducer(state, fakePromptMessage, sendSelfMessage);
+              state = flibbertigibbetReducer(state, fakePromptMessage, sendSelfMessage);
             }
           }
 
@@ -380,7 +380,7 @@ describe('farsketchedReducer', () => {
                 textId: currentTextId,
                 promptId: 'real' // Everyone guesses the real prompt for simplicity
               });
-              state = farsketchedReducer(state, guessMessage, sendSelfMessage);
+              state = flibbertigibbetReducer(state, guessMessage, sendSelfMessage);
             }
           }
 
@@ -395,7 +395,7 @@ describe('farsketchedReducer', () => {
             stage: GameStage.SCORING,
             timerId: `timer-${round}-${textIndex}`
           });
-          state = farsketchedReducer(state, timerExpiredMessage, sendSelfMessage);
+          state = flibbertigibbetReducer(state, timerExpiredMessage, sendSelfMessage);
 
           // If this is the last text of the round
           if (textIndex === players.length - 1) {
@@ -431,20 +431,20 @@ describe('farsketchedReducer', () => {
           name: `Player ${playerId}`,
           avatarUrl: `https://example.com/avatar-${playerId}.png`
         });
-        state = farsketchedReducer(state, playerMessage, sendSelfMessage);
+        state = flibbertigibbetReducer(state, playerMessage, sendSelfMessage);
       }
 
       // Start game and submit a prompt
       const startMessage = createMessage<RequestStartGameMessage>(MessageType.REQUEST_START_GAME, {
         playerId: players[0]
       });
-      state = farsketchedReducer(state, startMessage, sendSelfMessage);
+      state = flibbertigibbetReducer(state, startMessage, sendSelfMessage);
 
       const promptMessage = createMessage<SubmitPromptMessage>(MessageType.SUBMIT_PROMPT, {
         playerId: players[0],
         prompt: 'Test prompt'
       });
-      state = farsketchedReducer(state, promptMessage, sendSelfMessage);
+      state = flibbertigibbetReducer(state, promptMessage, sendSelfMessage);
 
       // Get the text ID
       const textId = Object.keys(state.texts)[0];
@@ -455,7 +455,7 @@ describe('farsketchedReducer', () => {
         textId,
         generatedText: 'Generated text for testing'
       });
-      state = farsketchedReducer(state, resultMessage, sendSelfMessage);
+      state = flibbertigibbetReducer(state, resultMessage, sendSelfMessage);
 
       // Set up state for fooling stage
       state = {
@@ -475,7 +475,7 @@ describe('farsketchedReducer', () => {
           textId,
           fakePrompt: `Fake prompt from ${playerId}`
         });
-        state = farsketchedReducer(state, fakePromptMessage, sendSelfMessage);
+        state = flibbertigibbetReducer(state, fakePromptMessage, sendSelfMessage);
       }
 
       // Verify we moved to guessing stage
@@ -494,20 +494,20 @@ describe('farsketchedReducer', () => {
           name: `Player ${playerId}`,
           avatarUrl: `https://example.com/avatar-${playerId}.png`
         });
-        state = farsketchedReducer(state, playerMessage, sendSelfMessage);
+        state = flibbertigibbetReducer(state, playerMessage, sendSelfMessage);
       }
 
       // Start game and submit a prompt
       const startMessage = createMessage<RequestStartGameMessage>(MessageType.REQUEST_START_GAME, {
         playerId: players[0]
       });
-      state = farsketchedReducer(state, startMessage, sendSelfMessage);
+      state = flibbertigibbetReducer(state, startMessage, sendSelfMessage);
 
       const promptMessage = createMessage<SubmitPromptMessage>(MessageType.SUBMIT_PROMPT, {
         playerId: players[0],
         prompt: 'Test prompt'
       });
-      state = farsketchedReducer(state, promptMessage, sendSelfMessage);
+      state = flibbertigibbetReducer(state, promptMessage, sendSelfMessage);
 
       // Get the text ID
       const textId = Object.keys(state.texts)[0];
@@ -518,7 +518,7 @@ describe('farsketchedReducer', () => {
         textId,
         generatedText: 'Generated text for testing'
       });
-      state = farsketchedReducer(state, resultMessage, sendSelfMessage);
+      state = flibbertigibbetReducer(state, resultMessage, sendSelfMessage);
 
       // Set up state for guessing stage
       state = {
@@ -541,7 +541,7 @@ describe('farsketchedReducer', () => {
           textId,
           promptId: 'real'
         });
-        state = farsketchedReducer(state, guessMessage, sendSelfMessage);
+        state = flibbertigibbetReducer(state, guessMessage, sendSelfMessage);
       }
 
       // Should now be in scoring stage
@@ -560,20 +560,20 @@ describe('farsketchedReducer', () => {
           name: `Player ${playerId}`,
           avatarUrl: `https://example.com/avatar-${playerId}.png`
         });
-        state = farsketchedReducer(state, playerMessage, sendSelfMessage);
+        state = flibbertigibbetReducer(state, playerMessage, sendSelfMessage);
       }
 
       // Start game and submit a prompt
       const startMessage = createMessage<RequestStartGameMessage>(MessageType.REQUEST_START_GAME, {
         playerId: players[0]
       });
-      state = farsketchedReducer(state, startMessage, sendSelfMessage);
+      state = flibbertigibbetReducer(state, startMessage, sendSelfMessage);
 
       const promptMessage = createMessage<SubmitPromptMessage>(MessageType.SUBMIT_PROMPT, {
         playerId: players[0],
         prompt: 'Test prompt'
       });
-      state = farsketchedReducer(state, promptMessage, sendSelfMessage);
+      state = flibbertigibbetReducer(state, promptMessage, sendSelfMessage);
 
       // Get the text ID
       const textId = Object.keys(state.texts)[0];
@@ -584,7 +584,7 @@ describe('farsketchedReducer', () => {
         textId,
         generatedText: 'Generated text for testing'
       });
-      state = farsketchedReducer(state, resultMessage, sendSelfMessage);
+      state = flibbertigibbetReducer(state, resultMessage, sendSelfMessage);
 
       // Set up state for guessing stage with fake prompts
       state = {
@@ -608,14 +608,14 @@ describe('farsketchedReducer', () => {
         textId,
         promptId: 'real'
       });
-      state = farsketchedReducer(state, guess1, sendSelfMessage);
+      state = flibbertigibbetReducer(state, guess1, sendSelfMessage);
 
       const guess2 = createMessage<SubmitGuessMessage>(MessageType.SUBMIT_GUESS, {
         playerId: players[2],
         textId,
         promptId: 'fake1'
       });
-      state = farsketchedReducer(state, guess2, sendSelfMessage);
+      state = flibbertigibbetReducer(state, guess2, sendSelfMessage);
 
       // Verify scores:
       // - player1 (creator) gets 5 points for player2's correct guess
@@ -637,21 +637,21 @@ describe('farsketchedReducer', () => {
           name: `Player ${playerId}`,
           avatarUrl: `https://example.com/avatar-${playerId}.png`
         });
-        state = farsketchedReducer(state, playerMessage, sendSelfMessage);
+        state = flibbertigibbetReducer(state, playerMessage, sendSelfMessage);
       }
 
       // Start game
       const startMessage = createMessage<RequestStartGameMessage>(MessageType.REQUEST_START_GAME, {
         playerId: players[0]
       });
-      state = farsketchedReducer(state, startMessage, sendSelfMessage);
+      state = flibbertigibbetReducer(state, startMessage, sendSelfMessage);
 
       // First round
       const promptMessage1 = createMessage<SubmitPromptMessage>(MessageType.SUBMIT_PROMPT, {
         playerId: players[0],
         prompt: 'Test prompt 1'
       });
-      state = farsketchedReducer(state, promptMessage1, sendSelfMessage);
+      state = flibbertigibbetReducer(state, promptMessage1, sendSelfMessage);
 
       const textId1 = Object.keys(state.texts)[0];
 
@@ -660,7 +660,7 @@ describe('farsketchedReducer', () => {
         textId: textId1,
         generatedText: 'Generated text for testing 1'
       });
-      state = farsketchedReducer(state, resultMessage1, sendSelfMessage);
+      state = flibbertigibbetReducer(state, resultMessage1, sendSelfMessage);
 
       state = {
         ...state,
@@ -681,27 +681,27 @@ describe('farsketchedReducer', () => {
         textId: textId1,
         promptId: 'real'
       });
-      state = farsketchedReducer(state, guess1, sendSelfMessage);
+      state = flibbertigibbetReducer(state, guess1, sendSelfMessage);
 
       const guess2 = createMessage<SubmitGuessMessage>(MessageType.SUBMIT_GUESS, {
         playerId: players[2],
         textId: textId1,
         promptId: 'real'
       });
-      state = farsketchedReducer(state, guess2, sendSelfMessage);
+      state = flibbertigibbetReducer(state, guess2, sendSelfMessage);
 
       // Move to next round
       const timerExpiredMessage1 = createMessage<GameMessage>(MessageType.TIMER_EXPIRED, {
         stage: GameStage.SCORING
       });
-      state = farsketchedReducer(state, timerExpiredMessage1, sendSelfMessage);
+      state = flibbertigibbetReducer(state, timerExpiredMessage1, sendSelfMessage);
 
       // Second round
       const promptMessage2 = createMessage<SubmitPromptMessage>(MessageType.SUBMIT_PROMPT, {
         playerId: players[1],
         prompt: 'Test prompt 2'
       });
-      state = farsketchedReducer(state, promptMessage2, sendSelfMessage);
+      state = flibbertigibbetReducer(state, promptMessage2, sendSelfMessage);
 
       const textId2 = Object.keys(state.texts)[1];
 
@@ -710,7 +710,7 @@ describe('farsketchedReducer', () => {
         textId: textId2,
         generatedText: 'Generated text for testing 2'
       });
-      state = farsketchedReducer(state, resultMessage2, sendSelfMessage);
+      state = flibbertigibbetReducer(state, resultMessage2, sendSelfMessage);
 
       state = {
         ...state,
@@ -731,14 +731,14 @@ describe('farsketchedReducer', () => {
         textId: textId2,
         promptId: 'real'
       });
-      state = farsketchedReducer(state, guess3, sendSelfMessage);
+      state = flibbertigibbetReducer(state, guess3, sendSelfMessage);
 
       const guess4 = createMessage<SubmitGuessMessage>(MessageType.SUBMIT_GUESS, {
         playerId: players[2],
         textId: textId2,
         promptId: 'real'
       });
-      state = farsketchedReducer(state, guess4, sendSelfMessage);
+      state = flibbertigibbetReducer(state, guess4, sendSelfMessage);
 
       // Verify accumulated scores:
       // player1: 5 points from first round + 5 points for correct guess in second round

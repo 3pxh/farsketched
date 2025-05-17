@@ -88,7 +88,7 @@ export default {
       <FixtureWrapper>
         <PeerProvider isHost={true}>
           <HostGameStateProvider<GameState> initialState={emptyState} debug={true}>
-            <HostContent gameConfig={{...gameConfig, room: 'EMPTY'}} />
+            <HostContent />
           </HostGameStateProvider>
         </PeerProvider>
       </FixtureWrapper>
@@ -105,7 +105,7 @@ export default {
       <FixtureWrapper>
         <PeerProvider isHost={true}>
           <HostGameStateProvider<GameState> initialState={stateWithPlayers} debug={true}>
-            <HostContent gameConfig={gameConfig} />
+            <HostContent />
           </HostGameStateProvider>
         </PeerProvider>
       </FixtureWrapper>
@@ -128,7 +128,7 @@ export default {
       <FixtureWrapper>
         <PeerProvider isHost={true}>
           <HostGameStateProvider<GameState> initialState={promptingState} debug={true}>
-            <HostContent gameConfig={gameConfig} />
+            <HostContent />
           </HostGameStateProvider>
         </PeerProvider>
       </FixtureWrapper>
@@ -159,7 +159,7 @@ export default {
       <FixtureWrapper>
         <PeerProvider isHost={true}>
           <HostGameStateProvider<GameState> initialState={foolingState} debug={true}>
-            <HostContent gameConfig={gameConfig} />
+            <HostContent />
           </HostGameStateProvider>
         </PeerProvider>
       </FixtureWrapper>
@@ -190,7 +190,7 @@ export default {
       <FixtureWrapper>
         <PeerProvider isHost={true}>
           <HostGameStateProvider<GameState> initialState={guessingState} debug={true}>
-            <HostContent gameConfig={gameConfig} />
+            <HostContent />
           </HostGameStateProvider>
         </PeerProvider>
       </FixtureWrapper>
@@ -225,7 +225,7 @@ export default {
       <FixtureWrapper>
         <PeerProvider isHost={true}>
           <HostGameStateProvider<GameState> initialState={scoringState} debug={true}>
-            <HostContent gameConfig={gameConfig} />
+            <HostContent />
           </HostGameStateProvider>
         </PeerProvider>
       </FixtureWrapper>
@@ -261,7 +261,7 @@ export default {
       <FixtureWrapper>
         <PeerProvider isHost={true}>
           <HostGameStateProvider<GameState> initialState={gameOverState} debug={true}>
-            <HostContent gameConfig={gameConfig} />
+            <HostContent />
           </HostGameStateProvider>
         </PeerProvider>
       </FixtureWrapper>
