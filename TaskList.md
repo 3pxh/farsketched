@@ -6,6 +6,7 @@
 - [ ] send client crashes to host? (how?) for diagnosing
 - [ ] Add Narrator
 - [ ] change the peer context to allow subscribers to message routes, e.g. 'farsketched' -> farsketchedReducer as a callback (have 'game.xxx', 'global.gamestate', )? (we might want this if we begin sending narration messages to the client. no one but the peer context should be removing the messages, and it should only do it after furnishing them to all consumers)
+- [ ] Bug in players joining, repro for the current issue: join as a client and put in player info and hit join really quickly (this can happen before the host has established a listener to the client). Maybe look at https://github.com/3pxh/farsketched/commit/b67e27e0cac04a6c558ca3947596e0d6713da103#diff-c2e867840f0fe7e913feda06ee3bda37325a9f0a3acdbe7f81f30d60fd6848be (this change was breaking, no one could connect) More likely fix: look at where the host logs "Connection back to client" and have it send a ready message.
 
 ### Narrator notes
 - once we have arbitrary subscribers to peer context, we'll make a narrator provider
