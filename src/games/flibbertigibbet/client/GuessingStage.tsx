@@ -62,7 +62,7 @@ export function GuessingStage() {
   // Display a different message if the player is the creator of the text
   if (isTextCreator) {
     return (
-      <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="100vh" px={2}>
+      <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" height="100%" px={2}>
         <Paper elevation={3} sx={{ p: 3, width: '100%', maxWidth: 600, textAlign: 'center', bgcolor: 'rgba(255,255,255,0.8)' }}>
           <Typography variant="h5" fontWeight={600} gutterBottom>Guessing Stage</Typography>
           <Box mt={2} mb={2} display="flex" flexDirection="column" alignItems="center">
@@ -78,7 +78,7 @@ export function GuessingStage() {
 
   if (hasGuessed || hasSubmitted) {
     return (
-      <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="100vh" px={2}>
+      <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" height="100%" px={2}>
         <Paper elevation={3} sx={{ p: 3, width: '100%', maxWidth: 600, textAlign: 'center', bgcolor: 'rgba(255,255,255,0.8)' }}>
           <Typography variant="h5" fontWeight={600} gutterBottom>Guessing Stage</Typography>
           <Box mt={2} mb={2} display="flex" flexDirection="column" alignItems="center">
@@ -92,7 +92,7 @@ export function GuessingStage() {
   }
 
   return (
-    <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="100vh" px={2}>
+    <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" height="100%" px={2}>
       <Paper elevation={3} sx={{ p: 3, width: '100%', maxWidth: 600, textAlign: 'center', bgcolor: 'rgba(255,255,255,0.8)' }}>
         <Typography variant="h5" fontWeight={600} gutterBottom>Guessing Stage</Typography>
         <Box mt={2} mb={2} display="flex" flexDirection="column" alignItems="center">

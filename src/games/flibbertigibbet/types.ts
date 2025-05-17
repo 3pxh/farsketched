@@ -75,6 +75,10 @@ export interface Player {
     guessingTimerSeconds: number;   // Time for guessing stage (default: 20)
     scoringDisplaySeconds: number;  // Time to display scoring (default: 10)
     room: string;                   // Unique code for this game room
+    instructions: {
+      ai: string,                   // Instructions for the language model
+      human: string                 // Instructions for the human players 
+    };           
   }
   
   /**
@@ -109,7 +113,6 @@ export interface Player {
    * Complete game state on the host
    */
   export interface GameState {
-    config: GameConfig;
     stage: GameStage;
     players: Record<string, Player>;
     texts: Record<string, GeneratedText>;

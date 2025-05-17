@@ -7,6 +7,7 @@ import { AudioProvider } from './contexts/AudioProvider';
 import { ThemeProvider, createTheme, responsiveFontSizes } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { Game } from '@/types/games';
+import { Box } from '@mui/material';
 
 export const clientTheme = responsiveFontSizes(createTheme({
   typography: {
@@ -82,17 +83,42 @@ function ClientContent() {
   };
 
   return (
-    <main className="container">
-      {isConnected ? (
-        selectedGame ? (
-          renderGameComponent(selectedGame)
+    <Box
+      id="client-app-container"
+      sx={{
+        height: '100dvh', // dynamic viewport height for mobile browsers
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+      }}
+    >
+      <Box
+        id="client-app-content"
+        component="main"
+        sx={{
+          flex: 1,
+          overflow: 'auto',
+          WebkitOverflowScrolling: 'touch', // smooth scrolling on iOS
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
+        {isConnected ? (
+          selectedGame ? (
+            renderGameComponent(selectedGame)
+          ) : (
+            <div>No game selected</div>
+          )
         ) : (
-          <div>No game selected</div>
-        )
-      ) : (
-        <div className="connection-status">Connecting to host...</div>
-      )}
-    </main>
+          <div className="connection-status">Connecting to host...</div>
+        )}
+      </Box>
+    </Box>
   );
 }
 

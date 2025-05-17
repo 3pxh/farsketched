@@ -1,5 +1,5 @@
-import { useEffect, useMemo } from 'react';
-import { GameStage, GameConfig, GameMessage, GameState } from '../types';
+import { useEffect, useMemo, useState } from 'react';
+import { GameStage, GameMessage, GameState, GameConfig } from '../types';
 import { flibbertigibbetReducer, initialState } from '../reducer';
 import { HostLobby } from './HostLobby';
 import { usePeer } from '@/contexts/PeerContext';
@@ -10,7 +10,8 @@ import { FoolingStage, PromptingStage, GuessingStage, GameOverStage } from './in
 import { Paper, Box, ThemeProvider } from '@mui/material';
 import { createHostTheme } from '@/HostApp';
 
-const gameConfig: GameConfig = {
+// Default game configuration
+const DEFAULT_CONFIG: GameConfig = {
   maxPlayers: 10,
   minPlayers: 3,
   roundCount: 3,
@@ -18,14 +19,21 @@ const gameConfig: GameConfig = {
   foolingTimerSeconds: 45,
   guessingTimerSeconds: 20,
   scoringDisplaySeconds: 10,
-  room: ''
+  room: '',
+  instructions: {ai: '', human: ''}
 };
 
 export function HostContent() {
-  // Get synchronized game state from the context
+  const [config, setConfig] = useState<GameConfig>(DEFAULT_CONFIG);
   const { state: gameState, updateState } = useHostGameState<GameState>();
   const { messages, markRead, sendSelfMessage } = usePeer<GameMessage>();
 
+  const setInstructions = (instructions: {ai: string, human: string}) => {
+    setConfig(prevConfig => ({
+      ...prevConfig,
+      instructions
+    }));
+  };
 
   /*
   Message consumption by different components:
@@ -39,7 +47,7 @@ export function HostContent() {
     messages.forEach(msg => {
       try {
         console.log("HOST pre-reducer", msg, gameState)
-        const newState = flibbertigibbetReducer(gameState, msg, sendSelfMessage);
+        const newState = flibbertigibbetReducer(config, gameState, msg, sendSelfMessage);
         updateState(newState);
         console.log("HOST post-reducer", newState)
         markRead(msg);
@@ -47,15 +55,16 @@ export function HostContent() {
         console.error('Error processing game message:', error);
       }
     });
-  }, [messages, markRead, updateState]);
+  }, [messages, markRead, updateState, config]);
 
   const renderStage = () => {
     switch (gameState.stage) {
       case GameStage.LOBBY:
         return (
           <HostLobby
-            gameConfig={gameConfig}
             players={Object.values(gameState.players)}
+            setInstructions={setInstructions}
+            instructions={config.instructions}
           />
         );
       case GameStage.PROMPTING:

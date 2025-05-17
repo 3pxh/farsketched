@@ -11,24 +11,12 @@ import {
 } from './types';
 import { generateText } from '@/apis/textGeneration';
 
-// Default game configuration
-const DEFAULT_CONFIG: GameConfig = {
-  maxPlayers: 10,
-  minPlayers: 3,
-  roundCount: 3,
-  promptTimerSeconds: 45,
-  foolingTimerSeconds: 45,
-  guessingTimerSeconds: 20,
-  scoringDisplaySeconds: 10,
-  room: ''
-};
 
 // Helper function to generate timer ID
 const generateTimerId = (round: number, textIndex: number) => `timer-${round}-${textIndex}`;
 
 // Initial game state
 export const initialState: GameState = {
-  config: DEFAULT_CONFIG,
   stage: GameStage.LOBBY,
   players: {},
   texts: {},
@@ -158,6 +146,7 @@ export function calculateAchievements(
 }
 
 export function flibbertigibbetReducer(
+  config: GameConfig,
   state: GameState = initialState,
   message: GameMessage,
   sendSelfMessage: (msg: GameMessage) => void
@@ -214,14 +203,14 @@ export function flibbertigibbetReducer(
           timerId
         };
         sendSelfMessage(timerExpiredMessage);
-      }, state.config.promptTimerSeconds * 1000);
+      }, config.promptTimerSeconds * 1000);
 
       return {
         ...state,
         stage: GameStage.PROMPTING,
         timer: {
           startTime: now,
-          duration: state.config.promptTimerSeconds,
+          duration: config.promptTimerSeconds,
           isRunning: true,
           timeoutId,
           timerId
@@ -252,6 +241,7 @@ export function flibbertigibbetReducer(
       
       // Call the text generation API
       generateText({
+        instructions: config.instructions.ai,
         prompt: message.prompt,
       }).then(generatedText => {
         if (generatedText) {
@@ -300,7 +290,7 @@ export function flibbertigibbetReducer(
             timerId
           };
           sendSelfMessage(timerExpiredMessage);
-        }, state.config.foolingTimerSeconds * 1000);
+        }, config.foolingTimerSeconds * 1000);
 
         // Find a successful text or fall back to the earliest one
         const currentRoundTextIds = updatedRoundTexts[state.currentRound];
@@ -324,7 +314,7 @@ export function flibbertigibbetReducer(
           activeTextIndex: currentRoundTextIds.indexOf(selectedTextId),
           timer: {
             startTime: now,
-            duration: state.config.foolingTimerSeconds,
+            duration: config.foolingTimerSeconds,
             isRunning: true,
             timeoutId,
             timerId
@@ -380,7 +370,7 @@ export function flibbertigibbetReducer(
                   timerId
                 };
                 sendSelfMessage(timerExpiredMessage);
-              }, updatedState.config.foolingTimerSeconds * 1000);
+              }, config.foolingTimerSeconds * 1000);
 
               // Set the first successful text as active
               const activeText = {
@@ -396,7 +386,7 @@ export function flibbertigibbetReducer(
                 activeTextIndex: currentRoundTextIds.indexOf(successfulTexts[0]),
                 timer: {
                   startTime: now,
-                  duration: updatedState.config.foolingTimerSeconds,
+                  duration: config.foolingTimerSeconds,
                   isRunning: true,
                   timeoutId,
                   timerId
@@ -450,7 +440,7 @@ export function flibbertigibbetReducer(
             timerId
           };
           sendSelfMessage(timerExpiredMessage);
-        }, state.config.guessingTimerSeconds * 1000);
+        }, config.guessingTimerSeconds * 1000);
 
         return {
           ...state,
@@ -458,7 +448,7 @@ export function flibbertigibbetReducer(
           activeText: updatedActiveText,
           timer: {
             startTime: now,
-            duration: state.config.guessingTimerSeconds,
+            duration: config.guessingTimerSeconds,
             isRunning: true,
             timeoutId,
             timerId
@@ -552,7 +542,7 @@ export function flibbertigibbetReducer(
             timerId
           };
           sendSelfMessage(timerExpiredMessage);
-        }, state.config.scoringDisplaySeconds * 1000);
+        }, config.scoringDisplaySeconds * 1000);
 
         return {
           ...state,
@@ -562,7 +552,7 @@ export function flibbertigibbetReducer(
           players: updatedPlayers,
           timer: {
             startTime: now,
-            duration: state.config.scoringDisplaySeconds,
+            duration: config.scoringDisplaySeconds,
             isRunning: true,
             timeoutId,
             timerId
@@ -595,7 +585,7 @@ export function flibbertigibbetReducer(
             timerId
           };
           sendSelfMessage(timerExpiredMessage);
-        }, state.config.foolingTimerSeconds * 1000);
+        }, config.foolingTimerSeconds * 1000);
 
         // Find a completed text from the current round
         const currentRoundTextIds = state.roundTexts[state.currentRound] || [];
@@ -618,7 +608,7 @@ export function flibbertigibbetReducer(
           activeTextIndex: completedText ? currentRoundTextIds.indexOf(completedText) : 0,
           timer: {
             startTime: now,
-            duration: state.config.foolingTimerSeconds,
+            duration: config.foolingTimerSeconds,
             isRunning: true,
             timeoutId,
             timerId
@@ -639,14 +629,14 @@ export function flibbertigibbetReducer(
             timerId
           };
           sendSelfMessage(timerExpiredMessage);
-        }, state.config.guessingTimerSeconds * 1000);
+        }, config.guessingTimerSeconds * 1000);
 
         return {
           ...state,
           stage: GameStage.GUESSING,
           timer: {
             startTime: now,
-            duration: state.config.guessingTimerSeconds,
+            duration: config.guessingTimerSeconds,
             isRunning: true,
             timeoutId,
             timerId
@@ -667,7 +657,7 @@ export function flibbertigibbetReducer(
             timerId
           };
           sendSelfMessage(timerExpiredMessage);
-        }, state.config.scoringDisplaySeconds * 1000);
+        }, config.scoringDisplaySeconds * 1000);
 
         // Calculate scores for the guesses we have
         const updatedPlayers = { ...state.players };
@@ -718,7 +708,7 @@ export function flibbertigibbetReducer(
           players: updatedPlayers,
           timer: {
             startTime: now,
-            duration: state.config.scoringDisplaySeconds,
+            duration: config.scoringDisplaySeconds,
             isRunning: true,
             timeoutId,
             timerId
@@ -731,7 +721,7 @@ export function flibbertigibbetReducer(
         const currentRoundTextIds = state.roundTexts[state.currentRound] || [];
         const nextTextIndex = state.activeTextIndex + 1;
         const isLastTextInRound = nextTextIndex >= currentRoundTextIds.length;
-        const isLastRound = state.currentRound + 1 >= state.config.roundCount;
+        const isLastRound = state.currentRound + 1 >= config.roundCount;
 
         // If there are more texts in the current round, move to fooling stage
         if (!isLastTextInRound) {
@@ -747,7 +737,7 @@ export function flibbertigibbetReducer(
               timerId
             };
             sendSelfMessage(timerExpiredMessage);
-          }, state.config.foolingTimerSeconds * 1000);
+          }, config.foolingTimerSeconds * 1000);
 
           return {
             ...state,
@@ -760,7 +750,7 @@ export function flibbertigibbetReducer(
             activeTextIndex: nextTextIndex,
             timer: {
               startTime: now,
-              duration: state.config.foolingTimerSeconds,
+              duration: config.foolingTimerSeconds,
               isRunning: true,
               timeoutId,
               timerId
@@ -781,7 +771,7 @@ export function flibbertigibbetReducer(
               timerId
             };
             sendSelfMessage(timerExpiredMessage);
-          }, state.config.promptTimerSeconds * 1000);
+          }, config.promptTimerSeconds * 1000);
 
           return {
             ...state,
@@ -791,7 +781,7 @@ export function flibbertigibbetReducer(
             activeTextIndex: 0,
             timer: {
               startTime: now,
-              duration: state.config.promptTimerSeconds,
+              duration: config.promptTimerSeconds,
               isRunning: true,
               timeoutId,
               timerId
