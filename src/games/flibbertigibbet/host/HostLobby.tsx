@@ -31,7 +31,7 @@ const PRESET_INSTRUCTIONS = [
   {
     title: "Gisticle",
     summary: "Among the 5 best reasons to love a robot",
-    ai: "Write a list of 5 items of 'The 5 best <user request>' but do not repeat the topic itself.",
+    ai: "Write a list of 5 items of 'The 5 best <user request>' but do not repeat the topic itself and do not give a title to the list.",
     human: "The 5 best...",
   },
   {

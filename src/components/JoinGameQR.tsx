@@ -21,7 +21,9 @@ export const JoinGameQR = ({ peerId, gameName }: JoinGameQRProps) => {
 
   useEffect(() => {
     if (peerId) {
-      const baseUrl = 'http://localhost:8000';
+      const baseUrl = import.meta.env.MODE === 'production' 
+        ? 'https://farsketched.netlify.app'
+        : 'http://localhost:8000';
       const url = new URL('clientindex.html', baseUrl);
       url.searchParams.set('room', peerId);
       url.searchParams.set('game', gameName);
