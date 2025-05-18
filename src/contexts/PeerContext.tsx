@@ -51,7 +51,36 @@ export const PeerProvider = <T,>({ children, isHost, peerId: providedPeerId }: P
     const roomId = urlParams.get('room');
     const storedPeerId = localStorage.getItem(`peer_${roomId}`);
     console.log(`Stored peer ID for room ${roomId}: ${storedPeerId}`);
-    const newPeer = providedPeerId ? new Peer(providedPeerId) : (storedPeerId && !isHost) ? new Peer(storedPeerId) : new Peer();
+    const options = {
+      config: {
+        iceServers: [
+          {
+            urls: "stun:stun.relay.metered.ca:80",
+          },
+          {
+            urls: "turn:global.relay.metered.ca:80",
+            username: "c84a0eb7ee05e24ac07ce5ca",
+            credential: "QFdMnXTyxgWCH+Sf",
+          },
+          {
+            urls: "turn:global.relay.metered.ca:80?transport=tcp",
+            username: "c84a0eb7ee05e24ac07ce5ca",
+            credential: "QFdMnXTyxgWCH+Sf",
+          },
+          {
+            urls: "turn:global.relay.metered.ca:443",
+            username: "c84a0eb7ee05e24ac07ce5ca",
+            credential: "QFdMnXTyxgWCH+Sf",
+          },
+          {
+            urls: "turns:global.relay.metered.ca:443?transport=tcp",
+            username: "c84a0eb7ee05e24ac07ce5ca",
+            credential: "QFdMnXTyxgWCH+Sf",
+          },
+        ],
+      }
+    }
+    const newPeer = providedPeerId ? new Peer(providedPeerId, options) : (storedPeerId && !isHost) ? new Peer(storedPeerId, options) : new Peer(options);
     console.log("new peer", {id: newPeer.id, isHost, providedPeerId});
     newPeer.on('open', (id) => {
       setPeerId(id);
