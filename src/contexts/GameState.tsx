@@ -230,7 +230,6 @@ export function ClientGameStateProvider<T>({
   // Process incoming game state messages
   useEffect(() => {
     // Process only unread messages
-    
     messages.forEach(message => {
       try {
         // Skip messages we've already processed
@@ -252,7 +251,6 @@ export function ClientGameStateProvider<T>({
           logDebug('Received state patch from host', message.payload);
           
           setState(currentState => {
-            // Apply patch using deep merge with custom handling
             return applyPatch(currentState, message.payload);
           });
           
@@ -325,6 +323,16 @@ function deepDiff<T extends object>(oldObj: T, newObj: T): Partial<T> {
       return;
     }
     
+    // Special case for binary data (likely blobs/images)
+    // Just check equality and send reference if different
+    if (oldValue instanceof Blob || newValue instanceof Blob ||
+        (ArrayBuffer.isView(oldValue) || ArrayBuffer.isView(newValue))) {
+      if (oldValue !== newValue) {
+        result[typedKey] = newValue;
+      }
+      return;
+    }
+    
     // Recursively diff objects (but not arrays, which are replaced entirely)
     if (_.isPlainObject(oldValue) && _.isPlainObject(newValue)) {
       const nestedDiff = deepDiff(oldValue as object, newValue as object);
@@ -338,8 +346,6 @@ function deepDiff<T extends object>(oldObj: T, newObj: T): Partial<T> {
   });
   
   // Detect deletions - properties in old object that aren't in new object
-  // Note: For most game state sync cases, we typically don't sync deletions separately
-  // as the full object assignment will handle this, but included for completeness
   Object.keys(oldObj).forEach(key => {
     const typedKey = key as keyof T;
     if (!(typedKey in newObj) && result[typedKey] === undefined) {
@@ -351,12 +357,12 @@ function deepDiff<T extends object>(oldObj: T, newObj: T): Partial<T> {
   return result;
 }
 
-// Helper function to apply a patch to the current state
 function applyPatch<T>(currentState: T, patch: Partial<T>): T {
-  // Create a deep clone of the current state to avoid mutation
-  const result = _.cloneDeep(currentState);
+  // Create a shallow clone of the top level without cloning binary data
+  // We suspect this might help performance
+  const result = { ...currentState };
   
-  // Apply each patch property, with special handling for deep updates
+  // Apply each patch property
   Object.keys(patch).forEach(key => {
     const typedKey = key as keyof T;
     const patchValue = patch[typedKey];
@@ -369,11 +375,20 @@ function applyPatch<T>(currentState: T, patch: Partial<T>): T {
     
     const currentValue = result[typedKey];
     
+    // Special case for binary data - use direct reference assignment
+    // This doesn't break things. I'm also not convinced it does anything given the same assignment
+    // to non-plain-objects below.
+    // if (patchValue instanceof Blob || 
+    //     ArrayBuffer.isView(patchValue) || 
+    //     (typeof patchValue === 'object' && patchValue !== null && 'byteLength' in patchValue)) {
+    //   (result as any)[typedKey] = patchValue;
+    //   return;
+    // }
+    
     // If both values are plain objects (not arrays), recursively merge
     if (_.isPlainObject(currentValue) && _.isPlainObject(patchValue)) {
       (result as any)[typedKey] = applyPatch(currentValue as any, patchValue as any);
     } else {
-      // Direct value assignment for everything else (primitives, arrays, etc.)
       (result as any)[typedKey] = patchValue;
     }
   });
