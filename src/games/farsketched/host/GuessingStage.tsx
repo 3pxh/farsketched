@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Box } from '@mui/material';
+import { Box, Paper, Typography } from '@mui/material';
+import { GameState } from '../types';
+import { useHostGameState } from '@/contexts/GameState';
 
 // Emoji animation component
 function EmojiAnimation() {
@@ -89,6 +91,22 @@ function EmojiAnimation() {
 }
 
 export function GuessingStage() {
+  const { state: gameState } = useHostGameState<GameState>();
+
+  if (!gameState.activeImage) return <Typography>No active image</Typography>;
+
+  const image = gameState.images[gameState.activeImage.imageId];
+  if (!image) return <Typography>Image not found</Typography>;
+
+  // Combine real prompt with fake prompts
+  const allPrompts = [
+    { id: 'real', text: image.prompt },
+    ...gameState.activeImage.fakePrompts.map(fp => ({
+      id: fp.id,
+      text: fp.text
+    }))
+  ].sort((a, b) => a.text.localeCompare(b.text)); // Sort alphabetically by prompt text
+
   return (
     <Box 
       sx={{
@@ -100,18 +118,61 @@ export function GuessingStage() {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        overflow: 'hidden' // Ensure emojis don't cause scrolling
+        gap: 4,
+        p: 2,
+        overflow: 'hidden'
       }}
     >
       <Box 
         sx={{ 
           fontSize: '2rem', 
-          marginY: 4,
           textAlign: 'center'
         }}
       >
         Players are making their guesses...
       </Box>
+
+      <Box
+        component="img"
+        src={URL.createObjectURL(image.imageBlob)}
+        alt="Generated image for guessing"
+        sx={{
+          maxWidth: 1024,
+          maxHeight: '50vh',
+          width: 'auto',
+          height: 'auto',
+          objectFit: 'contain',
+          borderRadius: 2,
+          boxShadow: 2,
+        }}
+      />
+
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 2,
+          width: '100%',
+          maxWidth: 800,
+        }}
+      >
+        {allPrompts.map((prompt) => (
+          <Paper
+            key={prompt.id}
+            elevation={2}
+            sx={{
+              p: 2,
+              bgcolor: 'rgba(255,255,255,0.8)',
+              borderRadius: 2,
+            }}
+          >
+            <Typography variant="h6" textAlign="center">
+              {prompt.text}
+            </Typography>
+          </Paper>
+        ))}
+      </Box>
+
       <EmojiAnimation />
     </Box>
   );

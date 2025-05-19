@@ -41,8 +41,8 @@ export function GuessingStage() {
         isPlayersOwn: fp.authorId === peerId
       }))
     ];
-    // Shuffle the prompts
-    return prompts.sort(() => Math.random() - 0.5);
+    // Sort prompts alphabetically
+    return prompts.sort((a, b) => a.text.localeCompare(b.text));
   }, [text.prompt, gameState.activeText!.fakePrompts, peerId]);
 
   const handleGuess = (promptId: string) => {
@@ -71,6 +71,27 @@ export function GuessingStage() {
           <Typography variant="h6" gutterBottom>This is your text!</Typography>
           <Typography variant="body1">Since you created this text, you don't need to guess the prompt.</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>Waiting for other players to make their guesses...</Typography>
+          
+          <Box mt={4}>
+            <Typography variant="subtitle1" gutterBottom>All prompts:</Typography>
+            <Box display="flex" flexDirection="column" gap={2}>
+              {allPrompts.map(prompt => (
+                <Paper
+                  key={prompt.id}
+                  elevation={1}
+                  sx={{
+                    p: 2,
+                    bgcolor: 'rgba(0, 0, 0, 0.04)',
+                    borderRadius: 2,
+                  }}
+                >
+                  <Typography variant="body1" textAlign="center">
+                    {prompt.text}
+                  </Typography>
+                </Paper>
+              ))}
+            </Box>
+          </Box>
         </Paper>
       </Box>
     );
