@@ -48,7 +48,7 @@ export function ClientContent() {
       >
         {renderStage()}
       </Box>
-      {gameState.timer.isRunning && (
+      {gameState.timer.isRunning && gameState.stage !== GameStage.GAME_OVER && (
         <Box 
           id="farsketched-timer-wrapper"
           sx={{

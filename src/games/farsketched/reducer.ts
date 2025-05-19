@@ -174,12 +174,13 @@ export function farsketchedReducer(
 
     // Lobby messages
     case MessageType.SET_PLAYER_INFO: {
+      const existingPlayer = state.players[message.playerId];
       const newPlayer: Player = {
         id: message.playerId,
         name: message.name,
         avatarUrl: message.avatarUrl,
         connected: true,
-        points: 0,
+        points: existingPlayer?.points || 0,
         lastSeen: Date.now()
       };
       console.log('New player:', newPlayer);
