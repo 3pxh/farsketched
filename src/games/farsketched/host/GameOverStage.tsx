@@ -6,6 +6,8 @@ import {
   Avatar,
   Stack,
 } from '@mui/material';
+import { useEffect, useState } from 'react';
+import EndCredits from '../../../components/EndCredits';
 
 interface GameOverStageProps {
   gameState: GameState;
@@ -26,6 +28,27 @@ const ACHIEVEMENT_DESCRIPTIONS: Record<AchievementType, string> = {
 };
 
 export function GameOverStage({ gameState }: GameOverStageProps) {
+  const [showCredits, setShowCredits] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowCredits(true);
+    }, 25000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (showCredits) {
+    const credits = [
+      { role: 'Game Design', name: 'george' },
+      { role: 'Development', name: 'george + benjamin' },
+      { role: 'Design + Usability', name: 'benjamin' },
+      { role: 'Testing', name: 'The Farsketched Community, i.e. all of you!' },
+    ];
+
+    return <EndCredits credits={credits} highlights={[]} />;
+  }
+
   // Calculate max points for score visualization
   const maxPoints = Math.max(...Object.values(gameState.players).map(p => p.points));
   

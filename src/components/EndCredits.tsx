@@ -33,7 +33,7 @@ const AnimatedContainer = styled(Box)(({ theme }) => ({
 const HighlightPaper = styled(Paper)(({ theme }) => ({
   margin: theme.spacing(2, 0),
   padding: theme.spacing(2),
-  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  backgroundColor: 'rgba(0, 0, 0, 0.05)',
   backdropFilter: 'blur(5px)',
   borderRadius: theme.spacing(1),
 }));
@@ -53,9 +53,9 @@ const EndCredits: React.FC<EndCreditsProps> = ({ credits, highlights, onComplete
         left: 0,
         width: '100%',
         height: '100vh',
-        background: 'linear-gradient(to bottom, #000000, #1a1a1a)',
+        background: 'linear-gradient(to bottom, #f5f5f5, #e0e0e0)',
         overflow: 'hidden',
-        color: 'white',
+        color: 'black',
       }}
     >
       <AnimatedContainer onAnimationEnd={handleAnimationEnd}>
@@ -65,7 +65,7 @@ const EndCredits: React.FC<EndCreditsProps> = ({ credits, highlights, onComplete
               variant="h2"
               sx={{
                 mb: 4,
-                color: 'gold',
+                color: '#1a237e',
                 textTransform: 'uppercase',
                 letterSpacing: 2,
               }}
@@ -76,7 +76,7 @@ const EndCredits: React.FC<EndCreditsProps> = ({ credits, highlights, onComplete
               <Box key={index} sx={{ my: 2 }}>
                 <Typography
                   component="span"
-                  sx={{ color: 'gold', mr: 1, fontWeight: 'bold' }}
+                  sx={{ color: '#1a237e', mr: 1, fontWeight: 'bold' }}
                 >
                   {credit.role}
                 </Typography>
@@ -85,12 +85,12 @@ const EndCredits: React.FC<EndCreditsProps> = ({ credits, highlights, onComplete
             ))}
           </Box>
 
-          <Box sx={{ mb: 8 }}>
+          {highlights.length > 0 && <Box sx={{ mb: 8 }}>
             <Typography
               variant="h2"
               sx={{
                 mb: 4,
-                color: 'gold',
+                color: '#1a237e',
                 textTransform: 'uppercase',
                 letterSpacing: 2,
               }}
@@ -102,12 +102,12 @@ const EndCredits: React.FC<EndCreditsProps> = ({ credits, highlights, onComplete
                 {highlight}
               </HighlightPaper>
             ))}
-          </Box>
+          </Box>}
 
           <Box sx={{ mt: 8 }}>
             <Typography
               variant="h5"
-              sx={{ color: 'gold', fontStyle: 'italic' }}
+              sx={{ color: '#1a237e', fontStyle: 'italic' }}
             >
               Thank you for playing!
             </Typography>
