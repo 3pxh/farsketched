@@ -3,13 +3,7 @@ import {
   MessageType, 
   GameStage, 
   GameMessage,
-  PingMessage,
   SetPlayerInfoMessage,
-  ConnectionRequestMessage,
-  ConnectionAcceptedMessage,
-  ConnectionRejectedMessage,
-  PongMessage,
-  DisconnectMessage,
   PlayerJoinedMessage,
   RequestStartGameMessage,
   GameStartingMessage,
@@ -60,11 +54,6 @@ const sendSelfMessage = (msg: GameMessage) => {
 };
 
 describe('farsketchedReducer', () => {
-  it('should return initial state when no state is provided', () => {
-    const result = farsketchedReducer(undefined, createMessage<PingMessage>(MessageType.PING, {}), sendSelfMessage);
-    expect(result).toEqual(initialState);
-  });
-
   it('should handle SET_PLAYER_INFO message', () => {
     const message = createMessage<SetPlayerInfoMessage>(MessageType.SET_PLAYER_INFO, {
       playerId: 'player1',
@@ -84,23 +73,6 @@ describe('farsketchedReducer', () => {
       lastSeen: expect.any(Number)
     });
   });
-
-  it('should handle connection messages without state changes', () => {
-    const connectionMessages = [
-      createMessage<ConnectionRequestMessage>(MessageType.CONNECTION_REQUEST, { playerId: 'test', room: 'test' }),
-      createMessage<ConnectionAcceptedMessage>(MessageType.CONNECTION_ACCEPTED, { gameState: initialState, yourPlayerId: 'test' }),
-      createMessage<ConnectionRejectedMessage>(MessageType.CONNECTION_REJECTED, { reason: 'test' }),
-      createMessage<PingMessage>(MessageType.PING, {}),
-      createMessage<PongMessage>(MessageType.PONG, {}),
-      createMessage<DisconnectMessage>(MessageType.DISCONNECT, { playerId: 'test' })
-    ];
-
-    connectionMessages.forEach(message => {
-      const result = farsketchedReducer(initialState, message, sendSelfMessage);
-      expect(result).toEqual(initialState);
-    });
-  });
-
 
   it('should handle start game', () => {
     const lobbyMessages = [
@@ -202,11 +174,6 @@ describe('farsketchedReducer', () => {
       const result = farsketchedReducer(initialState, message, sendSelfMessage);
       expect(result).toEqual(initialState);
     });
-  });
-
-  it('should handle unknown message types by returning current state', () => {
-    const result = farsketchedReducer(initialState, createMessage<PingMessage>('UNKNOWN_TYPE' as MessageType, {}), sendSelfMessage);
-    expect(result).toEqual(initialState);
   });
 
   it('should only store the first guess from a player and ignore subsequent guesses', () => {

@@ -137,14 +137,6 @@ export interface Player {
    * Types of messages that can be sent between host and clients
    */
   export enum MessageType {
-    // Connection messages
-    CONNECTION_REQUEST = 'connection_request',
-    CONNECTION_ACCEPTED = 'connection_accepted',
-    CONNECTION_REJECTED = 'connection_rejected',
-    PING = 'ping',
-    PONG = 'pong',
-    DISCONNECT = 'disconnect',
-    
     // Lobby messages
     SET_PLAYER_INFO = 'set_player_info',
     PLAYER_JOINED = 'player_joined',
@@ -174,56 +166,6 @@ export interface Player {
     type: MessageType;
     timestamp: number;
     messageId: string;    // Unique ID to prevent duplicate processing
-  }
-  
-  // ==================== Connection Messages ====================
-  
-  /**
-   * Client requests to join a game with a player ID
-   */
-  export interface ConnectionRequestMessage extends BaseMessage {
-    type: MessageType.CONNECTION_REQUEST;
-    playerId: string;     // UUID stored in local storage
-    room: string;     // Room code from URL parameter
-  }
-  
-  /**
-   * Host accepts a connection request
-   */
-  export interface ConnectionAcceptedMessage extends BaseMessage {
-    type: MessageType.CONNECTION_ACCEPTED;
-    gameState: GameState; // Current game state
-    yourPlayerId: string; // Confirming the player's ID
-  }
-  
-  /**
-   * Host rejects a connection request
-   */
-  export interface ConnectionRejectedMessage extends BaseMessage {
-    type: MessageType.CONNECTION_REJECTED;
-    reason: string;       // Why the connection was rejected
-  }
-  
-  /**
-   * Keep-alive ping message
-   */
-  export interface PingMessage extends BaseMessage {
-    type: MessageType.PING;
-  }
-  
-  /**
-   * Response to ping
-   */
-  export interface PongMessage extends BaseMessage {
-    type: MessageType.PONG;
-  }
-  
-  /**
-   * Notification that a client is disconnecting
-   */
-  export interface DisconnectMessage extends BaseMessage {
-    type: MessageType.DISCONNECT;
-    playerId: string;
   }
   
   // ==================== Lobby Messages ====================
@@ -355,12 +297,6 @@ export interface Player {
   // ==================== Union Type for All Messages ====================
   
   export type GameMessage =
-    | ConnectionRequestMessage
-    | ConnectionAcceptedMessage
-    | ConnectionRejectedMessage
-    | PingMessage
-    | PongMessage
-    | DisconnectMessage
     | SetPlayerInfoMessage
     | PlayerJoinedMessage
     | PlayerLeftMessage

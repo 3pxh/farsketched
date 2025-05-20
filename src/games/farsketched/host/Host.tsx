@@ -17,7 +17,7 @@ const gameConfig: GameConfig = {
   promptTimerSeconds: 45,
   foolingTimerSeconds: 45,
   guessingTimerSeconds: 20,
-  scoringDisplaySeconds: 10,
+  scoringDisplaySeconds: 20,
   room: ''
 };
 
