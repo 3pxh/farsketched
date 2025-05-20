@@ -3,26 +3,17 @@ import { Box, Typography } from '@mui/material';
 import EndCredits from '../EndCredits';
 
 const sampleCredits = [
-  { role: "Game Design", name: "Alex Chen" },
-  { role: "Development", name: "Sarah Johnson" },
-  { role: "Art Direction", name: "Marcus Wong" },
-  { role: "Sound Design", name: "Emma Rodriguez" },
+  { role: "Game Design", name: "grg" },
+  { role: "Development", name: "grg + bjamin" },
+  { role: "Design", name: "bjamin" },
+  { role: "Sound Design", name: "bonk" },
   { role: "Testing", name: "The Farsketched Community" }
 ];
 
 const sampleHighlights = [
-  <Typography variant="h6" sx={{ color: 'white' }}>
-    First Victory!
+  <Typography variant="h6" sx={{ color: 'black' }}>
+    woo
   </Typography>,
-  <Typography variant="h6" sx={{ color: 'white' }}>
-    Most Creative Drawing: "Abstract Dreams"
-  </Typography>,
-  <Typography variant="h6" sx={{ color: 'white' }}>
-    Best Team Collaboration
-  </Typography>,
-  <Typography variant="h6" sx={{ color: 'white' }}>
-    Fastest Round: 45 seconds
-  </Typography>
 ];
 
 const EndCreditsFixture: React.FC = () => {
