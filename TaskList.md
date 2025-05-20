@@ -1,8 +1,9 @@
 # Farsketched Implementation Task List
 
 ## On Deck
-- [ ] make scoring screen last longer on the leaderboard + include names
+- [ ] be able to go back to choose a game screen
 - [x?] client phone slow down (memory leak? reprocessing messages?)
+- [x] on reconnecting a client should get the whole game state and moved to the appropriate stage (hypothesis: the call to requestFullState() is happening before the client is connected) (this seems like it works but appeared to be a bug because of how laggy the client phone slow down issue was)
 - [ ] Add a fixture which makes the current player equal to the active player so we can verify what it looks like during guessing stage
 - [ ] do we want to put the gameconfig on gamestate? (mutating it outside the reducer feels wrong, but we may want the config on the client e.g. for showing the instructions to players in flibbertigibbet)
 - [ ] allow host to continue from game over stage (or maybe roll credits?)

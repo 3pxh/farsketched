@@ -152,15 +152,6 @@ export function flibbertigibbetReducer(
   sendSelfMessage: (msg: GameMessage) => void
 ): GameState {
   switch (message.type) {
-    // Connection messages
-    case MessageType.CONNECTION_REQUEST:
-    case MessageType.CONNECTION_ACCEPTED:
-    case MessageType.CONNECTION_REJECTED:
-    case MessageType.PING:
-    case MessageType.PONG:
-    case MessageType.DISCONNECT:
-      return state;
-
     // Lobby messages
     case MessageType.SET_PLAYER_INFO: {
       const existingPlayer = state.players[message.playerId];

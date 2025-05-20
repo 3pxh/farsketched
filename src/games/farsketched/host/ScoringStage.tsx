@@ -300,6 +300,7 @@ export function ScoringStage({ gameState }: { gameState: GameState }) {
                 maxWidth: '100%',
                 maxHeight: '100%',
                 objectFit: 'contain',
+                borderRadius: 2,
               }}
             />
           </Box>
@@ -383,6 +384,7 @@ export function ScoringStage({ gameState }: { gameState: GameState }) {
                       }}
                     >
                       {prompt.text}
+                      {showRealFake && <><br />- {creator.name}</>}
                     </Typography>
                     <Stack direction="row" spacing={-1} alignItems="center" sx={{ minWidth: 48 }}>
                       {guessers.length ? (

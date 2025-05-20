@@ -59,7 +59,7 @@ export function HostGameStateProvider<T extends object>({
   syncInterval = 50,
   debug = false
 }: HostGameStateProviderProps<T>) {
-  const { sendMessage, connectedPeers, messages } = usePeer<GameStateMessage<T>>();
+  const { sendMessage, connectedPeers, messages, markRead } = usePeer<GameStateMessage<T>>();
   const [state, setState] = useState<T>(initialState);
   const [version, setVersion] = useState(0);
   const previousStateRef = useRef<T>(_.cloneDeep(initialState));
@@ -105,6 +105,7 @@ export function HostGameStateProvider<T extends object>({
         if (message.type === GameStateMessageType.REQUEST_FULL_STATE) {
           logDebug('Received request for full state from client');
           broadcastFullState();
+          markRead(message);
         }
       } catch (error) {
         // Not a JSON message or not relevant to game state
@@ -193,12 +194,11 @@ export function ClientGameStateProvider<T>({
   initialState,
   debug = false
 }: ClientGameStateProviderProps<T>) {
-  const { sendMessage, isConnected, messages } = usePeer<GameStateMessage<T>>();
+  const { sendMessage, isConnected, messages, markRead } = usePeer<GameStateMessage<T>>();
   const [state, setState] = useState<T>(initialState);
   const [isReady, setIsReady] = useState(false);
   const [version, setVersion] = useState(0);
   const [lastSyncTimestamp, setLastSyncTimestamp] = useState<number | null>(null);
-  const processedMessages = useRef<Set<string>>(new Set());
 
   // Log if debug is enabled
   const logDebug = (message: string, ...args: any[]) => {
@@ -227,17 +227,9 @@ export function ClientGameStateProvider<T>({
     sendMessage(requestMessage);
   };
 
-  // Process incoming game state messages
   useEffect(() => {
-    // Process only unread messages
     messages.forEach(message => {
       try {
-        // Skip messages we've already processed
-        if (processedMessages.current.has(message.messageId)) {
-          return;
-        }
-        
-        // Handle game state messages
         if (message.type === GameStateMessageType.FULL_STATE) {
           logDebug('Received full state from host');
           
@@ -245,7 +237,7 @@ export function ClientGameStateProvider<T>({
           setVersion(message.version);
           setLastSyncTimestamp(message.timestamp);
           setIsReady(true);
-          processedMessages.current.add(message.messageId);
+          markRead(message);
         } 
         else if (message.type === GameStateMessageType.PATCH) {
           logDebug('Received state patch from host', message.payload);
@@ -257,7 +249,7 @@ export function ClientGameStateProvider<T>({
           setVersion(message.version);
           setLastSyncTimestamp(message.timestamp);
           setIsReady(true);
-          processedMessages.current.add(message.messageId);
+          markRead(message);
         }
       } catch (error) {
         // Not a JSON message or not relevant to game state

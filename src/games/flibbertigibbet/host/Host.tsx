@@ -18,7 +18,7 @@ const DEFAULT_CONFIG: GameConfig = {
   promptTimerSeconds: 45,
   foolingTimerSeconds: 45,
   guessingTimerSeconds: 20,
-  scoringDisplaySeconds: 10,
+  scoringDisplaySeconds: 20,
   room: '',
   instructions: {ai: '', human: ''}
 };
@@ -43,6 +43,8 @@ export function HostContent() {
   */
 
   // TODO: move this out; it will be used by all games
+  // Idea: We can useHostGameState<GameState>(reducerFunction) and let the hostGameStateProvider call the reducer function
+  // Then the provider can handle all the peer messages!
   useEffect(() => {
     messages.forEach(msg => {
       try {
