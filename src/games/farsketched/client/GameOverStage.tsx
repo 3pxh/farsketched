@@ -141,7 +141,7 @@ function ImageCard({ image, creator, onShare }: ImageCardProps) {
             minWidth: 0 // Enables text truncation
           }}>
             <Typography variant="body2" sx={{ fontWeight: 500 }}>
-            {image.prompt}
+              "{image.prompt}"
             </Typography>
             <Typography 
               variant="caption" 
@@ -246,9 +246,8 @@ export function GameOverStage() {
       // Check if the Web Share API is available
       if (navigator.share) {
         await navigator.share({
-          title: 'Farsketched Image',
-          text: `Check out this AI-generated image from Farsketched! The prompt was: "${image.prompt}"`,
           files: [imageFile],
+          text: `"${image.prompt}" - from Farsketched`,
         });
       } else {
         // Fallback for browsers that don't support Web Share API
@@ -273,11 +272,6 @@ export function GameOverStage() {
       <Typography variant="h4" gutterBottom align="center">
         Game Over!
       </Typography>
-      
-      <Typography variant="h6" gutterBottom align="center" sx={{ mb: 4 }}>
-        Gallery of All Images
-      </Typography>
-
       <Box 
         sx={{ 
           display: 'grid',
