@@ -1,5 +1,6 @@
 import { PeerProvider } from '@/contexts/PeerContext';
 import { HostGameStateProvider } from '@/contexts/GameState';
+import { GameProvider } from '@/contexts/GameContext';
 import { ThemeProvider } from '@mui/material';
 import { createHostTheme } from '@/HostApp';
 import { HostContent } from '../host/Host';
@@ -13,7 +14,9 @@ const fixtureTheme = createHostTheme();
 // Wrapper component to avoid repetition
 const FixtureWrapper = ({ children }: { children: React.ReactNode }) => (
   <ThemeProvider theme={fixtureTheme}>
-    {children}
+    <GameProvider>
+      {children}
+    </GameProvider>
   </ThemeProvider>
 );
 

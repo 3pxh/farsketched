@@ -1,12 +1,15 @@
-import { Player, GameConfig } from '../types';
+import { Player, GameConfig, MessageType } from '../types';
 import { usePeer } from '@/contexts/PeerContext';
+import { useGame } from '@/contexts/GameContext';
 import {
   Box,
   Typography,
   Paper,
   Avatar,
+  IconButton,
 } from '@mui/material';
 import { JoinGameQR } from '@/components/JoinGameQR';
+import CloseIcon from '@mui/icons-material/Close';
 
 interface HostLobbyProps {
   gameConfig: GameConfig;
@@ -14,11 +17,39 @@ interface HostLobbyProps {
 }
 
 export const HostLobby = ({ gameConfig, players }: HostLobbyProps) => {
-  const { peerId } = usePeer();
+  const { peerId, sendSelfMessage } = usePeer();
+  const { clearGame } = useGame();
+
+  const handleRemovePlayer = (playerId: string) => {
+    sendSelfMessage({
+      type: MessageType.PLAYER_LEFT,
+      playerId,
+      timestamp: Date.now(),
+      messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
+    });
+  };
 
   return (
     <Box sx={{ p: 3, height: '100%', maxWidth: '100vw', overflowX: 'auto' }}>
-      <h1>Farsketched</h1>
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+        <IconButton
+          onClick={clearGame}
+          aria-label="Close game"
+          color="primary"
+          size="large"
+          sx={{
+            mr: 2,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            backdropFilter: 'blur(4px)',
+            '&:hover': {
+              backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            },
+          }}
+        >
+          <CloseIcon />
+        </IconButton>
+        <h1>Farsketched</h1>
+      </Box>
       <Box sx={{ 
         display: 'grid', 
         gridTemplateColumns: { xs: '1fr', md: '2fr 1fr' },
@@ -66,8 +97,25 @@ export const HostLobby = ({ gameConfig, players }: HostLobbyProps) => {
                   bgcolor: 'rgba(255, 255, 255, 0.2)',
                   minWidth: 0,
                   overflow: 'hidden',
+                  position: 'relative',
                 }}
               >
+                <IconButton
+                  size="small"
+                  onClick={() => handleRemovePlayer(player.id)}
+                  sx={{
+                    position: 'absolute',
+                    top: 4,
+                    right: 4,
+                    color: 'rgba(0, 0, 0, 0.6)',
+                    '&:hover': {
+                      color: 'rgba(0, 0, 0, 0.8)',
+                      backgroundColor: 'rgba(0, 0, 0, 0.1)',
+                    },
+                  }}
+                >
+                  <CloseIcon fontSize="small" />
+                </IconButton>
                 <Avatar
                   src={player.avatarUrl}
                   alt={player.name}

@@ -5,8 +5,10 @@ import {
   Paper,
   Avatar,
   Stack,
+  Button,
 } from '@mui/material';
 import { useEffect, useState } from 'react';
+import { useGame } from '@/contexts/GameContext';
 import EndCredits from '../../../components/EndCredits';
 
 interface GameOverStageProps {
@@ -29,6 +31,7 @@ const ACHIEVEMENT_DESCRIPTIONS: Record<AchievementType, string> = {
 
 export function GameOverStage({ gameState }: GameOverStageProps) {
   const [showCredits, setShowCredits] = useState(false);
+  const { clearGame } = useGame();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -38,6 +41,26 @@ export function GameOverStage({ gameState }: GameOverStageProps) {
     return () => clearTimeout(timer);
   }, []);
 
+  const backButton = (
+    <Button
+      variant="contained"
+      onClick={clearGame}
+      sx={{
+        position: 'fixed',
+        bottom: 16,
+        right: 16,
+        zIndex: 1000,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        backdropFilter: 'blur(4px)',
+        '&:hover': {
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        },
+      }}
+    >
+      Back to main menu
+    </Button>
+  );
+
   if (showCredits) {
     const credits = [
       { role: 'Game Design', name: 'george' },
@@ -46,7 +69,38 @@ export function GameOverStage({ gameState }: GameOverStageProps) {
       { role: 'Testing', name: 'The Farsketched Community, i.e. all of you!' },
     ];
 
-    return <EndCredits credits={credits} highlights={[]} />;
+    // Create React nodes for each image
+    const highlights = Object.values(gameState.images).map(image => {
+      const imageUrl = URL.createObjectURL(image.imageBlob);
+      return (
+        <Box key={image.id} sx={{ textAlign: 'center' }}>
+          <img 
+            src={imageUrl} 
+            alt={image.prompt}
+            style={{ 
+              maxWidth: '100%', 
+              maxHeight: '300px', 
+              objectFit: 'contain',
+              borderRadius: '8px',
+              marginBottom: '8px'
+            }} 
+          />
+          <Typography variant="h6" sx={{ mb: 1 }}>
+            {image.prompt}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Created by {gameState.players[image.creatorId].name}
+          </Typography>
+        </Box>
+      );
+    });
+
+    return (
+      <>
+        <EndCredits credits={credits} highlights={highlights} />
+        {backButton}
+      </>
+    );
   }
 
   // Calculate max points for score visualization
@@ -149,6 +203,7 @@ export function GameOverStage({ gameState }: GameOverStageProps) {
           </Box>
         </Box>
       </Paper>
+      {backButton}
     </Box>
   );
 } 
