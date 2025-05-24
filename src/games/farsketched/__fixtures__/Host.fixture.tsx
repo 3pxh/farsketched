@@ -1,5 +1,6 @@
 import { PeerProvider } from '@/contexts/PeerContext';
 import { HostGameStateProvider } from '@/contexts/GameState';
+import { GameProvider } from '@/contexts/GameContext';
 import { ThemeProvider } from '@mui/material';
 import { createHostTheme } from '@/HostApp';
 import { HostContent } from '../host/Host';
@@ -13,7 +14,9 @@ const fixtureTheme = createHostTheme();
 // Wrapper component to avoid repetition
 const FixtureWrapper = ({ children }: { children: React.ReactNode }) => (
   <ThemeProvider theme={fixtureTheme}>
-    {children}
+    <GameProvider>
+      {children}
+    </GameProvider>
   </ThemeProvider>
 );
 
@@ -57,14 +60,34 @@ const gameConfig = {
   room: 'TEST123'
 };
 
-const mockImage = {
-  id: 'image1',
-  creatorId: 'player1',
-  prompt: 'A serene mountain landscape at sunset with a tranquil lake',
-  imageBlob: mockBlob,
-  roundIndex: 0,
-  timestamp: Date.now(),
-  status: 'complete' as const
+const mockImages = {
+  'image1': {
+    id: 'image1',
+    creatorId: 'player1',
+    prompt: 'A serene mountain landscape at sunset with a tranquil lake',
+    imageBlob: mockBlob,
+    roundIndex: 0,
+    timestamp: Date.now(),
+    status: 'complete' as const
+  },
+  'image2': {
+    id: 'image2',
+    creatorId: 'player2',
+    prompt: 'A futuristic cityscape with flying cars and neon lights',
+    imageBlob: mockBlob,
+    roundIndex: 1,
+    timestamp: Date.now(),
+    status: 'complete' as const
+  },
+  'image3': {
+    id: 'image3',
+    creatorId: 'player3',
+    prompt: 'A cozy cafe interior with steam rising from coffee cups',
+    imageBlob: mockBlob,
+    roundIndex: 2,
+    timestamp: Date.now(),
+    status: 'complete' as const
+  }
 };
 
 const fakePrompts: FakePrompt[] = [
@@ -142,7 +165,7 @@ export default {
       stage: GameStage.FOOLING,
       players: playersObj,
       currentRound: 0,
-      images: { 'image1': mockImage },
+      images: { 'image1': mockImages['image1'] },
       roundImages: [['image1']],
       activeImageIndex: 0,
       activeImage: {
@@ -173,7 +196,7 @@ export default {
       stage: GameStage.GUESSING,
       players: playersObj,
       currentRound: 0,
-      images: { 'image1': mockImage },
+      images: { 'image1': mockImages['image1'] },
       roundImages: [['image1']],
       activeImageIndex: 0,
       activeImage: {
@@ -209,7 +232,7 @@ export default {
         player3: { ...playersObj.player3, points: 2 }
       },
       currentRound: 0,
-      images: { 'image1': mockImage },
+      images: { 'image1': mockImages['image1'] },
       roundImages: [['image1']],
       activeImageIndex: 0,
       activeImage: {
@@ -245,8 +268,8 @@ export default {
         player3: { ...playersObj.player3, points: 8 }
       },
       currentRound: 2,
-      images: { 'image1': mockImage },
-      roundImages: [['image1'], ['image1'], ['image1']],
+      images: mockImages,
+      roundImages: [['image1'], ['image2'], ['image3']],
       activeImage: null,
       history: [{
         imageId: 'image1',

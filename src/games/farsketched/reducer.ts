@@ -16,10 +16,10 @@ const DEFAULT_CONFIG: GameConfig = {
   maxPlayers: 10,
   minPlayers: 3,
   roundCount: 3,
-  promptTimerSeconds: 45,
-  foolingTimerSeconds: 45,
-  guessingTimerSeconds: 20,
-  scoringDisplaySeconds: 10,
+  promptTimerSeconds: 60,
+  foolingTimerSeconds: 60,
+  guessingTimerSeconds: 45,
+  scoringDisplaySeconds: 20,
   room: ''
 };
 
@@ -310,7 +310,7 @@ export function farsketchedReducer(
             });
 
             // Check if all players have submitted image requests
-            const allPlayersSubmitted = Object.keys(updatedState.players).length === currentRoundImageIds.length;
+            const allPlayersSubmitted = Object.keys(updatedState.players).filter(id => updatedState.players[id].connected).length === currentRoundImageIds.length;
 
             // If all players have submitted and we have at least one successful image, move to fooling
             if (allPlayersSubmitted && successfulImages.length > 0) {
@@ -380,7 +380,7 @@ export function farsketchedReducer(
 
       // Check if all non-creator players have submitted fake prompts
       const imageCreatorId = state.images[state.activeImage.imageId].creatorId;
-      const nonCreatorPlayers = Object.keys(state.players).filter(id => id !== imageCreatorId);
+      const nonCreatorPlayers = Object.keys(state.players).filter(id => id !== imageCreatorId && state.players[id].connected);
       const allPlayersSubmitted = nonCreatorPlayers.length === updatedActiveImage.fakePrompts.length;
 
       if (allPlayersSubmitted) {
@@ -443,7 +443,7 @@ export function farsketchedReducer(
       const imageCreatorId = state.images[state.activeImage.imageId].creatorId;
       
       // Check if all non-creator players have submitted guesses
-      const nonCreatorPlayers = Object.keys(state.players).filter(id => id !== imageCreatorId);
+      const nonCreatorPlayers = Object.keys(state.players).filter(id => id !== imageCreatorId && state.players[id].connected);
       const allPlayersGuessed = nonCreatorPlayers.length === updatedActiveImage.guesses.length;
 
       if (allPlayersGuessed) {

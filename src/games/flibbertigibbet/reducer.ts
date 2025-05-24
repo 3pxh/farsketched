@@ -268,7 +268,7 @@ export function flibbertigibbetReducer(
         [textId]: pendingText
       };
 
-      const allPlayersSubmitted = Object.keys(state.players).length === updatedRoundTexts[state.currentRound].length;
+      const allPlayersSubmitted = Object.keys(state.players).filter(id => state.players[id].connected).length === updatedRoundTexts[state.currentRound].length;
 
       if (allPlayersSubmitted) {
         const now = Date.now();
@@ -347,7 +347,7 @@ export function flibbertigibbetReducer(
             });
 
             // Check if all players have submitted text requests
-            const allPlayersSubmitted = Object.keys(updatedState.players).length === currentRoundTextIds.length;
+            const allPlayersSubmitted = Object.keys(updatedState.players).filter(id => updatedState.players[id].connected).length === currentRoundTextIds.length;
 
             // If all players have submitted and we have at least one successful text, move to fooling
             if (allPlayersSubmitted && successfulTexts.length > 0) {
@@ -417,7 +417,7 @@ export function flibbertigibbetReducer(
 
       // Check if all non-creator players have submitted fake prompts
       const textCreatorId = state.texts[state.activeText.textId].creatorId;
-      const nonCreatorPlayers = Object.keys(state.players).filter(id => id !== textCreatorId);
+      const nonCreatorPlayers = Object.keys(state.players).filter(id => id !== textCreatorId && state.players[id].connected);
       const allPlayersSubmitted = nonCreatorPlayers.length === updatedActiveText.fakePrompts.length;
 
       if (allPlayersSubmitted) {
@@ -480,7 +480,7 @@ export function flibbertigibbetReducer(
       const textCreatorId = state.texts[state.activeText.textId].creatorId;
       
       // Check if all non-creator players have submitted guesses
-      const nonCreatorPlayers = Object.keys(state.players).filter(id => id !== textCreatorId);
+      const nonCreatorPlayers = Object.keys(state.players).filter(id => id !== textCreatorId && state.players[id].connected);
       const allPlayersGuessed = nonCreatorPlayers.length === updatedActiveText.guesses.length;
 
       if (allPlayersGuessed) {

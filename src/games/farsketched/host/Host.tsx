@@ -84,7 +84,7 @@ export function HostContent() {
       id="game-container"
     >
       {renderStage()}
-      {gameState.timer.isRunning && gameState.stage !== GameStage.SCORING && (
+      {gameState.timer.isRunning && gameState.stage !== GameStage.SCORING && gameState.stage !== GameStage.GAME_OVER && (
         <Paper 
           elevation={3}
           sx={{

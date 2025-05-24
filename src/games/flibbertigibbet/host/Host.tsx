@@ -15,9 +15,9 @@ const DEFAULT_CONFIG: GameConfig = {
   maxPlayers: 10,
   minPlayers: 3,
   roundCount: 3,
-  promptTimerSeconds: 45,
-  foolingTimerSeconds: 45,
-  guessingTimerSeconds: 20,
+  promptTimerSeconds: 60,
+  foolingTimerSeconds: 60,
+  guessingTimerSeconds: 45,
   scoringDisplaySeconds: 20,
   room: '',
   instructions: {ai: '', human: ''}
@@ -98,7 +98,7 @@ export function HostContent() {
       id="game-container"
     >
       {renderStage()}
-      {gameState.timer.isRunning && gameState.stage !== GameStage.SCORING && (
+      {gameState.timer.isRunning && gameState.stage !== GameStage.SCORING && gameState.stage !== GameStage.GAME_OVER && (
         <Paper 
           elevation={3}
           sx={{

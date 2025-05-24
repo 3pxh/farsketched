@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { initializeDatabase } from '@/apis/database';
 import { PeerProvider } from '@/contexts/PeerContext';
+import { GameProvider, useGame } from '@/contexts/GameContext';
 import Host from '@/games/farsketched/host/Host';
 import FlibbertigibbetHost from '@/games/flibbertigibbet/host/Host';
 import { Settings } from '@/components/Settings';
@@ -77,10 +78,10 @@ export const createHostTheme = () => {
   });
 };
 
-function HostApp() {
+function HostAppContent() {
   const [dbInitialized, setDbInitialized] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [selectedGame, setSelectedGame] = useState<Game | null>(null);
+  const { selectedGame, setGame } = useGame();
 
   const theme = useMemo(() => createHostTheme(), []);
 
@@ -142,7 +143,7 @@ function HostApp() {
             <SettingsIcon />
           </IconButton>
           {!selectedGame ? (
-            <GameSelection onGameSelect={setSelectedGame} />
+            <GameSelection onGameSelect={setGame} />
           ) : (
             renderGameComponent(selectedGame)
           )}
@@ -157,4 +158,10 @@ function HostApp() {
   );
 }
 
-export default HostApp; 
+export default function HostApp() {
+  return (
+    <GameProvider>
+      <HostAppContent />
+    </GameProvider>
+  );
+} 

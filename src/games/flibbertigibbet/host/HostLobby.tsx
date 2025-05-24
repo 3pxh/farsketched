@@ -1,5 +1,6 @@
-import { Player } from '../types';
+import { Player, MessageType } from '../types';
 import { usePeer } from '@/contexts/PeerContext';
+import { useGame } from '@/contexts/GameContext';
 import {
   Box,
   Typography,
@@ -49,11 +50,39 @@ interface HostLobbyProps {
 }
 
 export const HostLobby = ({ players, setInstructions, instructions }: HostLobbyProps) => {
-  const { peerId } = usePeer();
+  const { peerId, sendSelfMessage } = usePeer();
+  const { clearGame } = useGame();
+
+  const handleRemovePlayer = (playerId: string) => {
+    sendSelfMessage({
+      type: MessageType.PLAYER_LEFT,
+      playerId,
+      timestamp: Date.now(),
+      messageId: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
+    });
+  };
 
   return (
     <Box sx={{ p: 3, height: '100%', maxWidth: '100vw', overflowX: 'auto' }}>
-      <h1>Flibbertigibbet</h1>
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+        <IconButton
+          onClick={clearGame}
+          aria-label="Close game"
+          color="primary"
+          size="large"
+          sx={{
+            mr: 2,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            backdropFilter: 'blur(4px)',
+            '&:hover': {
+              backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            },
+          }}
+        >
+          <CloseIcon />
+        </IconButton>
+        <h1>Flibbertigibbet</h1>
+      </Box>
       
       {!instructions.ai && (
         <Stack 
@@ -244,8 +273,25 @@ export const HostLobby = ({ players, setInstructions, instructions }: HostLobbyP
                   bgcolor: 'rgba(255, 255, 255, 0.2)',
                   minWidth: 0,
                   overflow: 'hidden',
+                  position: 'relative',
                 }}
               >
+                <IconButton
+                  size="small"
+                  onClick={() => handleRemovePlayer(player.id)}
+                  sx={{
+                    position: 'absolute',
+                    top: 4,
+                    right: 4,
+                    color: 'rgba(0, 0, 0, 0.6)',
+                    '&:hover': {
+                      color: 'rgba(0, 0, 0, 0.8)',
+                      backgroundColor: 'rgba(0, 0, 0, 0.1)',
+                    },
+                  }}
+                >
+                  <CloseIcon fontSize="small" />
+                </IconButton>
                 <Avatar
                   src={player.avatarUrl}
                   alt={player.name}

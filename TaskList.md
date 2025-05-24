@@ -67,13 +67,10 @@
 - the image stays on the scoring screen
 - the prompt gets shared with the image on 'share', -from Farsketched
 - [x] the client stays on the game over screen even after the host disconnects
-- the images show after credits
-- a play again button that takes us back to the lobby
 - there was an AI player in the mix (from clifford)
-- there wasn't a timer on the game over screen
 - there was a _-^ button on the game over screen that pops up the score
 - there was a round score screen that showed who got what this round
-- there was more time on the scoring screen
+  - it feels like the leaderboard is the place to show this?
 - that the real prompt was better highlighted. 
 - we didn't have 'future master piece here'
 - [x] we didn't have 'gallery of all images'
@@ -91,7 +88,6 @@
 - the toast message disappeared after clicking copy url -> maybe just change the text in the button
 - players could ready up
   - host could start
-- the host could x people from the lobby
 - prompts were not all caps in the gussing stage OR WERE i vote as was written so shall we show
 - we made a componant that was avatar+name
 - we made a componant that was prompt + author
